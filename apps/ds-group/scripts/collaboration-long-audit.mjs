@@ -3,7 +3,8 @@ import {readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
-import {buildCollaborationCorpus} from './collaboration-long-corpus.mjs';
+import {isModelQuotaFailure} from '../src/model-failure.mjs';
+import {isContextOverflow} from '../vendor/ds-bot/src/host/context-failure.js';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 export function researchTraceEvidence(receipt,events) {
   const ids=new Set((receipt.toolReceipts||[]).map(t=>t.callId)),proof=[];
@@ -26,7 +27,7 @@ export function researchTraceEvidence(receipt,events) {
   return proof;
 }
 export async function auditRun(directory) {
-  const raw=await readFile(path.join(directory,'report.json'),'utf8'),report=JSON.parse(raw),corpus=buildCollaborationCorpus();
+  const raw=await readFile(path.join(directory,'report.json'),'utf8'),report=JSON.parse(raw),corpus=JSON.parse(await readFile(path.join(directory,'corpus-private.json'),'utf8'));
   const allEvents=(await readFile(path.join(directory,'host/events.jsonl'),'utf8')).split('\n').filter(Boolean).map(JSON.parse);
   const events=allEvents.filter(e=>e.type.startsWith('tool/'));
   let interventions=[];try{interventions=(await readFile(path.join(directory,'interventions.jsonl'),'utf8')).split('\n').filter(Boolean).map(JSON.parse);}catch(e){if(e.code!=='ENOENT')throw e;}
@@ -48,6 +49,15 @@ export async function auditRun(directory) {
   }
   const calls=(await readFile(path.join(directory,'host/calls.jsonl'),'utf8')).split('\n').filter(Boolean).map(JSON.parse);
   const ends=calls.filter(x=>x.event==='end'),ended=new Set(ends.map(x=>x.callId));
+  const runtimeFailures=report.attempts.filter(attempt=>attempt.receipt?.status!=='completed').map(attempt=>{
+    const receipt=attempt.receipt;
+    const turn=allEvents.find(event=>event.type==='turn/end'&&event.sessionId===receipt.sessionId
+      &&event.time>=Date.parse(receipt.startedAt)&&event.time<=Date.parse(receipt.finishedAt)&&event.data?.reason?.kind==='error');
+    const error=receipt.nativeFailure||turn?.data.reason.error;
+    return{round:attempt.round,requestId:attempt.requestId,receiptErrorCode:receipt.errorCode,
+      classification:isModelQuotaFailure(error)?'provider-quota':isContextOverflow(error)?'context-overflow':'unclassified',
+      evidence:error?{code:error.code,message:String(error.message||'').slice(0,4096),sessionId:receipt.sessionId,turn:turn?.data.turn,eventTime:turn?.time}:null};
+  });
   const replyOmissions=[];
   for(const row of report.rounds) {
     const receipt=report.attempts.find(x=>x.round===row.round)?.receipt;if(!receipt||!row.reply)continue;
@@ -69,7 +79,7 @@ export async function auditRun(directory) {
     }
   }
   const result={schemaVersion:1,at:new Date().toISOString(),rawReportSha256:sha(raw),completed:report.rounds.length,
-    rawStatus:report.status,rawFailures:report.failures,research,contractClarifications,replyOmissions,interventions,
+    rawStatus:report.status,rawFailures:report.failures,runtimeFailures,research,contractClarifications,replyOmissions,interventions,
     conversationReviewQueue:report.rounds.filter(row=>row.type==='chat'&&row.reply).map(row=>({round:row.round,
       prompt:corpus.steps[row.round-1].body,reply:row.reply,eventId:row.eventId,replyEventIds:row.replyEventIds,
       criteria:['Respond to this actual conversational turn and its language','Respect requests for brevity or no tasks','Keep personal attribution and scope; do not turn a passing mood into a durable preference'],status:'pending'})),

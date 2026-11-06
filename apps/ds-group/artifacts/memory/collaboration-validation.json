@@ -1,0 +1,574 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-06T15:20:26.595Z",
+  "sourceCommit": "0be542bd33ba3729725ab6a5e91363675e5a7e2d",
+  "sourceBoundary": "Product sources at 0be542b. Evidence/exporter and harness amendments recorded by exact hashes; main natural test loaded earlier generation commits, and the focused real run used 677ff02. This is not a model rerun of the final source tree.",
+  "moduleTests": {
+    "tests": 450,
+    "passed": 450,
+    "failed": 0,
+    "logSha256": "f002a262f637af4659b0183ac4d6ac18fded0e6ce359fe18aa7537e9dd138559"
+  },
+  "typecheck": {
+    "chat": true,
+    "admin": true
+  },
+  "build": {
+    "passed": true,
+    "logSha256": "e34821a76eef1cc372358c214388a0596e5e042681198104d2e8f98f0785cd2e",
+    "warnings": [
+      "Vite reports a pre-existing non-module theme.js script tag. Build succeeds."
+    ]
+  },
+  "mainRun": {
+    "status": "provider-blocked",
+    "coverage": {
+      "plannedMessages": 240,
+      "postedMessages": 208,
+      "unpostedMessages": 32,
+      "plannedBotRequests": 192,
+      "attemptedBotRequests": 166,
+      "deliveredBotReplies": 129,
+      "additionalNaturalMessages": 6,
+      "humanOnlyMessages": 42,
+      "quotaRejectedBotRequests": 33,
+      "contextOverflowBotRequests": 4,
+      "observedBotChatReplies": 15,
+      "types": {
+        "planning": 24,
+        "chat": 72,
+        "file": 42,
+        "conversation": 28,
+        "research": 9,
+        "code": 20,
+        "writing": 21,
+        "coordination": 19,
+        "revision": 5
+      },
+      "deliveredFiles": 61,
+      "plannedCompactions": 6,
+      "completedCompactions": 3,
+      "successfulPlannedRestarts": 0,
+      "recoveryRestarts": 4
+    },
+    "rawFailureRecords": 64,
+    "manualReviews": 28,
+    "unresolvedRegisteredCheckpoints": 0,
+    "modelIds": [
+      "opencode-go/deepseek-v4.1-flash"
+    ],
+    "complete": false
+  },
+  "focusedRuns": [
+    {
+      "run": "collaboration-fixes-HBsTzK",
+      "status": "completed-with-failures",
+      "rawStatus": "checks-passed-manual-review-pending",
+      "checks": 8,
+      "passed": 8,
+      "sourceCommit": "6354666ffad12345c3e7d7c0ad9977ff3004ad67"
+    },
+    {
+      "run": "collaboration-fixes-q65xXB",
+      "status": "completed-with-findings",
+      "rawStatus": "checks-passed-manual-review-pending",
+      "checks": 11,
+      "passed": 11,
+      "sourceCommit": "88e6b716d32248c4d8450db6562d62109d7bfae8"
+    },
+    {
+      "run": "collaboration-fixes-YXqRKh",
+      "status": "completed-with-findings",
+      "rawStatus": "checks-passed-manual-review-pending",
+      "checks": 12,
+      "passed": 12,
+      "sourceCommit": "a91a2483c29519f02a01e3b7dc35dc7adacc79ab"
+    },
+    {
+      "run": "collaboration-fixes-LrMreu",
+      "status": "targeted-checks-and-manual-review-passed",
+      "rawStatus": "checks-passed-manual-review-pending",
+      "checks": 14,
+      "passed": 14,
+      "sourceCommit": "677ff0207e3a74ef04175022f9d79364339027a4"
+    }
+  ],
+  "quotaPreflight": {
+    "at": "2026-11-06T15:07:28.832Z",
+    "generation": 6,
+    "sourceCommit": "e2471504956a43494bb83bea3425f459073861bf",
+    "startedAt": "2026-11-06T14:57:39.629Z",
+    "finishedAt": "2026-11-06T14:57:39.959Z",
+    "status": "provider-blocked",
+    "postedMessagesBefore": 208,
+    "postedMessagesAfter": 208,
+    "attemptsBefore": 166,
+    "attemptsAfter": 166,
+    "addedStreamRecords": 0,
+    "existingStreamRecords": 1320,
+    "callsSha256": "fc6f2ec56a4f83395867506bbbfcb2ce4ff02b87343f208fe6369eb22926b3a1",
+    "lastStreamFinishedAt": "2026-11-06T14:50:26.321Z",
+    "hostLogs": [
+      {
+        "name": "host-1.log",
+        "lastModified": "2026-11-06T13:43:48.372Z"
+      },
+      {
+        "name": "host-2.log",
+        "lastModified": "2026-11-06T13:55:56.849Z"
+      },
+      {
+        "name": "host-3.log",
+        "lastModified": "2026-11-06T14:31:21.550Z"
+      },
+      {
+        "name": "host-4.log",
+        "lastModified": "2026-11-06T14:41:29.458Z"
+      },
+      {
+        "name": "host-5.log",
+        "lastModified": "2026-11-06T14:43:05.296Z"
+      },
+      {
+        "name": "host-6.log",
+        "lastModified": "2026-11-06T14:50:24.935Z"
+      }
+    ],
+    "evidence": "Exact scenario rounds and attempts equal generation 5; no stream start timestamps or host log modifications during generation 6. No before-run byte snapshot of the calls file was captured."
+  },
+  "roomLabelVerification": {
+    "at": "2026-11-06T15:13:43.560Z",
+    "sourceCommit": "0be542bd33ba3729725ab6a5e91363675e5a7e2d",
+    "kind": "real-Core-Matrix-zero-model-UI-and-node-directory",
+    "oldCorePid": 41418,
+    "newCorePid": 72023,
+    "before": {
+      "uiLabels": [
+        {
+          "id": "@lin_a:collaboration-live.local",
+          "name": "林青",
+          "kind": "human"
+        },
+        {
+          "id": "@lin_b:collaboration-live.local",
+          "name": "林青",
+          "kind": "human"
+        }
+      ],
+      "nodeLabels": [
+        {
+          "id": "@lin_a:collaboration-live.local",
+          "name": "林青",
+          "kind": "human"
+        },
+        {
+          "id": "@lin_b:collaboration-live.local",
+          "name": "林青",
+          "kind": "human"
+        }
+      ]
+    },
+    "after": {
+      "uiLabels": [
+        {
+          "id": "@lin_a:collaboration-live.local",
+          "name": "青禾",
+          "kind": "human"
+        },
+        {
+          "id": "@lin_b:collaboration-live.local",
+          "name": "林青",
+          "kind": "human"
+        }
+      ],
+      "nodeLabels": [
+        {
+          "id": "@lin_a:collaboration-live.local",
+          "name": "青禾",
+          "kind": "human"
+        },
+        {
+          "id": "@lin_b:collaboration-live.local",
+          "name": "林青",
+          "kind": "human"
+        }
+      ]
+    },
+    "messagesBefore": [
+      {
+        "roomId": "!MUEy9yduQr7P1NfBVNvzRFTLnwxJk4eat8L6kptJ5kg",
+        "count": 66,
+        "sha256": "ffe166871a9a4331ecf056babf3696eee7df050baf33d7837b2761c64b6a00d5"
+      },
+      {
+        "roomId": "!6_v6Kw6LoSzdS_pgco349PU2NEiXiBQiDbYgQd5Iaxg",
+        "count": 152,
+        "sha256": "6562f7d438e40803b6a6f63f374c0feeb056241ab8e358e14995f58df5490558"
+      },
+      {
+        "roomId": "!wRbhBJIo9CrGMw6apwhX5jgCLT_28siIVisNUIRLA3g",
+        "count": 99,
+        "sha256": "0f153019ff27aeee187c84316cab7fd3774eb3f388bfae641e183fb1c9bd01d9"
+      },
+      {
+        "roomId": "!w550hQxArNLZ2OuYYv9m9a86N1D__d3ugK1xqVJmmys",
+        "count": 85,
+        "sha256": "d3502c7febd0abaebb36a61962a3d7b33ff2a00e59587702d89011e2f7eea8cc"
+      },
+      {
+        "roomId": "!kMbkwJH4LTmHl-_XOuzk9b0ZXYthFoM244JWmlOzE7Y",
+        "count": 88,
+        "sha256": "0a258cfb4749ab00b2f8e991ef21f37e36ec742e75739e8e79d81d4e3865ae4b"
+      }
+    ],
+    "messagesAfter": [
+      {
+        "roomId": "!MUEy9yduQr7P1NfBVNvzRFTLnwxJk4eat8L6kptJ5kg",
+        "count": 66,
+        "sha256": "ffe166871a9a4331ecf056babf3696eee7df050baf33d7837b2761c64b6a00d5"
+      },
+      {
+        "roomId": "!6_v6Kw6LoSzdS_pgco349PU2NEiXiBQiDbYgQd5Iaxg",
+        "count": 152,
+        "sha256": "6562f7d438e40803b6a6f63f374c0feeb056241ab8e358e14995f58df5490558"
+      },
+      {
+        "roomId": "!wRbhBJIo9CrGMw6apwhX5jgCLT_28siIVisNUIRLA3g",
+        "count": 99,
+        "sha256": "0f153019ff27aeee187c84316cab7fd3774eb3f388bfae641e183fb1c9bd01d9"
+      },
+      {
+        "roomId": "!w550hQxArNLZ2OuYYv9m9a86N1D__d3ugK1xqVJmmys",
+        "count": 85,
+        "sha256": "d3502c7febd0abaebb36a61962a3d7b33ff2a00e59587702d89011e2f7eea8cc"
+      },
+      {
+        "roomId": "!kMbkwJH4LTmHl-_XOuzk9b0ZXYthFoM244JWmlOzE7Y",
+        "count": 88,
+        "sha256": "0a258cfb4749ab00b2f8e991ef21f37e36ec742e75739e8e79d81d4e3865ae4b"
+      }
+    ],
+    "transcriptsUnchanged": true,
+    "callsSha256Before": "fc6f2ec56a4f83395867506bbbfcb2ce4ff02b87343f208fe6369eb22926b3a1",
+    "callsSha256After": "fc6f2ec56a4f83395867506bbbfcb2ce4ff02b87343f208fe6369eb22926b3a1",
+    "newModelCalls": 0,
+    "scope": "The DSH model host remains stopped. This verifies label propagation through actual Core and Matrix APIs, not model behavior after the rename."
+  },
+  "offlineSnapshot": {
+    "kind": "offline-read-only-copy",
+    "reviewFlushed": false,
+    "databaseIntegrity": {
+      "before": {
+        "knowledge.sqlite": "cc9a5f23d0862c9206e95a40f6d649fb6756eb3155684a072f7ffa0b31bb04f8",
+        "knowledge.sqlite-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "after": {
+        "knowledge.sqlite": "cc9a5f23d0862c9206e95a40f6d649fb6756eb3155684a072f7ffa0b31bb04f8",
+        "knowledge.sqlite-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "unchanged": true
+    },
+    "entries": 294,
+    "sourceCount": 642,
+    "pendingReviewSources": 71
+  },
+  "ui": {
+    "at": "2026-11-06T15:19:06.836Z",
+    "browser": "Codex in-app browser",
+    "url": "http://127.0.0.1:25320/?server=collaboration-live.local&roomId=!wRbhBJIo9CrGMw6apwhX5jgCLT_28siIVisNUIRLA3g&eventId=%24nUnNDVH9_477siJP-oY02w4rYCMECEbgmqOkVle3BrI",
+    "environment": "real Core and Synapse; native model host stopped at provider quota",
+    "screenshots": [
+      "collaboration-status.jpg",
+      "collaboration-files.jpg"
+    ],
+    "observed": [
+      "Observer channel shows 208 posted, 129 actual Bot replies and incomplete provider-blocked status",
+      "The room member list and conversation labels show 青禾 and 林青 as separate accounts",
+      "The actual delivered test-results.txt preview shows Node version, node --test, 19 passed tests and exit code 0"
+    ],
+    "scope": "The file preview is from natural round 145; it is not the product module test suite or a completed 240-message run. Current UI includes the post-run display-name fix. Tab retained for review."
+  },
+  "publicEvidenceChecks": {
+    "filesScanned": [
+      "collaboration-live.json",
+      "collaboration-corpus.json",
+      "collaboration-fixes.json",
+      "ui/collaboration-visible.json"
+    ],
+    "credentialPatternsFound": 0,
+    "scope": "Pattern checks plus review of selected fields; raw native logs and account profiles are excluded."
+  },
+  "artifactHashes": {
+    "collaboration-live.json": "d51c57bd08cb36844808f73ac233c5cd038b9416f59f2fcefbdcb6cd830342ea",
+    "collaboration-corpus.json": "60a6a91943d5bfba1e061176f384e1ff1488206708f743748b271e997d0c7250",
+    "collaboration-fixes.json": "f6edf5c3ea0564f294476056b052bdccf6daaee7def13403365d426105a6021b",
+    "ui/collaboration-status.jpg": "d513f17a66d0a436315902dc7e59ac2b741e0380aa6e13a27b61b765a0892c77",
+    "ui/collaboration-files.jpg": "6777c880ec87afbc8f2d7d1db809e881442554f6901a0d77688293263c041347",
+    "ui/collaboration-visible.json": "f9cb2b0fa6e8d3e4c0d7d76c9328f8132c66faa7e24e69a324c1ac4a1d0dafc0"
+  },
+  "sourceHashes": {
+    "dsh-connect/client.js": "7c4e035a44f364ecdd6aaae385881b8bda63b2e29395f2aa2e3357b361f9df7a",
+    "dsh-connect/controller.mjs": "000db660a7c8f46e0c80cbc68028eb21502fbe6f6b337c4941d7d547d540afb5",
+    "dsh-connect/index.mjs": "7f4b647c4996445dd99ad6b991eb0e3ef4a7c7278085ec748340b961205ea116",
+    "dsh-connect/models.mjs": "f1d94136996eb653ed264859f18171c12897adbbdf7d394dd264ccf44e619dc6",
+    "dsh-connect/native-bots.mjs": "d811d87e4d7914dadf6e5b823127090774e25c28d69a23608a346231cd12b073",
+    "dsh-connect/native-bridge.mjs": "a23f3a827ed2664f33e10ec5a3ea519f648bf2128215730fc3630e585c46d812",
+    "dsh-connect/native-connections.mjs": "e0d91be13087bbf4aa92ea2c3a043293f04ed4c94ab1963c0bba5e817c85b6a4",
+    "dsh-connect/native-team.mjs": "8e94bbd043dfb51d2694b9493d255afd840b2e27e8fa06a0f9f57d06aef7fceb",
+    "dsh-connect/processes.mjs": "888192ca883f55bff4738ec8c790faf666694873baed792dcc9faefeeed6f970",
+    "memory/native.mjs": "488dc3ed9ed6948c0a4065db89d5d37de0babbd254fafce88b0744666ad923d1",
+    "memory/ombre.mjs": "f5aadcb2e70609a4ae8b94a5a0db3f832d460a1b829b934c62bec54b7bffc882",
+    "memory/panel.mjs": "1cec6e67e2137a5a9c2895835663d4e45bf16ba0f757e2bfdcab2de71ab53f43",
+    "memory/review.mjs": "14b52bc7d772a52bf8faa76bfff10245183d036cef4f5027eaf3291b551ccd74",
+    "memory/service.mjs": "a6788af03b010bbfe69e6e882cfd2b748f8824faf3cec747c0a72cc14156e8d4",
+    "memory/store.mjs": "2d3beb52b957ca7afcf6fc565f6d3c578b8f91de421d3c376c1f607d6c5efee4",
+    "src/accounts.mjs": "18befa99631d08ecdb14ed445c3d72a4f0b80cb4eeef3b128c9633bce4f288a7",
+    "src/admin-auth.mjs": "88274e04d2163189d9564b1dcce6d795bc6f9c5d8cfcb5dd4c511f10731aa186",
+    "src/admin.mjs": "71c4d2b8fe1683a23105cafe1952e5c3f38ad1528cde55c34ab2860d2f78925a",
+    "src/bot-node.mjs": "ea32f2cf6d5f1caed67cf975cd896eaf88b62d1bccd82f514fa9b6852ccee6e9",
+    "src/bot-work-policy.mjs": "d0a13a65d6a876855ed0460987b65378c66d5ac375c58596b74aefe1f5d36a4d",
+    "src/bot-work.mjs": "c6090120cf4e445fb63a20f20b66a9719f3331b4a56f1df5da1a22b1fa97716c",
+    "src/budget.mjs": "e79680081ef02b9f7740276c73e717b367f5eb443bf69f82f3613a3c74d7cae2",
+    "src/collaboration.mjs": "ae208f4868258327ebe68a1dbb79f3a4cac0d0db8bb7602648bfccf63382a57a",
+    "src/core.mjs": "887d9791763d9ef1a460c117a681772abd7d3a9aded0c50b83a776eda8509bcd",
+    "src/delivery-policy.mjs": "e8eeaeead6b57b6a0f526225ab073cfdadc0cb7275e98f0ffd161b94f735b763",
+    "src/file-formats.mjs": "8eeb4f8e5784f25e698d8f2d66c81865d41be231e667476ac5e3171c007b7004",
+    "src/governance.mjs": "bca5ec0b29b90cb6ba48a79c26274c121381aded258ebd555ba6cb44e7ed83c1",
+    "src/http-json.mjs": "d8f94389771aa58a2bd4f267d00b2a363a8638a85bab601fe890e062e4f714de",
+    "src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+    "src/matrix-client.mjs": "d6629d5387f5e2ce7462c080ca5318ccd29bf48887855d502b10fb6ce63d4c58",
+    "src/media.mjs": "554c1e8f61e7193a5e258eb1e4cd19c84cb20a24e5f5f494cbeae772dc888ebd",
+    "src/mentions.mjs": "1984a2e352ea0d4e1d1f8ac117a36c52a54d65037492066de427990793333129",
+    "src/message-context.mjs": "3c001048cbea373eabc4479821de86c80f23229cadbf2bd2aec4dcf04391446b",
+    "src/model-config.mjs": "a66c902469bd7837733e14879c230393eb625fdd1aa343725119e1565bc228e3",
+    "src/model-failure.mjs": "7de54ae0874dd7f60bb62cb9b132f5fea1f248a8f23ff494a3e174da6ec7eb1b",
+    "src/native-bot-catalog.mjs": "71206f323de17906718a86742348a5a1903e51cfd165a26d3c278308dd146320",
+    "src/node-auth.mjs": "5eac06702c7e924d901b91d6b1722f3a5b2ec97c3df4880c00c7d1566281c755",
+    "src/node-delivery.mjs": "3133d4abfa0d56f33df86df456fe60a030fe7a8420ae80d16873a1fdecdb19fd",
+    "src/node-files.mjs": "4c4010ff5bd1cb87da5b0c7bfb04c88c4e87beb363ed5be995f12d94f0295615",
+    "src/node-request.mjs": "65e5136a074548d180d48768b22d46220f28a6b7556473bb68e3b13cb0ce0cc6",
+    "src/node-store.mjs": "775093aebf0ebdad5712ff8d0e9fa10078f578c731ed985202eba2d41eaa0a3d",
+    "src/node-work.mjs": "7a934c0f185ba398afc218d36151e8ad7fc3d9c1f7122772382e0bbb4d47a650",
+    "src/participant-labels.mjs": "d0bff13b2de8bce0fee6f0added493db4c1497982ae07f8f44a31438dcb13f11",
+    "src/paths.mjs": "109dc8ca1009cf9cf015c30b61feb4ae1f9f4632b6b39f9876d8eb163875e231",
+    "src/push.mjs": "97cd6507e07cd52aef532fffba7216f40b60903e3bb04be9e37d399b2744e5da",
+    "src/room-media.mjs": "2667e57561e34ba2da280a8e22a94f0bd42bc9dda5c8f5628077d399ab70a5cc",
+    "src/synapse-control.mjs": "8bd87495e6107d6266885dfd4e2ce15ee2ba7516e802e4230a44c792d3376e6c",
+    "src/tasks.mjs": "13074f2cc94ee88c428bd6fc66834c950f66dd067055df23137aa9280b3c8eec",
+    "src/verified-media.mjs": "773dc083de0f4675799baf685046c8e605ec1566f13234fb761fe1dda569dda1",
+    "src/web-mode.mjs": "794c666a835ccb5f20102bb746288a9649ab1fcc600cb8b184674ef681547185",
+    "tests/accounts.test.mjs": "5a673123804393ea116abc82b966a0c2913b93e3b07ca8169e316bcf01d82be2",
+    "tests/admin.browser.mjs": "eb83bef3e7aaf4131521e408aebca44481e665fa47ba1c6adfc8e2b58764c9f5",
+    "tests/budget.test.mjs": "2c3366197869e170faeb26960d31306ca0cc995e6d0527ffbfa25784fb4a0c8c",
+    "tests/central-identity.test.mjs": "3e839d7e92a438e23aa6a4180ae52f1d488c31794a9d3b9cb706267f302efbfb",
+    "tests/client-work-grants.test.mjs": "a54094d03b8bdd66b5a2038a415aa23d230b101e8383a19f7459906d9af241b3",
+    "tests/context-failure.test.mjs": "94e22ee1f5c2aa305149ca28f4f45a1c7ac84f9965a02e94b18cd034ba62e394",
+    "tests/core-delivery.test.mjs": "d1b596ac2c5e40c4d1db04bbf35169aea3f8acb608c9ef79a45affd3a28abed7",
+    "tests/core-ownership.test.mjs": "841d8469629d0ed78f8ee18af71aad21c9ee508a8c382d9e0f49bef8990c1e90",
+    "tests/core.test.mjs": "6bcaff6995bf1a1a30199d73965032c6bbe4901b0cc1f77a607305ec8ce1772d",
+    "tests/cross-server-bot-node.test.mjs": "468e191fa729c2f72842e918bc7f65b2c4609d89ccc8dde4f38d77691e41099c",
+    "tests/cross-server-bot-policy.test.mjs": "432611e4f3ec0f171203536b0f6a1fbaede39739df3f143e26889ba91b66d7d1",
+    "tests/delivery-policy.test.mjs": "58684a2150789dcdd0293c424c8ebf6935164f95b9127be67bdca5bd3c8d2d07",
+    "tests/dsh-connect-client.test.mjs": "a0890abf611f45b923daa26e19845322d6a134fa6697d89ffdc4e381a6528725",
+    "tests/dsh-connect.test.mjs": "e0fa366ff18a7444b1deb12d9ef71860767531d4250795896a59c1d623de7295",
+    "tests/file-formats.test.mjs": "a557cccfae8b881a31141679a48a0cee265a3d590390864a631d9e104e3c139d",
+    "tests/governance.test.mjs": "6188ae4fc8027cb2248dcd72f71292c979f1d0cc54273c78c8997ab306eedc7a",
+    "tests/helpers/home-session.mjs": "ceb0f3d045e7316bc938b87656c5420b1fd744ff52225c748c521499fd535f55",
+    "tests/i18n.test.mjs": "2dfb8778dd0e8df51d5aaf25bfdf8b5fbc61edcd2187d788c6a6ecf577c1dff1",
+    "tests/matrix-client.test.mjs": "79086f48f6039e7bc5b2cf1a228252184e6984e8e23e62513406a3faaca8b517",
+    "tests/media.test.mjs": "e2ec020664b986c83fb7291b823e5f7ce4690b9daf294744611d96a70dfc691e",
+    "tests/memory-review.test.mjs": "8fb023a7013115e25bd72b5f1c280ffc235b13a61bc947b2b9c96afd3f54467a",
+    "tests/memory.test.mjs": "26dad7361accdf458cfc63291c2956e64869220e7fdf6b0157ec1a7365717105",
+    "tests/mention-editor.browser.mjs": "2455f4f1fb9f339de9e16205244ece8a14363fd38d93a119e4d8c732cc6eb38f",
+    "tests/mention-editor.test.mjs": "fc36c80b671ecb128229127c241911ab0cd10d778390c524df8335f80eee3a28",
+    "tests/mentions-http.test.mjs": "dfc4276668258c4108f79c6c4e23a003ac4f7603acace1a31ad692326f9b1629",
+    "tests/mentions-push.test.mjs": "f4e0462833dcd2058a25c1e2db951ee502e78fa1cc9e0a28abf80d764b02a332",
+    "tests/mentions.test.mjs": "f42fdacf1c24114a99edf6509e66974ea94077db979dd2c866ebcab248db165c",
+    "tests/message-context.test.mjs": "3e0ceace65995dc50314893885b4da7b05cf59f180542e52dcd6e8268cf45684",
+    "tests/message-format.test.mjs": "7ac014e77c1ba12179046df94ad1fd52987203b21bfb613cda871d1db766b33a",
+    "tests/model-config.test.mjs": "689a22b0393b2f1813127fbb0dedbb5f6bcc45c5c73977004b8ce94e627b6651",
+    "tests/model-failure.test.mjs": "e80c8dfd37b4ad44873855b5ee4ff0f53e5a83295f60835f8679f215ddf624c9",
+    "tests/model-settings.browser.mjs": "aa52c5c8c106cbf7cebd934c3bf44bcdf67c16e421f626a9ee46d093563cbf52",
+    "tests/native-bridge.test.mjs": "f8b0e0018c7dad81082f1deda6fdab33087e9ed6a6e0957658aba64d3cba6645",
+    "tests/native-connections.test.mjs": "fcbb3026fdc9a98a724697a63575915c2ebb0f68f9479d84a9477d9c7dd4b394",
+    "tests/node-adapter.test.mjs": "c8167657d084500093e4cb170aef61a4ae00288ffb90fe1afd434dde91817bb8",
+    "tests/node-auth.test.mjs": "8b2ac9105a9b565b87395ee52063547041fb41cc73b4d6e729a663d737fc5806",
+    "tests/node-delivery-policy.test.mjs": "850c2108ac3073e09b21f8be83dd59d42bbc32b6ed1721a2ac6e954acb35200e",
+    "tests/node-delivery.test.mjs": "20929b32ad0d1f0dbdde14688663a79e49a949981400a80a1032d4f7921b7943",
+    "tests/node-file-work.test.mjs": "de3bb985712bc2bfb210db389af105ccc144b8e5cc587f37a987dc8eb43aaef3",
+    "tests/node-request.test.mjs": "0f5947467ae4d6b15e06d07ba36417160dfcc89921f63e810f9f748682a4d140",
+    "tests/node-roster.test.mjs": "b3b4eda7327b604bab0130160b9cffaf81189bbbd25271fce31e061ba6ed4675",
+    "tests/node-scope.test.mjs": "ba9424008d945dc1445d6ea13793eefa241bf9c10ea9ffe60c0de8fc43c218c2",
+    "tests/node-store.test.mjs": "4ab7ac46436400622c9b5b16d2ab977e44da2866499d9481995c6710bc9da1f4",
+    "tests/npm-cli.test.mjs": "e11abe57a96ea354c4fa0a6454b772d0b17416269889c025ec656c75f72f9b14",
+    "tests/npm-pack.test.mjs": "f6f08cbf16cd0afce34f465f7f75f521ca8cba66c1ceffd3540c50e1f89108a7",
+    "tests/participant-labels.test.mjs": "8eb83eaa3e748f87d489551c968f7952ede4e33900936a63e8d0dd6b158afc28",
+    "tests/push.test.mjs": "06880475cd1f8e2467895ff8cd8f2bd3addba7386126d5ba08a1e8e1e7d6fb3a",
+    "tests/react-app.browser.mjs": "7f4e8a688d8580a2abbb2e527471e79481847de1889824652a563ad20aba2adf",
+    "tests/react-artifacts.browser.mjs": "bd3c0a0da3165284aa78951de8508500ee102502e5be3cf66f534d2aefcba0f9",
+    "tests/react-auth.browser.mjs": "c1de3ca4e17b77f9bcb3ded6bbde46cf0662a0a1337c55d0c080fbce8664c072",
+    "tests/react-bots.browser.mjs": "0ca4414d01369185f2067607f33b6e8bbcfe4465427ada076213a79428ee7fe6",
+    "tests/react-chat.browser.mjs": "99a35251e79cc500cb225339d6886a79bf6467b5709159f0906840a06056ac67",
+    "tests/react-settings.browser.mjs": "d5614692366a8492ecebd08fe3c807423881bd148beb6e30d53450e403d69fe5",
+    "tests/release-metadata.test.mjs": "6342702417b5f08902bd41f3843de9b787bc058ed19ff547f24aafe6e95dd826",
+    "tests/release-package.test.mjs": "20e771a506a65c6df6cd763be3cc0f7915e8c0a20e58a78d4808b4e28c9c6935",
+    "tests/room-media.test.mjs": "33e7ec2260b63eea4f9eb97d8e6f0fc44521b8760d3b91683449ae2e5cd96da3",
+    "tests/runtime-bot-identity.test.mjs": "c64694464ec77fa64c84831625e3c693013dea96d2ada4e5a06f96d0cf57c63d",
+    "tests/runtime-config.test.mjs": "bab4029fd55321077496faa0dff0465e83ba438013f57088fa2109c43ca57026",
+    "tests/runtime-dependencies.test.mjs": "e4ab9034b3d31ee684297b966f47bcb977e2fe515b636533d5c78774a89d4bee",
+    "tests/runtime-routing.test.mjs": "3c8d5cd5d6602e86f12a0a6adcf17c6e57c0e7fb7375162d33ad1defd2163055",
+    "tests/server-admin.test.mjs": "fc03f45453007ab0915c661d9fe854a62c0f785f68c26e3458d0d08c668e5e50",
+    "tests/server-bootstrap.test.mjs": "93339e6d44e2cd2813122514d5c6e2c14a67403db739ae7d6b440eafac5e2a4f",
+    "tests/server-config.test.mjs": "ea3633b8ad36002d18707727970cf1fe3f7fcc270beae5664adf061b1a2edf46",
+    "tests/server-deploy.test.mjs": "6dbd51cc06cc2041eda291f187e810987dd5257a5babd2ef00cb071bbc183d23",
+    "tests/service-lifecycle.test.mjs": "a7192fadb1b5c8590875d0cfed54bb207c1331744abdc162c75c257a85f7693e",
+    "tests/spaces.test.mjs": "5c831c2d80cba302f483e26e7205441d531eef2b823a9040e12b7cb9be48e4fd",
+    "tests/storage-config.test.mjs": "886cffda65323ce422a666496a75ad6840d44ef93e50e7db322df35b9c6fc62d",
+    "tests/tasks-delivery.test.mjs": "e4a1b2856a1c9521844a052055220c0f7d864142d8146f123d90acf806cbe9e1",
+    "tests/tasks.test.mjs": "c2439d1917ded95000f95367ab6cffcb191e03050716af07df9275fdf897e3fd",
+    "tests/theme.test.mjs": "3a49452c1897bf51624699234198bdff82f077c9d96d0b0d010533528111b34f",
+    "tests/ui-controls.browser.mjs": "10037bf432f62dc6c8012a037e9f49e86f4e8de5a3daca93cae73c474b1b1626",
+    "tests/unified-client.browser.mjs": "9549ef2001cd9cbb057d2576b473f83a2cfb83b182101ec053439abf088a5a23",
+    "tests/unified-client.test.mjs": "c45553c9235740a8dec90c52184a578f90280a811f9fa9a66ca154f0dd8c23b1",
+    "tests/verified-media.test.mjs": "36e64b5a831c80ba2a12ed594d3a95bbbced9d7951e2a82a05673841a2653180",
+    "tests/web-mode.test.mjs": "e679951fe7866559136679ac6a3627ad91979107bd60d48c943ae0945de9c14e",
+    "tests/work-files.test.mjs": "c0385b236ae3af9c8cfcf97bcad906a8e3d98553692776517c94c0c318c03ebb",
+    "vendor/ds-bot/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "vendor/ds-bot/NOTICE": "a36724fba7a8855a5fab53a116dd995480a176141bb89d87aadd03ca2ba28c12",
+    "vendor/ds-bot/UPSTREAM.json": "ca34b43d22d1df295e22bf74281fefa6af51b63833c3ed626a9cb02e9e414ddf",
+    "vendor/ds-bot/client.js": "4419239b28fa0e4d2f573c367dc34fff66020bd1ac7905ee39cff2c4567a44a3",
+    "vendor/ds-bot/cordis.patch.yml": "ec776d258ddcc920dc8d7b743f180f87aec4e7fb559842dbfd51819a6f2ef8db",
+    "vendor/ds-bot/index.js": "d993aae9d99f2bdb7330a4f821636837c8491ad4b442f8b2f15c1c425dce1c8e",
+    "vendor/ds-bot/office.js": "9a8a97c0ea189d9c742fc6e7e93cb7a3cb117ec885aad9c5896232a10d3b4dea",
+    "vendor/ds-bot/package.json": "ef2c6d60d7d64d07188afa3562fe8ae19dc5763c0b1a03f4d8f477bf95448730",
+    "vendor/ds-bot/src/host/agents.js": "f91decef7e3737e31f3d04b015c48857c4d28baee40c248d8dc5cde0a667b547",
+    "vendor/ds-bot/src/host/approvals.js": "1067d1161bf9a61c8cf922942a5374f61c6104a8b79c393ef438758f97d5e838",
+    "vendor/ds-bot/src/host/avatar-library.js": "134e7e1f21e327b495c94775d72a5a977b98505bcf6178fe61532d4458fc3724",
+    "vendor/ds-bot/src/host/avatar.js": "fb3090994cc98e42222996a5a9e519447a18932b856d061a1d4c34cc64f5e141",
+    "vendor/ds-bot/src/host/browser-plugins.js": "9b80a265d4ca397660fd9ab32b2b735983045b1e1e341ebd54f170b7f1eb8102",
+    "vendor/ds-bot/src/host/browser.js": "c18d5ed420e92820de59b85592da6ecf4ac92a78f61cb9d89739d92bf740526b",
+    "vendor/ds-bot/src/host/browser/gate.js": "029955c6507fe5cc72aac0bf535c9b010a4b7df68d791793ded1cf4e04f2e04e",
+    "vendor/ds-bot/src/host/browser/loop.js": "c2598b25497f17d67b57b1b6c36eb26f09ec6d4c8646513c8926c2e3f0ccbe2a",
+    "vendor/ds-bot/src/host/browser/mount.js": "cc237a8af0946a0460201a238a90642aaba4c99139b1d1c8ea2cd9e04770920a",
+    "vendor/ds-bot/src/host/browser/refs.js": "5e15e36eb13170b7c9291974cdc393009a92205ca8bf1425dccb2d076410b729",
+    "vendor/ds-bot/src/host/browser/script.js": "d2a0b3b6a8c02eb756c140853c05a514f40c05e7ca5d66c37ae34b13047100ce",
+    "vendor/ds-bot/src/host/browser/session-model.js": "4ea5c71b7af6f08408ad7b66f66550ba5aafc5788beaca4bb1a010d3c6bd6e34",
+    "vendor/ds-bot/src/host/browser/session.js": "e4b6d0a4c1a5d9cd2be2cd30edf6a01f61729a0238733e153db73395f7cb427f",
+    "vendor/ds-bot/src/host/browser/task.js": "d5c6bf1663001fe211ba76d66fe46f510f649c4c146b42c6f6b7d2b127476697",
+    "vendor/ds-bot/src/host/btw.js": "c34936716465a0672d008c26f035702949495847cb2a323edd5d04187d7f841b",
+    "vendor/ds-bot/src/host/capabilities.js": "f1d641e0734c0fb88d4026523abc6d8005e0fde12da11f7599b3172ae3638ab5",
+    "vendor/ds-bot/src/host/channel.js": "42db7eb8894272361be18c7e467580d88ca78346860406091c7276d19f4e3853",
+    "vendor/ds-bot/src/host/chat-index.js": "6ad7efefa31d7aaaa0ecbde2a369a28c59a36383203ff72dc50e5e98e5a007e7",
+    "vendor/ds-bot/src/host/connectors.js": "95f8d052c68f6b53e969224041285c258ca97ab2acab56485051cdc9e71f1b29",
+    "vendor/ds-bot/src/host/constants.js": "e4f8c6538d2a42a9aed1c94980782934d561a012c33fbcb109aa74d56981a568",
+    "vendor/ds-bot/src/host/context-failure.js": "db071a1c2e7116b4ff46e15e94c5dbdecc81888937fd448ced20c2b82a433697",
+    "vendor/ds-bot/src/host/delivery.js": "bb7f5459ea3baf382b72f6cca35d001cf7ad67cd8ad50e649afa56f907ca45aa",
+    "vendor/ds-bot/src/host/diagnostics.js": "5cd07367dfde624ce7bb7e5c2f794b870c1d91a11c7ac2920128e548a241d2c4",
+    "vendor/ds-bot/src/host/dsh-update.js": "d7c87158fe375aa3b791b81236f38db6efe4235fe925d49026778a6aabf54062",
+    "vendor/ds-bot/src/host/feed.js": "7af9fecea98b21858c288bed17e4ecbe5289247ec79ddaa2b7071d84be496f6b",
+    "vendor/ds-bot/src/host/files.js": "fc9c59d303ccce130f735a4044951b8efb87ac87dab693128dda1d70eea9b2f2",
+    "vendor/ds-bot/src/host/folders.js": "6c90fe4f394a04c25929bd3334e2d5c9a7b6118f857dbbda9dc7297aef218f0b",
+    "vendor/ds-bot/src/host/goal-skills.js": "f1c98c793c1cf3286a40ee8cb87adb57c518c36d31564001c7a8abbdf7545a96",
+    "vendor/ds-bot/src/host/goals.js": "a88f7953e3afda5d9d834c50ed18533437e8e528366b20176e1ccd1a1b6edde7",
+    "vendor/ds-bot/src/host/groups.js": "2d8701ad88db093c776295332e736273adcd392515c3f6ccd09f364e571cd70b",
+    "vendor/ds-bot/src/host/handoffs.js": "7f105b9e98677a4bac48c2ebdf8fefaa0065acff39770b86b0b6cd1fc474a9d2",
+    "vendor/ds-bot/src/host/home-lock.js": "dc8fda9d62ba17e4fd2116a79af8af6a7f701593380694150f82c492056ab4b0",
+    "vendor/ds-bot/src/host/images.js": "898f9e83f268477c3b47179c0ca8460aad072ebb086a87c21fc1c7ed3b504e29",
+    "vendor/ds-bot/src/host/learning.js": "b1050a488b304687364c87e5109b424b567e7abadc72b021fac3badb4fa6a10b",
+    "vendor/ds-bot/src/host/links.js": "01fca4728c87728a3815e435d4f9445fe45f808b7a5e5c6ba2f92772bf38411e",
+    "vendor/ds-bot/src/host/memory-pending.js": "6fc08524bceae6d9c85811244c1236b228cfe32ad2c9ac7cbca2e08cd143cdc7",
+    "vendor/ds-bot/src/host/memory.js": "408a7cded56b205c2c8be9f740c98c9caca78628b1b155ed617715366184833e",
+    "vendor/ds-bot/src/host/models.js": "722a5f30278c159e5a092f179b67eb567045ceb369a0961204fc255d22614191",
+    "vendor/ds-bot/src/host/office-skills.js": "ae32ce2268063279a212654fb2dd424bc11b474602a07c53878b2c412ee24ec9",
+    "vendor/ds-bot/src/host/parts.js": "9127ce785949b220c01d0b33f1df744104a3cd96f62f56fc9907245f47553ce0",
+    "vendor/ds-bot/src/host/permissions.js": "53c5c404265410379cf1f8b32bb438cde30f2a8f60ca14950ad0f59cb3f3c4c9",
+    "vendor/ds-bot/src/host/privacy.js": "c293deb2fc07b5b7193311a170e5c3fc47fb268d51513c457607932aec11d759",
+    "vendor/ds-bot/src/host/prompt.js": "3561e1e10028367d55fb518c75723679a07805602fca8879c41907fbb9f838b9",
+    "vendor/ds-bot/src/host/providers.js": "cc8601058d617a63ebc0573b98bc41d44d7743d55d864a23ec52256ea3ed2d33",
+    "vendor/ds-bot/src/host/requests.js": "492d785294aa3b08db336fcb508b1224dbf39365ba685b8beb42ce11a225cd95",
+    "vendor/ds-bot/src/host/resume.js": "e932ad594fc3b6d1a5ea42aa932482b696b57b4887828826980598bc010db5a8",
+    "vendor/ds-bot/src/host/roster.js": "50c074138cb1da62b59df09c2d084a17f8ec1f78e05890457ef4ac45bd096947",
+    "vendor/ds-bot/src/host/schedules.js": "937d730c2bf98838501a3359b4115e7c786d4316af0dee7cb329d012a20f1818",
+    "vendor/ds-bot/src/host/secrets.js": "c506b7984abd5253831cfb70ae5ba609688cc0cdd25719984f76ded0b40498e0",
+    "vendor/ds-bot/src/host/side.js": "44d99fde9abbbc4664b35353392a4c88d21eab1642c3799c2756dad40b4e8d6e",
+    "vendor/ds-bot/src/host/steer.js": "6d0c8ee1a628ef24379ba36aaf818132bfdf8be34ad96e67547a1419cac2f837",
+    "vendor/ds-bot/src/host/steward.js": "d86e3ecbc2e424d2748600c97a363ba6bde70740d4335520e2b3b5b2c764a1d9",
+    "vendor/ds-bot/src/host/store.js": "b69b6ae55b5ce4c98cbc8d05245f1c116a76dad797c674677906cd48516b9f83",
+    "vendor/ds-bot/src/host/text.js": "2bb5f204061f12f1a648ccce62855f6a67ac0e72a1b3876a9a26937497ae4b6c",
+    "vendor/ds-bot/src/host/thinking.js": "6c6d36e327eff448450cf1729612c51d8f4c8cadb288e864375d1edcd0988da4",
+    "vendor/ds-bot/src/host/time-context.js": "117d3edacdebd494384445c80da4837df4583f5271cfe56f5a165ae5612cc1cd",
+    "vendor/ds-bot/src/host/tools.js": "9a666f950f2ed9a20bd1c241c675384040d8dbb51ef1635e6762b65dac77c2d6",
+    "vendor/ds-bot/src/host/turns.js": "de97fac656d2d1f9bf0d2ed912c327ce527eae751efcf8b7de137777aa17567b",
+    "vendor/ds-bot/src/host/update.js": "83e080c8820bf9f1d49d43ebc605e77988e4eab78135a8c8dcd4581585a4f7a3",
+    "vendor/ds-bot/src/host/usage.js": "d7fedee22de505eba2d6740b0164bf658fa713dcb568bfbe209e209d2b693bb2",
+    "vendor/ds-bot/src/office/check.js": "1f75c1559e3d8945bfc10a503e0f5dbee1fefc7be9e24641b3f2fe6323026a38",
+    "vendor/ds-bot/src/office/cli.js": "4f01cc4c8be1b8b3b9f2a5102824c0cec8a5aada0f18d7d8f20e695c3a970135",
+    "vendor/ds-bot/src/office/docx.js": "246885d81833784888055482e0b728e47803f69a36d8cb015b9bc7fc7aeb6897",
+    "vendor/ds-bot/src/office/package.js": "b48535bec5902512663e977829e70314af53f3c2b9d163683f04e13576744110",
+    "vendor/ds-bot/src/office/png.js": "0d9dff8c5fe6f48383b55d6aa277f308fc8b7febc314f8311392d1d11a00c420",
+    "vendor/ds-bot/src/office/pptx.js": "98e71922df66d8b9fcaa86c514aa206ca83a7653b38c73022ec8a4d8bcced29e",
+    "vendor/ds-bot/src/office/xlsx.js": "06b370b01819b91a37ac916712fae785df8a9e39499313306d702d1551b7bcbc",
+    "vendor/ds-bot/src/office/xml.js": "0a5de76e4ab0d2003ed6f52cd7c35436743e4b301624f13ff0fc7165bca18129",
+    "vendor/ds-bot/src/office/zip.js": "a97b713c21304337205458b6fac58e9493611fdb23c47c79ce59b401e7c55e45",
+    "vendor/ds-bot/src/shared/group-replies.js": "2cf548a84206c873fc84e1a4141a39c3338081f2bfae1e9de35b046ff4552a9e",
+    "vendor/ds-bot/src/shared/mentions.js": "a011d792da173dcf86f3a480ea8b9f8411528bf0b9a99db36a37e6b0e0aeecec",
+    "vendor/ds-bot/web-search.js": "9e38330353021a9bdc1503ee24d523b16b309b3f1ff688338caef48862e20265",
+    "web/src/App.tsx": "110f53f667f8a7ac3bf0b12b720059a3f51f208a08af1765ea4687be872e6de2",
+    "web/src/api.ts": "255f24923a98ed4a610314e0e8e51a0912b6ccd0e8421818e2f39bbc97691e9f",
+    "web/src/attachment-proof.ts": "f940beeee98f5399db15b96685248ff7c9d2d1a9a037eaf1658fb206d944cb61",
+    "web/src/bot-work-grants.ts": "b892efd09ed17680f2704133c9d27106a7b09dbf8ad6b6b2a8b84993158e4a51",
+    "web/src/client-config.ts": "d3be3961bb026b93f4e5765ddc54c8dd5a8d945d52be7e409e8e5c2118f6f948",
+    "web/src/components/AccountMenu.tsx": "6cd1092bec37a1e3dbe932464787075a3c5c99c47a4fd3e238c764b7f66cef6c",
+    "web/src/components/AppearanceControls.tsx": "75e2568bc12a0510b3d51966646870c5075f1778ee8af19719e5ddf122b9b21b",
+    "web/src/components/AttachmentView.tsx": "b0e29a51ec313beb65316e9986ba5a25390f914e538d1871640d0fdf07034588",
+    "web/src/components/AuthDialog.tsx": "29d253011360655ea82ee010cf8f943c7a945409d0d735e09851b664d8b4a987",
+    "web/src/components/BasicDialogs.tsx": "112758389a4800f19d058f72b42cb7842dc6a9aa8f03f20f477d6e014522adfa",
+    "web/src/components/BotWorkGrants.tsx": "78a9ac43d9fa358e34db8a878767ff3be9ed6a4d37fc6e6d40371dd978f48bdf",
+    "web/src/components/Composer.tsx": "41d04afd1e8be16f1685400dbd95078da6b3befa4cac1d3728efcb9af4c87c9d",
+    "web/src/components/CreateBotDialog.tsx": "5b2eed2b412ad570e06fdf47d1ef0536e4d23f4fa8ae23607cc2c1075b8e2958",
+    "web/src/components/GlobalBotsNav.tsx": "250ae4a4389d4941cb8f65bce611044f20bda356196b4df07ad42be8d5fe4aef",
+    "web/src/components/Icons.tsx": "ea6a478966642c692858f242732d76bc2379eb1ca4c132fba51bda5d00d97cec",
+    "web/src/components/InboxDialog.tsx": "fb11107e82de29f6d7f42ee3805b880ed23e00e9c8cfda6e30b0c3f2490e61c0",
+    "web/src/components/MyBotsDialog.tsx": "73485ad2d47986d10fce55fd9880560e9b874b8bf2070b59b2d6496a00600185",
+    "web/src/components/NotificationDialog.tsx": "715c3c1db6813acbe5c0fa08de8806791354c79359a92c886b1b81c5c0abaf9c",
+    "web/src/components/RolesDialog.tsx": "625080c1d2dd296ad5d58519f82054fe35327d02733c813ce05a3e27b692540b",
+    "web/src/components/SettingsDialog.tsx": "2b61780b85c4a9b4031a9af81fab502950bc60447a59851f5a8742a527827539",
+    "web/src/components/Shell.tsx": "b912641d95e9d602c61c36d9e37df4c3be31c538b867f500cd73b87f639c39cd",
+    "web/src/components/SpacesDialog.tsx": "8e43e6c22e4491ed11c4cf40699ec37635895a9fb71bd74dc1c8608de9eaf6b0",
+    "web/src/components/TaskTray.tsx": "3de39973a7341347e959e590bea0860a1681618b4ed6567712c38f57842b5fba",
+    "web/src/components/Timeline.tsx": "2c35f5b57c68601a986b635da2c4080dff741e6f2d5ebaa24ef1521c10696e7b",
+    "web/src/icons.ts": "6c54012983e2b382dcc94979dbeeb2ade7bd81a8b506e0df7a447502ae521bf5",
+    "web/src/identifiers.ts": "3dc64048ca9312cdfccc449477f7248da05cbf18e12eeae1c4395475ce0063c5",
+    "web/src/locale.ts": "d6002fd9e7d4722a975368772a64afdb0c94ef10a030cd2877637912a8e08c0c",
+    "web/src/locales/app.ts": "22d9f24d883bc87d0943cd4b90186efecdb7de626ee4635c8fb2a77179665939",
+    "web/src/locales/artifacts.ts": "aa4536642d84a337eee78608527da562d98d401a1c1411968e08e6715df88dae",
+    "web/src/locales/auth.ts": "58b4b0aeaed4d3f0d35320b810f0c70412159ccac7511b1fa38cf2bb4d8587eb",
+    "web/src/locales/bots.ts": "cbd241d6543546d8d24a5009ac734628747d8da05d56b1ea56d909e67864bf55",
+    "web/src/locales/chat.ts": "bb7fe5268f3339e640822518bdcea9fe743c2f824205351a22bcb60130c893b5",
+    "web/src/locales/dialogs.ts": "4a0abfcdaac5394011041a602e5fabdf765a3f90a7b32ad1d64cde2af02db7c9",
+    "web/src/locales/settings.ts": "7556c7022491cba4ac7f1ce06fff43f9b0c53dc6d306e0aa6ba695b00c2f5dc0",
+    "web/src/locales/shell.ts": "da74de331fa9c290bfaa82ff55ff93f6efcff8dcdfc34697bb319ecc3f5f6cd8",
+    "web/src/locales/spaces.ts": "a6f912c6474624ce78c644e2143df5b7c3492e4fc1023fc4dc5c999decbbc2a1",
+    "web/src/locales/work-grants.ts": "ad4018c4e6874feabd03f9828cbfad6d3605df39c8b0afe9115e5055f9fc339a",
+    "web/src/main.tsx": "594e2a650b1595a20f1254a476b9f6ab91bf27da3c01d40016269e0469eb7b47",
+    "web/src/message-format.ts": "baee60e931f42bbd0fb4e28b8494518afdaadb50e2ab6348b5bfe26dcd8efbd4",
+    "web/src/session.ts": "933a04906f4891ca8393f6025118fd94a464a21ea2fb6b2386c3e29017f8d328",
+    "web/src/spaces.ts": "658630d54b5468d4031d56b16a88bce443b19d9b4010a5f5dad086c62e1b7b39",
+    "web/src/types.ts": "e00c565fcade475ee4fb5b17316146c6b47118fd24af2ed4d23d5268fce6bb4e",
+    "tests/go-quota.test.mjs": "44f5136e1781b22dd980490d29e401ed945b7e307e7147cdc3a5ab07a389a532",
+    "scripts/collaboration-long-run.mjs": "b38b727165bf6e0f0b129331a373ab879dc47e21cea91f49cdcd515cf26fa388",
+    "scripts/collaboration-long-audit.mjs": "e4255b0fce11f24f8297c79b11fe9724934810ffd1b5a0b96767c1196cb043d0",
+    "scripts/collaboration-evidence.mjs": "b1a8f20d4f778fd4944eee3953a8449258d573b8260e2c52833c5139989acc0c",
+    "scripts/collaboration-fixes-evidence.mjs": "66d902612e468ab08cde1189ec056968df26ce17aaf57e2f1df29f1e2a605b59",
+    "scripts/collaboration-memory-snapshot.mjs": "c62867a49af16d38f2c5c6edd798284693999861e41268d24cc991a2a20651bb",
+    "scripts/go-quota.mjs": "fdbfce1e0adb37d80fe20044a7f5a528f6ad7a592a8718228566711fed291b95"
+  },
+  "limitations": [
+    "240-message natural scenario remains incomplete",
+    "33 quota-rejected requests have no model behavior coverage",
+    "Cross-Bot responsibility, language preferences and conversational quality still have failures",
+    "Automatic overflow recovery and planned restart fix need further real long-run verification",
+    "Full provider HTTP request counts, cost and complete-run embedding totals are unknown",
+    "One physical machine; no physical cross-machine or naturally elapsed multiday acceptance"
+  ]
+}

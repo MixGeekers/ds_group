@@ -39,7 +39,8 @@ report.generation=(prior?.generation||0)+1;
 let stopping=false;for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>{stopping=true;});
 const exists=async file=>{try{await access(file);return true;}catch{return false;}};
 async function save(){await savePrivateJson(reportPath,report);await savePrivateJson(path.join(directory,'progress.json'),{
-  status:report.status,completed:report.rounds.length,planned:corpus.steps.length,botReplies:report.rounds.filter(r=>r.botId).length,
+  status:report.status,completed:report.rounds.length,postedMessages:report.rounds.length,planned:corpus.steps.length,
+  attemptedBotRequests:report.rounds.filter(r=>r.botId).length,botReplies:report.rounds.filter(r=>r.replyEventIds?.length).length,
   current:report.current,failures:report.failures.length,manualReviewCount:report.manualReviews.length,at:new Date().toISOString(),browserUrl:env.coreUrl});}
 async function api(route,{person=owner,body,method=body===undefined?'GET':'POST'}={}) {
   const response=await fetch(env.coreUrl+route,{method,headers:{'content-type':'application/json',authorization:`Bearer ${person.accessToken}`},
@@ -90,6 +91,10 @@ async function downloadArtifacts(delivered,room,n) {
 }
 async function flush() {for(let attempt=0;;attempt++)try{return await host.api('flush');}catch(error){report.maintenance.push({type:'flush-error',at:new Date().toISOString(),error:error.message,attempt});await save();if(isModelQuotaFailure(error)||attempt>=3)throw error;await delay(10000*(attempt+1));}}
 async function snapshot(name) {await flush();const memory=await host.api('memory');await savePrivateJson(path.join(directory,`${name}.json`),memory);return memory;}
+async function checkAllowance() {
+  const quota=await readGoQuota(host.home);await savePrivateJson(path.join(directory,'provider-quota.json'),quota);
+  if(!quota.available)throw Object.assign(new Error(`Go allowance exhausted (${quota.blockedWindows.join(', ')}); provider reset: ${quota.resetAt}`),{code:'MODEL_QUOTA_EXCEEDED'});
+}
 async function sourceManifest(name) {
   const files=execFileSync('git',['ls-files','-z','src','dsh-connect','memory','vendor/ds-bot','scripts/collaboration-long-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs','scripts/memory-visible-host-plugin.mjs'],{cwd:packageRoot}).toString().split('\0').filter(Boolean);
   for(const file of ['scripts/collaboration-long-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs'])if(!files.includes(file))files.push(file);
@@ -102,8 +107,7 @@ try {
   await savePrivateJson(path.join(hostDir,'scenario-profile.json'),{instructions:scenarioInstructions});
   try{host.workspace=JSON.parse(await readFile(path.join(hostDir,'workspace.json'),'utf8')).path;host.installation=await resolveDsh();host.boot=Math.max(0,...(await readdir(hostDir)).map(name=>Number(/^host-(\d+)\.log$/.exec(name)?.[1]||0)));}
   catch(error){if(error.code!=='ENOENT')throw error;await host.prepare();}
-  const quota=await readGoQuota(host.home);await savePrivateJson(path.join(directory,'provider-quota.json'),quota);
-  if(!quota.available)throw Object.assign(new Error(`Go allowance exhausted (${quota.blockedWindows.join(', ')}); provider reset: ${quota.resetAt}`),{code:'MODEL_QUOTA_EXCEEDED'});
+  await checkAllowance();
   const harness=path.join(hostDir,'harness.mjs');await writeFile(harness,(await readFile(harness,'utf8')).replace('scripts/memory-host-plugin.mjs','scripts/memory-visible-host-plugin.mjs'));
   await host.start();
   const saveHost=()=>savePrivateJson(path.join(directory,'host-current.json'),{pid:host.child.pid,port:host.port,logfile:host.logfile,home:host.home});await saveHost();
@@ -164,6 +168,7 @@ try {
     if([48,88,128,168,208,224].includes(n+1)) {
       const index=[48,88,128,168,208,224].indexOf(n+1)%3;await flush();const result=await host.api('compact',{index});
       report.maintenance.push({type:'native-compaction',round:n+1,index,result});if(!result.compacted)report.failures.push({round:n+1,type:'compaction',result});await save();
+      if(!result.compacted)await checkAllowance();
     }
     if([80,160,208].includes(n+1)) {
       await announce(`已完成 ${n+1}/240 条，正在做一次宿主恢复检查；原对话、文件与 Bot 身份保留。`);
