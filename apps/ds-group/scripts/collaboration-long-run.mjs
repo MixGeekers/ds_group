@@ -17,6 +17,7 @@ import {isModelQuotaFailure} from '../src/model-failure.mjs';
 import {readGoQuota} from './go-quota.mjs';
 import {readCommandCodeCatalog} from './commandcode-preflight.mjs';
 import {ORIGINAL_TEST_MODEL} from './memory-test-model.mjs';
+import {pendingMaintenance} from './collaboration-maintenance.mjs';
 
 const env=JSON.parse(await readFile(path.join(packageRoot,'.local/collaboration-live-active.json'),'utf8'));
 assert.ok(process.argv.slice(2).every(arg=>arg==='--continuation'),'Only --continuation is supported');
@@ -120,7 +121,7 @@ async function checkAllowance() {
 }
 async function sourceManifest(name) {
   const files=execFileSync('git',['ls-files','-z','src','dsh-connect','memory','vendor/ds-bot','scripts/collaboration-long-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs','scripts/memory-visible-host-plugin.mjs'],{cwd:packageRoot}).toString().split('\0').filter(Boolean);
-  for(const file of ['scripts/collaboration-long-corpus.mjs','scripts/collaboration-continuation-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs','scripts/collaboration-long-audit.mjs','scripts/go-quota.mjs','scripts/commandcode-preflight.mjs','scripts/memory-test-model.mjs','scripts/memory-host.mjs','scripts/memory-host-plugin.mjs'])if(!files.includes(file))files.push(file);
+  for(const file of ['scripts/collaboration-long-corpus.mjs','scripts/collaboration-continuation-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs','scripts/collaboration-long-audit.mjs','scripts/collaboration-maintenance.mjs','scripts/go-quota.mjs','scripts/commandcode-preflight.mjs','scripts/memory-test-model.mjs','scripts/memory-host.mjs','scripts/memory-host-plugin.mjs'])if(!files.includes(file))files.push(file);
   const hashes={};for(const file of files)hashes[file]=sha(await readFile(path.join(packageRoot,file)));
   await savePrivateJson(path.join(directory,name),{at:new Date().toISOString(),hashes});
 }
@@ -151,6 +152,21 @@ try {
   if(parent)assert.deepEqual(rooms.map(room=>room.roomId),parent.roomIds,'Continuation must keep the original room histories');
   report.rooms=rooms;await savePrivateJson(path.join(directory,'rooms.json'),rooms);
   report.connections=await host.api('connect');
+  async function maintain(round, resumed=false) {
+    for(const task of pendingMaintenance(round,report.plannedMaintenance,report.maintenance)) {
+      if(task.type==='compact') {
+        await flush();const result=await host.api('compact',{index:task.index});
+        report.maintenance.push({type:'native-compaction',round,index:task.index,result,resumed,generation:report.generation});
+        if(!result.compacted)report.failures.push({round,type:'compaction',result});await save();
+        if(!result.compacted)await checkAllowance();
+      }else {
+        await announce(`${corpus.scenario}已投放 ${round}/${corpus.steps.length} 条，正在做一次宿主恢复检查；原对话、文件与 Bot 身份保留。`);
+        const memory=await snapshot(`memory-before-restart-${round}`);report.embeddingByBoot.push(memory.usage);await save();
+        await host.api('disconnect');await host.stop();await host.start();const rebound=await host.api('init');assert.deepEqual(rebound.map(b=>b.id),nativeBots.map(b=>b.id));await host.api('connect');await saveHost();
+        report.maintenance.push({type:'planned-restart',round,identitiesPreserved:true,resumed,generation:report.generation});await save();
+      }
+    }
+  }
   if(continuation&&!prior?.rounds?.length){const memory=await snapshot('memory-phase-start');report.embeddingByBoot.push(memory.usage);
     report.maintenance.push({type:'phase-start-recovery',identitiesPreserved:true,pendingReviewFlushed:true,parent:parent.run});await save();}
   if(prior?.rounds?.length){
@@ -158,6 +174,7 @@ try {
     const recovered=await snapshot(`memory-resume-${report.generation}`);
     report.maintenance.push({type:'recovery-restart',round:report.rounds.length,identitiesPreserved:true,pendingReviewFlushed:true,sourceCommit:report.sourceCommit});
     report.embeddingByBoot.push(recovered.usage);await save();
+    await maintain(report.rounds.length,true);
     await announce(`${corpus.scenario}已恢复，将从第 ${report.rounds.length+1}/${corpus.steps.length} 条继续。Bot 身份、原生会话、文件与既有记忆沿用；中断和修复版本单独记录，之前的失败保留。`);
   }else await announce(`${corpus.scenario}已就绪：${corpus.steps.length} 条参与者消息，包含 ${corpus.steps.filter(row=>row.type==='chat').length} 条闲聊；${report.plannedBotRequests} 次点名请求。${continuation?'这是独立续篇，前段的 208 条及失败保持原样。':'四个频道同时保留工作上下文。'}文件、研究、代码执行与聊天分别留证。`);
   report.status='ready';await save();console.log(JSON.stringify({stage:'ready',directory,url:env.coreUrl,rooms:rooms.map(r=>({name:r.name,roomId:r.roomId}))}));
@@ -196,22 +213,12 @@ try {
     row.finishedAt=new Date().toISOString();report.rounds.push(row);await save();
     console.log(JSON.stringify({completed:n+1,type:step.type,room:room.name,failures:report.failures.length}));
     if(isModelQuotaFailure(report.attempts.find(attempt=>attempt.round===n+1)?.receipt))throw Object.assign(new Error(`${MODEL} allowance exhausted; no later scenario messages were posted`),{code:'MODEL_QUOTA_EXCEEDED'});
-    if(compactAt.includes(n+1)) {
-      const index=compactAt.indexOf(n+1)%3;await flush();const result=await host.api('compact',{index});
-      report.maintenance.push({type:'native-compaction',round:n+1,index,result});if(!result.compacted)report.failures.push({round:n+1,type:'compaction',result});await save();
-      if(!result.compacted)await checkAllowance();
-    }
-    if(restartAt.includes(n+1)) {
-      await announce(`${corpus.scenario}已投放 ${n+1}/${corpus.steps.length} 条，正在做一次宿主恢复检查；原对话、文件与 Bot 身份保留。`);
-      const memory=await snapshot(`memory-before-restart-${n+1}`);report.embeddingByBoot.push(memory.usage);await save();
-      await host.api('disconnect');await host.stop();await host.start();const rebound=await host.api('init');assert.deepEqual(rebound.map(b=>b.id),nativeBots.map(b=>b.id));await host.api('connect');await saveHost();
-      report.maintenance.push({type:'planned-restart',round:n+1,identitiesPreserved:true});await save();
-    }
+    await maintain(n+1);
     if((n+1)%12===0)await announce(`本幕结束：已投放 ${n+1}/${corpus.steps.length} 条，实际 Bot 回复 ${report.rounds.filter(r=>r.botId&&r.replyEventIds?.length).length} 条。自动检查记录 ${report.failures.length} 项未通过；开放式聊天和交接另行逐条审阅。`);
   }
   report.finalMemory=await snapshot('memory-final');report.embeddingByBoot.push(report.finalMemory.usage);
   const calls=(await readFile(path.join(protocolDir,'calls.jsonl'),'utf8')).trim().split('\n').filter(Boolean).map(JSON.parse),ends=calls.filter(c=>c.event==='end'),ended=new Set(ends.map(c=>c.callId));
-  report.accounting={calls:ends.length,failedCalls:ends.filter(c=>c.status==='failed').length,unfinished:calls.filter(c=>c.event==='start'&&!ended.has(c.callId)).length,modelIds:[...new Set(calls.map(c=>c.model))],costComplete:false};
+  report.accounting={calls:ends.length,failedCalls:ends.filter(c=>c.status==='failed').length,outputLimitedCalls:ends.filter(c=>c.finish?.kind==='max-tokens').length,unfinished:calls.filter(c=>c.event==='start'&&!ended.has(c.callId)).length,modelIds:[...new Set(calls.map(c=>c.model))],costComplete:false};
   assert.deepEqual(report.accounting.modelIds,[MODEL]);
   if(report.rounds.length===corpus.steps.length)report.status=report.failures.length?'completed-with-failures':'completed-awaiting-review';
   await sourceManifest(`source-hashes-end-${report.generation}.json`);

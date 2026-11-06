@@ -5,7 +5,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { MemoryService } from './service.mjs';
 import { sha, sourceId } from './store.mjs';
 import { createMemoryPanel } from './panel.mjs';
-import { prepareReviewProposal } from './review.mjs';
+import { prepareReviewBatch, prepareReviewProposal } from './review.mjs';
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 import { memoryModelOptions } from './model-options.mjs';
 
@@ -80,7 +80,8 @@ export function installNativeMemory(rt) {
     for await (const chunk of ctx.llm.stream({ ...modelOptions,
       sessionId: tag.sessionId || rt.chatOf(bot.id), purpose: 'memory', system, messages, maxTokens: 8192,
       signal: AbortSignal.timeout(120000) })) assembled.push(chunk);
-    if (['error', 'aborted', 'max-tokens'].includes(assembled.finish.kind)) throw Object.assign(new Error(`MEMORY_MODEL_${assembled.finish.kind}: ${assembled.finish.failure?.code || ''} ${assembled.finish.failure?.message || ''}`), { code: assembled.finish.failure?.code });
+    if (['error', 'aborted', 'max-tokens'].includes(assembled.finish.kind)) throw Object.assign(new Error(`MEMORY_MODEL_${assembled.finish.kind}: ${assembled.finish.failure?.code || ''} ${assembled.finish.failure?.message || ''}`), {
+      code: assembled.finish.kind === 'max-tokens' ? 'MEMORY_OUTPUT_LIMIT' : assembled.finish.failure?.code });
     const reply = assembled.blocks().filter(block => block.type === 'text').map(block => block.text).join('\n');
     if (!reply.trim()) throw new Error('MEMORY_MODEL_EMPTY'); return reply;
   }
@@ -96,27 +97,37 @@ export function installNativeMemory(rt) {
     }
   }
   async function review(botId) {
-    const refs = (store.getMeta(`unreviewed:${botId}`) || []).slice(0, 8);
-    if (!refs.length || disposed) return;
+    const calibrated = store.getMeta(`review-batch-limit:${botId}`);
+    const batchLimit = Number.isInteger(calibrated) && calibrated >= 1 && calibrated <= 8 ? calibrated : 8;
+    const pending = (store.getMeta(`unreviewed:${botId}`) || []).slice(0, batchLimit);
+    if (!pending.length || disposed) return;
     const bot = rt.botOf(botId); if (!bot) return;
     await (await rt.resolveAgent(rt.chatOf(botId))).whenIdle();
-    const sources = refs.map(ref => store.source(ref.id, ref.revision)).filter(Boolean).map(source =>
-      source.authorKind === 'tool' && source.body.length > 6000 ? { ...source, body: source.body.slice(0, 6000), truncated: true } : source);
-    const relevant = new Map(store.list({ botId, history: true }).filter(row => row.status === 'active').slice(-40).map(row => [row.id, row]));
-    for (const source of sources) {
-      if (!source.body.trim()) continue;
-      const matches = await memory.recall(botId, { query: source.body.slice(0, 1800), limit: 10 },
-        { scope: source.roomId ? `room:${source.roomId}` : 'own' });
-      for (const row of matches.entries) relevant.set(row.id, store.get(row.id));
-    }
-    const known = [...relevant.values()].map(row => ({
-      id: row.id, text: row.text, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope, kind: row.kind, saidBy: row.saidBy, sourceRefs: row.sourceRefs,
-    }));
-    const changes = await prepareReviewProposal({ input: { botId, contacts: store.contacts(), sources, existingMemories: known },
-      generate: input => botShot(bot, REVIEW, stringify(input)),
-      onProposal: (result, attempt) => store.log('review-proposal', { botId, sourceRefs: refs, changes: result.changes, attempt }),
-      onInvalid: (error, attempt) => { memory.errors.push({ operation: 'review-validation', botId, attempt, error: error.message, at: Date.now() });
-        store.log('review-validation-error', { botId, sourceRefs: refs, attempt, error: error.message }); } });
+    const { refs, value: { sources, changes } } = await prepareReviewBatch({ refs: pending,
+      onOutputLimit: ({ error, attempted, next }) => {
+        store.setMeta(`review-batch-limit:${botId}`, next.length);
+        store.log('review-output-limit', { botId, sourceRefs: attempted, nextBatchSize: next.length, error: error.message });
+      },
+      prepare: async refs => {
+        const sources = refs.map(ref => store.source(ref.id, ref.revision)).filter(Boolean).map(source =>
+          source.authorKind === 'tool' && source.body.length > 6000 ? { ...source, body: source.body.slice(0, 6000), truncated: true } : source);
+        const relevant = new Map(store.list({ botId, history: true }).filter(row => row.status === 'active').slice(-40).map(row => [row.id, row]));
+        for (const source of sources) {
+          if (!source.body.trim()) continue;
+          const matches = await memory.recall(botId, { query: source.body.slice(0, 1800), limit: 10 },
+            { scope: source.roomId ? `room:${source.roomId}` : 'own' });
+          for (const row of matches.entries) relevant.set(row.id, store.get(row.id));
+        }
+        const known = [...relevant.values()].map(row => ({
+          id: row.id, text: row.text, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope, kind: row.kind, saidBy: row.saidBy, sourceRefs: row.sourceRefs,
+        }));
+        const changes = await prepareReviewProposal({ input: { botId, contacts: store.contacts(), sources, existingMemories: known },
+          generate: input => botShot(bot, REVIEW, stringify(input)),
+          onProposal: (result, attempt) => store.log('review-proposal', { botId, sourceRefs: refs, changes: result.changes, attempt }),
+          onInvalid: (error, attempt) => { memory.errors.push({ operation: 'review-validation', botId, attempt, error: error.message, at: Date.now() });
+            store.log('review-validation-error', { botId, sourceRefs: refs, attempt, error: error.message }); } });
+        return { sources, changes };
+      } });
     for (const change of changes) {
       const source = sources.find(source => source.id === change.sourceIds[0]);
       const context = { botId, scope: source.roomId ? `room:${source.roomId}` : 'own', authorId: source.authorId,

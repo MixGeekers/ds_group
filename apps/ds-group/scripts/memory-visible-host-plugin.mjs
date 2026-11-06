@@ -29,7 +29,7 @@ export async function apply(ctx, config) {
       if (chunk.type === 'error') row.failure = chunk.error || chunk.failure || { kind: 'error' };
       if (chunk.type === 'finish') row.finish = chunk.reason;
       yield chunk;
-    } row.status = row.failure || row.finish?.kind === 'error' ? 'failed' : 'completed';
+    } row.status = row.failure || row.finish?.kind === 'error' ? 'failed' : row.finish?.kind === 'max-tokens' ? 'truncated' : 'completed';
     } catch (error) { row.status = 'failed'; row.error = error.message; throw error; }
     finally { await log('calls.jsonl', { ...row, event: 'end', finishedAt: Date.now() }); }
   });

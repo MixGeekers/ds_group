@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prepareReviewProposal, validateReviewProposal } from '../memory/review.mjs';
+import { prepareReviewBatch, prepareReviewProposal, validateReviewProposal } from '../memory/review.mjs';
 
 const sources = [{ id: 'source_correction', eventId: '$changed', revision: 2 }];
 const existingMemories = [{ id: 'memory_old', sourceRefs: [{ id: 'source_original', revision: 1 }] }];
@@ -43,4 +43,45 @@ test('a scope relocation cannot partially fail after applying earlier changes', 
   }});
   assert.deepEqual(changes.map(x=>x.op),['add','forget']);
   assert.throws(()=>validateReviewProposal({changes:[good,good]},sources,[old]),/MEMORY_REVIEW_DUPLICATE_TARGET/);
+});
+
+test('truncated reviews shrink their source prefix without acknowledging the rest', async () => {
+  const refs = Array.from({length:8}, (_,i) => ({id:`source_${i}`,revision:i+1}));
+  const attempts=[], limits=[];
+  const result=await prepareReviewBatch({refs,
+    prepare:async batch=>{
+      attempts.push(batch.map(row=>row.id));
+      return prepareReviewProposal({input:{sources:batch,existingMemories:[]},generate:async()=>{
+        if(batch.length>2)throw Object.assign(new Error('incomplete JSON at output ceiling'),{code:'MEMORY_OUTPUT_LIMIT'});
+        return JSON.stringify({changes:batch.map(ref=>({op:'add',text:`fact ${ref.id}`,sourceIds:[ref.id]}))});
+      }});
+    },onOutputLimit:event=>limits.push(event.next.length)});
+  assert.deepEqual(attempts.map(rows=>rows.length),[8,4,2]);
+  assert.deepEqual(limits,[4,2]);
+  assert.deepEqual(result.refs,refs.slice(0,2));
+  assert.deepEqual(result.value.map(change=>change.sourceRefs[0]),refs.slice(0,2));
+  assert.equal(refs.length,8);
+  assert.deepEqual(refs.slice(result.refs.length).map(row=>row.id),['source_2','source_3','source_4','source_5','source_6','source_7']);
+});
+
+test('single-source truncation and unrelated errors stay failed without speculative retries', async () => {
+  for(const [refs,code] of [[sources,'MEMORY_OUTPUT_LIMIT'],[[...sources,...sources],'QUOTA'],[[...sources,...sources],'NETWORK']]) {
+    let calls=0;
+    await assert.rejects(prepareReviewBatch({refs,prepare:async()=>{calls++;throw Object.assign(new Error(code),{code});}}),error=>error.code===code);
+    assert.equal(calls,1);
+  }
+});
+
+test('a smaller successful prefix leaves later corrections for their own validated review', async () => {
+  const refs=[{id:'source_first',revision:1},{id:'source_fix',revision:3},{id:'source_tail',revision:1}];
+  let pending=refs.slice();const completed=[];
+  while(pending.length){
+    const result=await prepareReviewBatch({refs:pending,prepare:async batch=>{
+      if(batch.length>1)throw Object.assign(new Error('output ceiling'),{code:'MEMORY_OUTPUT_LIMIT'});
+      return validateReviewProposal({changes:batch.map(ref=>({op:'add',text:`fact ${ref.id}`,sourceIds:[ref.id]}))},batch);
+    }});
+    completed.push(...result.value.flatMap(change=>change.sourceRefs));
+    pending=pending.filter(ref=>!result.refs.some(done=>done.id===ref.id&&done.revision===ref.revision));
+  }
+  assert.deepEqual(completed,refs);
 });

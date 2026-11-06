@@ -83,9 +83,12 @@ export async function auditRun(directory) {
     conversationReviewQueue:report.rounds.filter(row=>row.type==='chat'&&row.reply).map(row=>({round:row.round,
       prompt:corpus.steps[row.round-1].body,reply:row.reply,eventId:row.eventId,replyEventIds:row.replyEventIds,
       criteria:['Respond to this actual conversational turn and its language','Respect requests for brevity or no tasks','Keep personal attribution and scope; do not turn a passing mood into a durable preference'],status:'pending'})),
-    accounting:{modelIds:[...new Set(calls.map(c=>c.model))],completedCalls:ends.length,failedCalls:ends.filter(c=>c.status==='failed').length,
+    accounting:{modelIds:[...new Set(calls.map(c=>c.model))],completedCalls:ends.length,endedCalls:ends.length,
+      successfulCalls:ends.filter(c=>c.status==='completed'&&c.finish?.kind!=='max-tokens').length,
+      failedCalls:ends.filter(c=>c.status==='failed').length,
+      outputLimitedCalls:ends.filter(c=>c.finish?.kind==='max-tokens').length,
       pendingCalls:calls.filter(c=>c.event==='start'&&!ended.has(c.callId)).length,costComplete:false,
-      unit:'Observed llm/stream lifecycles, including native short-circuit acknowledgements; not a count of independently verified provider HTTP requests.'},
+      unit:'Observed llm/stream lifecycles, including native short-circuit acknowledgements; not a count of independently verified provider HTTP requests. completedCalls is a legacy field for ended lifecycles, including failed or truncated ones; successfulCalls excludes these.'},
     artifacts:report.rounds.flatMap(r=>(r.artifacts||[]).map(f=>({round:r.round,name:f.name,size:f.size,sha256:f.sha256}))),
     manualReviews:report.manualReviews};
   await writeFile(path.join(directory,'independent-audit.json'),JSON.stringify(result,null,2),{mode:0o600});return result;

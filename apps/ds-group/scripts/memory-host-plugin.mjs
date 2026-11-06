@@ -32,7 +32,7 @@ export async function apply(ctx, config) {
         if (chunk.type === 'finish') record.finish = chunk.reason;
         yield chunk;
       }
-      record.status = record.failure || record.finish?.kind === 'error' ? 'failed' : 'completed';
+      record.status = record.failure || record.finish?.kind === 'error' ? 'failed' : record.finish?.kind === 'max-tokens' ? 'truncated' : 'completed';
     } catch (error) { record.status = 'failed'; record.error = error.message; throw error; }
     finally { await log('calls.jsonl', { ...record, event: 'end', finishedAt: Date.now() }); }
   });

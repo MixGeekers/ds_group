@@ -1,6 +1,21 @@
 import { canonicalIdentity, canonical } from './store.mjs';
 const fail = (code, index) => { throw new Error(`${code}${index === undefined ? '' : ` at changes[${index}]`}`); };
 
+// A truncated proposal cannot be parsed or committed. Retry a smaller prefix;
+// the caller acknowledges only the returned refs and keeps the rest pending.
+export async function prepareReviewBatch({ refs, prepare, onOutputLimit = () => {} }) {
+  let batch = refs.slice();
+  for (;;) {
+    try { return { refs: batch, value: await prepare(batch) }; }
+    catch (error) {
+      if (error.code !== 'MEMORY_OUTPUT_LIMIT' || batch.length < 2) throw error;
+      const smaller = batch.slice(0, Math.ceil(batch.length / 2));
+      onOutputLimit({ error, attempted: batch, next: smaller });
+      batch = smaller;
+    }
+  }
+}
+
 export function validateReviewProposal(result, sources, existingMemories = []) {
   if (!Array.isArray(result?.changes)) fail('MEMORY_REVIEW_INVALID');
   const known = new Map(existingMemories.map(row => [row.id,row])), modified = new Set();

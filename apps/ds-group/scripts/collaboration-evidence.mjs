@@ -30,9 +30,16 @@ const quotaFailures=audit.runtimeFailures.filter(x=>x.classification==='provider
 const overflowFailures=audit.runtimeFailures.filter(x=>x.classification==='context-overflow');
 const replayUnsafeFrom=quotaFailures.length?Math.min(...quotaFailures.map(x=>x.round)):null;
 const unresolvedManual=(report.manualReviews||[]).filter(x=>!manual?.reviews?.some(y=>y.round===x.round));
+const parentEvidencePreserved=report.parent
+  ?sha(await readFile(path.join(path.dirname(directory),'report.json')))===report.parent.rawReportSha256
+  :null;
+const firstPostedAt=report.rounds[0]?.startedAt,lastCompletedRoundAt=report.rounds.at(-1)?.finishedAt;
 const published=clean({schemaVersion:2,run:path.basename(directory),status:report.status,
   acceptance:`${report.rounds.length<report.plannedMessages?'Incomplete natural long test. ':''}Posted messages are not successful Bot responses. Original verdicts, human review, provider rejection and evaluator limitations remain separate.`,
   startedAt:report.initialStartedAt||report.startedAt,finishedAt:report.finishedAt,elapsedMs:Date.parse(report.finishedAt)-Date.parse(report.initialStartedAt||report.startedAt),
+  timing:{firstPostedAt,lastCompletedRoundAt,
+    scenarioWallMs:firstPostedAt&&lastCompletedRoundAt?Date.parse(lastCompletedRoundAt)-Date.parse(firstPostedAt):0,
+    note:'elapsedMs includes earlier preflight attempts and interruptions; scenarioWallMs starts with the first posted scenario message. Neither is exclusive model execution time.'},
   topology:report.topology,model:report.model,browserUrl:report.browserUrl,rawReportSha256:sha(raw),corpusHash:report.corpusHash,parent:report.parent,
   corpusHashMatches:sha(JSON.stringify(corpus))===report.corpusHash,generations:report.generations||[{generation:1,sourceCommit:report.sourceCommit}],sourceManifests:manifests,
   coverage:{plannedMessages:report.plannedMessages,postedMessages:report.rounds.length,unpostedMessages:report.plannedMessages-report.rounds.length,
@@ -42,13 +49,17 @@ const published=clean({schemaVersion:2,run:path.basename(directory),status:repor
     observedBotChatReplies:audit.conversationReviewQueue.length,
     types:Object.fromEntries([...new Set(corpus.steps.map(x=>x.type))].map(type=>[type,corpus.steps.filter(x=>x.type===type).length])),
     deliveredFiles:audit.artifacts.length,plannedCompactions:report.plannedMaintenance?.compactions.length??6,completedCompactions:report.maintenance.filter(x=>x.type==='native-compaction'&&x.result?.compacted).length,
+    resumedBoundaryCompactions:report.maintenance.filter(x=>x.type==='native-compaction'&&x.result?.compacted&&x.resumed).length,
     successfulPlannedRestarts:report.maintenance.filter(x=>x.type==='planned-restart'&&x.identitiesPreserved).length,
     recoveryRestarts:report.maintenance.filter(x=>x.type==='recovery-restart'&&x.identitiesPreserved).length},
   providerPreflight:quota?.kind==='model-catalog'?quota:null,
   providerBlock:quota?.available===false?{observedAt:quota.at,endpoint:quota.endpoint,httpStatus:quota.status,available:quota.available,
     blockedWindows:quota.blockedWindows,providerReportedResetAt:quota.resetAt,firstRejectedBotRound:replayUnsafeFrom,
     preflightVerification:await optional('quota-preflight-verification.json')}:null,
-  continuation:{complete:false,originalUnpostedRounds:report.rounds.length<report.plannedMessages?[report.rounds.length+1,report.plannedMessages]:[],
+  continuation:report.parent?{isIndependentPhase:true,allMessagesPosted:report.rounds.length===report.plannedMessages,
+    allBotRequestsDelivered:report.rounds.filter(row=>row.replyEventIds?.length).length===report.plannedBotRequests,
+    parentEvidencePreserved,note:'This prospective continuation keeps its own verdicts. Posting all messages or receiving replies does not imply behavioral acceptance; the interrupted parent and its failures remain unchanged.'}
+  :{complete:false,originalUnpostedRounds:report.rounds.length<report.plannedMessages?[report.rounds.length+1,report.plannedMessages]:[],
     note:'Quota-rejected messages already exist in room/native histories. Do not silently replay their earlier oracles against later facts. Preserve this failed segment and register a new natural continuation with current information, additional behavior coverage, files, chat and recovery checks. Leave the pause marker until the provider allowance is available; a reset timestamp is not proof of availability.'},
   bots:report.bots.map(({id,name,nativeBotId})=>({id,name,nativeBotId})),rooms:report.rooms,
   rounds:report.rounds.map(row=>({...row,artifacts:files(row),prompt:corpus.steps[row.round-1].body})),
@@ -63,7 +74,9 @@ const published=clean({schemaVersion:2,run:path.basename(directory),status:repor
     usageRecords:ends.filter(x=>x.usage).length,observedUsage:ends.reduce((sum,row)=>{for(const[k,v]of Object.entries(row.usage||{}))if(typeof v==='number')sum[k]=(sum[k]||0)+v;return sum;},{}),
     interrupted:calls.filter(x=>x.event==='start'&&!ended.has(x.callId)).length,
     embeddingByBoot:report.embeddingByBoot,embeddingComplete:!report.maintenance.some(x=>x.type==='runner-restart'),
-    embeddingNote:'Counters are client protocol receipts. The first interrupted boot was not captured at shutdown; full-run embedding totals are incomplete. Full provider cost is unknown.'},
+    embeddingNote:report.parent
+      ?'Counters are cumulative client protocol snapshots within each boot, including the phase-start snapshot; do not sum overlapping snapshots. Complete provider embedding and generation costs have not been reconciled.'
+      :'Counters are client protocol receipts. The first interrupted boot was not captured at shutdown; full-run embedding totals are incomplete. Full provider cost is unknown.'},
   finalMemory:body?{snapshotKind:body.kind||'live-host-flushed',reviewFlushed:body.reviewFlushed!==false,databaseIntegrity:body.databaseIntegrity,
     pendingReviews:body.pendingReviews?.map(row=>({botId:row.botId,sourceCount:row.refs.length,refs:row.refs})),
     entries:body.entries.map(({id,botId,scope,subjectId,predicate,text,kind,saidBy,sourceRefs,status,derivation,validFrom,validUntil,index,receipt})=>({id,botId,scope,subjectId,predicate,text,kind,saidBy,sourceRefs,status,derivation,validFrom,validUntil,indexed:index?.state==='applied',bodyDurable:receipt?.bodyDurable})),
