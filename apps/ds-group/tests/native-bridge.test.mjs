@@ -292,9 +292,20 @@ test('native file envelopes after an explanation or Markdown fence still deliver
     fenced = mode;
     const result = await f.bridge.turn(f.request(`envelope-${mode}`));
     assert.equal(result.status, 'completed'); assert.equal(result.artifacts.length, 1);
-    assert.equal(parseBotOutput(result.text, f.node.id, []).text, 'Ready');
+    assert.equal(parseBotOutput(result.text, f.node.id, []).text, 'File is ready.\n\nReady');
     assert.equal(await readFile(result.artifacts[0].path, 'utf8'), '525 !north:memory.test');
   }
+});
+
+test('an answer table before an empty delivery envelope remains visible to the recipient', async t => {
+  const table = '| Item | Value |\n|---|---|\n| Remaining | 177 |';
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    await event('assistant/message', { turn, message: { content: [{ type: 'text', text: `${table}\n\n{"text":"Figures verified — English table above.","artifacts":[]}` }] } });
+    await event('turn/end', { turn, reason: { kind: 'completed' } });
+  } });
+  const result = await f.bridge.turn(f.request('table-with-receipt'));
+  assert.equal(parseBotOutput(result.text, f.node.id, []).text, `${table}\n\nFigures verified — English table above.`);
+  assert.deepEqual(result.artifacts, []);
 });
 
 test('ordinary structured native answers are kept verbatim through the native and chat output parsers', async t => {

@@ -21,7 +21,13 @@ function nativeArtifactOutput(text) {
   for (let start = candidate.lastIndexOf('{'); start >= 0; start = candidate.lastIndexOf('{', start - 1)) {
     try {
       const output = JSON.parse(candidate.slice(start));
-      if (typeof output?.text === 'string' && Array.isArray(output.artifacts)) return { text: JSON.stringify(output), explicitArtifacts: true };
+      if (typeof output?.text === 'string' && Array.isArray(output.artifacts)) {
+        // The prose can contain the answer (a table, instructions, findings),
+        // followed by a delivery receipt saying only "see above". Keep both.
+        const prefix = candidate.slice(0, start).replace(/```(?:json)?\s*$/i, '').trim();
+        if (prefix && prefix !== output.text.trim()) output.text = [prefix, output.text.trim()].filter(Boolean).join('\n\n');
+        return { text: JSON.stringify(output), explicitArtifacts: true };
+      }
     } catch { /* This brace is nested or belongs to ordinary prose. */ }
     if (start === 0) break;
   }

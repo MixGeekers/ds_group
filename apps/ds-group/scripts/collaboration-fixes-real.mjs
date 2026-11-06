@@ -22,7 +22,7 @@ const addHistory=e=>{const h=histories.get(e.roomId)||[];h.push(e);histories.set
 async function turn(id,person,body,roomId=room,expectedFiles=[]){
   const event=statement(id,person,body,roomId),request={requestId:id,botId:'@bot0:memory.test',event,
     context:{room:{id:roomId,name:roomId===room?'码头活动筹备':'休息区'},source:{transport:'matrix',eventId:event.eventId,roomId,timestamp:event.timestamp,sender:people[person]}},
-    history:histories.get(roomId)||[]};
+    history:structuredClone(histories.get(roomId)||[])};
   const result=await host.api('turn',{index:0,request});addHistory(event);
   const row={id,prompt:body,request,...result};report.rounds.push(row);
   for(const filename of expectedFiles)check(`${id}:delivered:${filename}`,result.record.artifacts.some(x=>x.name===filename));
@@ -45,7 +45,8 @@ try{
   await turn('venue-notes','planner','把我们已经知道的现场条件和待确认事项整理成 venue-status.md，方便我接着问场地方。',room,['venue-status.md']);
   let memory=await host.api('memory');const source=memory.sources.find(x=>x.eventId===unknown.eventId);
   check('unaddressedDiscussionAutomaticallyStoredWithOriginalAuthor',source&&memory.entries.some(x=>x.derivation==='current'&&x.sourceRefs.some(ref=>ref.id===source.id)&&x.text.includes('电梯')),{sourceId:source?.id,authorId:source?.authorId});
-  await turn('data-preference','data','For number reviews I normally use an English table. Current spending is 1623 against a cap of 1800, and registration is 18 people. Give me a quick check of those figures.');
+  const initialData=await turn('data-preference','data','For number reviews I normally use an English table. Current spending is 1623 against a cap of 1800, and registration is 18 people. Give me a quick check of those figures.');
+  check('initialNumbersTableActuallyDelivered',/\|/.test(initialData.record.text)&&/177/.test(initialData.record.text),initialData.record.text);
   await turn('casual-break','planner','我去倒了杯淡茶，窗外风挺大。陪我随便聊两句就好，不用给我安排下一步。',other);
   const code=await turn('small-code','planner','做一个 count.mjs，导出 count(items) 返回数组长度，给空数组和三元素数组各跑一个测试，把代码文件给我。');
   check('ordinaryCodeFileActuallyDelivered',code.record.artifacts.some(x=>x.name==='count.mjs'),code.record.artifactDelivery);
@@ -55,7 +56,8 @@ try{
   check('nativeIdentitySurvivesRestart',bots[0].dsBotId===rebound[0].dsBotId);report.maintenance.push({type:'restart'});
   const data=await turn('data-after-restart','data','给我当前的数字概览。');check('dataPreferenceAfterRestart',/\|/.test(data.record.text)&&/spen|expense|budget|allowance|registr/i.test(data.record.text)&&/177/.test(data.record.text),data.record.text);
   const planner=await turn('planner-after-restart','planner','我也要一份现在的项目进度。');report.manualReviews=[{id:planner.id,criteria:'Same-name planner receives concise Chinese, at most three main points',text:planner.record.text}];
-  await turn('elevator-confirmed','field','管理员刚确认当天电梯可以用，由他操作。我会在南门接需要帮助的人，再一起上二楼。请给值班同事一句清楚的说明。');
+  const confirmed=await turn('elevator-confirmed','field','管理员刚确认当天电梯可以用，由他操作。我会在南门接需要帮助的人，再一起上二楼。请给值班同事一句清楚的说明。');
+  check('actualHandoffSentenceDelivered',/管理员/.test(confirmed.record.text)&&/宋禾/.test(confirmed.record.text)&&/南门/.test(confirmed.record.text),confirmed.record.text);
   await turn('pause-chat','planner','听到事情终于有了答复，心里松了一口气。你也歇一下吧。',other);
   report.maintenance.push({type:'compact',result:await host.api('compact',{index:0})});
   const final=await turn('elevator-handoff','field','现场电梯现在是什么情况，需要帮助的来宾该找谁？');
