@@ -8,8 +8,10 @@ import { homedir, tmpdir } from 'node:os';
 import { packageRoot } from '../src/paths.mjs';
 import { resolveDsh } from './runtime-config.mjs';
 import { prepareRuntimeDependencies } from './runtime-dependencies.mjs';
+import {MODEL,restrictTestProvider} from './memory-test-model.mjs';
+import {modelReference} from '../src/model-config.mjs';
 
-export const MODEL = 'opencode-go/deepseek-v4.1-flash';
+export {MODEL};
 export const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 export class MemoryTestHost {
   constructor(directory) { this.directory = directory; this.home = path.join(directory, 'home'); this.boot = 0; }
@@ -23,13 +25,6 @@ export class MemoryTestHost {
     await writeFile(path.join(this.directory, 'workspace.json'), JSON.stringify({ path: this.workspace }));
     const deps = path.join(this.directory, 'dependencies');
     await prepareRuntimeDependencies({ directory: deps, plugin: path.join(packageRoot, 'dsh-plugin'), runtime: installation.runtime });
-    const executable = installation.runtime.includes('/app.asar/')
-      ? path.resolve(installation.runtime, '../../..', 'MacOS/DeepSeek Harness') : process.execPath;
-    const source = await promisify(execFile)(executable, [path.join(packageRoot, 'dsh-plugin/model-profile.mjs'), installation.runtime,
-      process.env.DS_GROUP_DSH_SOURCE_HOME || path.join(homedir(), '.dsh'), process.env.DS_GROUP_DSH_SOURCE_PROFILE || 'desktop'],
-    { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', DS_GROUP_MODEL: MODEL, DS_GROUP_REASONING_EFFORT: 'low' }, maxBuffer: 4 * 1024 * 1024 });
-    const prepared = JSON.parse(source.stdout); if (prepared.selection.model !== MODEL) throw new Error('TEST_MODEL_MISMATCH');
-    await writeFile(path.join(this.home, '.credentials.yaml'), JSON.stringify(prepared.credentials), { mode: 0o600 });
     const harness = path.join(this.directory, 'harness.mjs');
     await writeFile(harness, `import {registerHooks} from 'node:module';\nimport {pathToFileURL} from 'node:url';
 const root=${JSON.stringify(packageRoot)};
@@ -43,11 +38,25 @@ export async function apply(ctx){const plugin=await import(pathToFileURL(root+'/
     await writeFile(path.join(profile, 'package.json'), JSON.stringify({ name: 'memory-acceptance', private: true, type: 'module', dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'] } } }));
     await writeFile(path.join(profile, 'cordis.yml'), '[]\n');
     await writeFile(path.join(profile, 'cordis.patch.yml'), JSON.stringify([
-      { id: 'llm-pi-ai', config: { providers: { 'opencode-go': prepared.provider } } },
-      { id: 'agent-default-model', config: { provider: 'opencode-go', model: 'deepseek-v4.1-flash' } },
       { id: 'web-runtime', config: { openBrowser: false, printUrl: true, surfaceContext: false } },
       { insert: [{ id: 'memory-harness', name: harness }] },
     ]), { mode: 0o600 });
+    await this.configureModel();
+  }
+  async configureModel() {
+    const installation=this.installation||await resolveDsh(),route=modelReference(MODEL);
+    const executable=installation.runtime.includes('/app.asar/')?path.resolve(installation.runtime,'../../..','MacOS/DeepSeek Harness'):process.execPath;
+    const source=await promisify(execFile)(executable,[path.join(packageRoot,'dsh-plugin/model-profile.mjs'),installation.runtime,
+      process.env.DS_GROUP_DSH_SOURCE_HOME||path.join(homedir(),'.dsh'),process.env.DS_GROUP_DSH_SOURCE_PROFILE||'desktop'],
+      {env:{...process.env,ELECTRON_RUN_AS_NODE:'1',DS_GROUP_MODEL:MODEL,DS_GROUP_REASONING_EFFORT:route.provider==='opencode-go'?'low':''},maxBuffer:4*1024*1024});
+    const prepared=JSON.parse(source.stdout);if(prepared.selection.model!==MODEL)throw new Error('TEST_MODEL_MISMATCH');
+    const file=path.join(this.home,'profiles/web/cordis.patch.yml'),patches=JSON.parse(await readFile(file,'utf8'));
+    await writeFile(path.join(this.home,'.credentials.yaml'),JSON.stringify(prepared.credentials),{mode:0o600});
+    await writeFile(file,JSON.stringify([
+      {id:'llm-pi-ai',config:{providers:{[route.provider]:restrictTestProvider(prepared.provider)}}},
+      {id:'agent-default-model',config:{provider:route.provider,model:route.model,...(prepared.selection.reasoningEffort?{reasoningEffort:prepared.selection.reasoningEffort}:{})}},
+      ...patches.filter(row=>!['llm-pi-ai','agent-default-model'].includes(row.id)),
+    ]),{mode:0o600});
   }
   async start() {
     if (!this.installation) await this.prepare();

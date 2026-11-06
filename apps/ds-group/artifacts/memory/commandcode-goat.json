@@ -1,0 +1,232 @@
+{
+  "at": "2026-11-06T16:19:30.213Z",
+  "sourceCommit": "35a5bfc91e42291468682da057bc79092d993346",
+  "sourceTree": "Provider compatibility changes were uncommitted during the smoke; exact code hashes are attached to each attempt.",
+  "authorizedModel": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+  "forbiddenModel": "commandcode-goat/deepseek/deepseek-v4.1-flash-fast",
+  "authorization": "2026-11-06 user requested ordinary dsv4.1f on their configured CommandCode Goat, explicitly excluded Fast, then authorized continuing the existing long test if usable.",
+  "officialSources": [
+    "https://commandcode.ai/docs/provider",
+    "https://commandcode.ai/docs/plans/goat",
+    "https://commandcode.ai/docs/reference/cli/models"
+  ],
+  "catalog": {
+    "at": "2026-11-06T16:08:13.276Z",
+    "status": 200,
+    "models": [
+      {
+        "id": "deepseek/deepseek-v4.1-flash",
+        "object": "model",
+        "created": 1793981293,
+        "owned_by": "command-code",
+        "name": "DeepSeek V4.1 Flash (latest)",
+        "context_length": 1000000,
+        "supported_endpoints": [
+          "/chat/completions",
+          "/responses"
+        ]
+      },
+      {
+        "id": "deepseek/deepseek-v4.1-flash-fast",
+        "object": "model",
+        "created": 1793981293,
+        "owned_by": "command-code",
+        "name": "DeepSeek V4.1 Flash Fast (latest)",
+        "context_length": 1000000,
+        "supported_endpoints": [
+          "/chat/completions",
+          "/responses"
+        ]
+      }
+    ]
+  },
+  "connectivity": {
+    "startedAt": "2026-11-06T16:09:25.876Z",
+    "finishedAt": "2026-11-06T16:09:28.456Z",
+    "status": 200,
+    "requestedModel": "deepseek/deepseek-v4.1-flash",
+    "responseModel": "deepseek/deepseek-v4.1-flash",
+    "text": "DSCORD_GOAT_OK",
+    "finish": "stop",
+    "usage": {
+      "prompt_tokens": 49,
+      "completion_tokens": 25,
+      "total_tokens": 74,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "text_tokens": 0,
+        "image_tokens": 0,
+        "video_tokens": 0
+      },
+      "completion_tokens_details": {
+        "audio_tokens": 0,
+        "reasoning_tokens": 17,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": 0,
+        "image_tokens": 0,
+        "video_tokens": 0
+      }
+    }
+  },
+  "attempts": [
+    {
+      "run": "native",
+      "startedAt": "2026-11-06T16:14:48.717Z",
+      "finishedAt": "2026-11-06T16:15:06.202Z",
+      "status": "failed",
+      "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+      "checks": [],
+      "sourceHashes": {
+        "scripts/memory-host.mjs": "09080c5ded0de562a0b7101412a2b320080084ad8163e0878be5fd67a60e42c3",
+        "scripts/memory-host-plugin.mjs": "c0b114d75d73a79861742c1e234b1b4ae168a62de4cf2a37f5f5fe982ab085c4",
+        "scripts/memory-test-model.mjs": "611fa827c1a5ce3819d5fe3e9179237320ef197ac04df0e3351af2cb99577c86",
+        "scripts/commandcode-preflight.mjs": "7b989ab597af270fcf70a13deb1e0ef48abbf2c3288f017028bb267f6c936e81",
+        "scripts/commandcode-native-smoke.mjs": "04a9ee78c80ab63fd0493855dd3be3dbbdc1ebed91c4198e94c792889c20b67c"
+      },
+      "error": "AssertionError [ERR_ASSERTION]: MEMORY_MODEL_error: UNSUPPORTED_REASONING_EFFORT provider \"commandcode-goat\" model \"deepseek/deepseek-v4.1-flash\" does not support reasoning effort \"low\"",
+      "turns": [
+        {
+          "n": 1,
+          "prompt": "我叫林青，平时采购情况给我中文短版就行。这次订27盒，每盒8支笔。请用终端算出总支数，保存成 procurement-probe.txt 并把文件发我。",
+          "status": "completed",
+          "text": "{\"text\":\"林青，已算好：**27盒 × 8支 = 216支**。\\n\\n文件已存到 procurement-probe.txt，随消息发你。以后采购汇报我按中文短版给你。\\n\\n27盒 × 8支/盒 = 216支。文件 procurement-probe.txt 见附件。\",\"artifacts\":[{\"path\":\"/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-work-TM5Sqh/procurement-probe.txt\",\"name\":\"procurement-probe.txt\"}]}",
+          "reviewError": "MEMORY_MODEL_error: UNSUPPORTED_REASONING_EFFORT provider \"commandcode-goat\" model \"deepseek/deepseek-v4.1-flash\" does not support reasoning effort \"low\"",
+          "toolReceipts": [
+            {
+              "callId": "call_00_nk2t61xu08xk8uit2o1gl7o5",
+              "name": "bash",
+              "status": "completed"
+            },
+            {
+              "callId": "call_01_uauzzn3qagxyiwidakfpfbun",
+              "name": "remember",
+              "status": "completed"
+            }
+          ],
+          "files": [
+            {
+              "name": "procurement-probe.txt",
+              "size": 36,
+              "sha256": "26bd5eb78320b0a887de192a0963325be456cd3aea0b9a23d4cae0098150474b"
+            }
+          ]
+        }
+      ],
+      "accounting": {
+        "streamLifecycles": 6,
+        "failed": 1,
+        "modelIds": [
+          "commandcode-goat/deepseek/deepseek-v4.1-flash"
+        ],
+        "costComplete": false
+      }
+    },
+    {
+      "run": "native-UGit4Z",
+      "startedAt": "2026-11-06T16:16:20.977Z",
+      "finishedAt": "2026-11-06T16:17:18.376Z",
+      "status": "passed",
+      "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+      "checks": [
+        "nativeDSHToolExecution",
+        "actualDeliveredFileBytes",
+        "nativeCompaction",
+        "sameBotAfterHostRestart",
+        "replyAfterCompactionAndRestart",
+        "realMemoryBackendUsed"
+      ],
+      "sourceHashes": {
+        "memory/native.mjs": "40923f5770ab2ccb96cb2289391cd7123a284e2dd0017e8bdd9c8d628dd8ba3c",
+        "memory/model-options.mjs": "f62b53a2428585d47355d76e324f5f1c585456246e368a49688adbe7b32feac1",
+        "scripts/memory-host.mjs": "09080c5ded0de562a0b7101412a2b320080084ad8163e0878be5fd67a60e42c3",
+        "scripts/memory-host-plugin.mjs": "c0b114d75d73a79861742c1e234b1b4ae168a62de4cf2a37f5f5fe982ab085c4",
+        "scripts/memory-test-model.mjs": "611fa827c1a5ce3819d5fe3e9179237320ef197ac04df0e3351af2cb99577c86",
+        "scripts/commandcode-preflight.mjs": "7b989ab597af270fcf70a13deb1e0ef48abbf2c3288f017028bb267f6c936e81",
+        "scripts/commandcode-native-smoke.mjs": "161847a9d5cf231d5c4b6336bacaee33e4a93800b215e336b5fc58da299588db"
+      },
+      "turns": [
+        {
+          "n": 1,
+          "prompt": "我叫林青，平时采购情况给我中文短版就行。这次订27盒，每盒8支笔。请用终端算出总支数，保存成 procurement-probe.txt 并把文件发我。",
+          "status": "completed",
+          "text": "{\"text\":\"林青，收到，采购汇报以后给你中文短版。\\n\\n27 盒 × 8 支 = 216 支笔。已用终端算好并存成 procurement-probe.txt，文件见附件。\",\"artifacts\":[{\"path\":\"/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-work-96WnIF/procurement-probe.txt\",\"name\":\"procurement-probe.txt\"}]}",
+          "toolReceipts": [
+            {
+              "callId": "call_00_uhx8erwvmwjkpiwwax1d1fb6",
+              "name": "bash",
+              "status": "completed"
+            },
+            {
+              "callId": "call_01_pitygzl936ipexpkkkx44j9e",
+              "name": "remember",
+              "status": "completed"
+            },
+            {
+              "callId": "call_00_54q0klqfgb0o13nbzimx4qmi",
+              "name": "bash",
+              "status": "completed"
+            }
+          ],
+          "files": [
+            {
+              "name": "procurement-probe.txt",
+              "size": 58,
+              "sha256": "e75cde8374aaab419c65179f1d46224d54ec38e0f2e2800d5da5a7e7b398e89b"
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "prompt": "采购表我又打开了，刚才一共订了多少支笔？一句话告诉我就好。",
+          "status": "completed",
+          "text": "216 支笔（27 盒 × 8 支）。",
+          "toolReceipts": [],
+          "files": []
+        }
+      ],
+      "compacted": true,
+      "embeddingBeforeRestart": {
+        "indexCalls": 3,
+        "queryCalls": 3,
+        "complete": true
+      },
+      "memory": {
+        "entries": 3,
+        "sources": 4,
+        "usage": {
+          "indexCalls": 0,
+          "queryCalls": 1,
+          "complete": true
+        },
+        "errors": []
+      },
+      "accounting": {
+        "streamLifecycles": 10,
+        "failed": 0,
+        "modelIds": [
+          "commandcode-goat/deepseek/deepseek-v4.1-flash"
+        ],
+        "costComplete": false
+      }
+    }
+  ],
+  "validation": {
+    "moduleTests": {
+      "pass": 459,
+      "fail": 0,
+      "logSha256": "222926128aec7c63b62579ff554085a5f9fcae8da8f695c5279b174b1b3dd7d9"
+    },
+    "targetedChecks": 8
+  },
+  "limitations": [
+    "Catalog access does not prove remaining plan allowance.",
+    "Native smoke uses synthetic Matrix envelopes; the real network continuation is separate.",
+    "llm/stream counts are observed lifecycles, not an independent HTTP count. Full billing cost is unknown.",
+    "Fast was not invoked; provider name and exact model ID are checked before every native stream."
+  ]
+}

@@ -7,6 +7,7 @@ import { sha, sourceId } from './store.mjs';
 import { createMemoryPanel } from './panel.mjs';
 import { prepareReviewProposal } from './review.mjs';
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
+import { memoryModelOptions } from './model-options.mjs';
 
 const textOf = message => (message?.content || []).filter(block => block.type === 'text').map(block => block.text).join('\n');
 const RULES = `# Source-aware memory
@@ -72,12 +73,13 @@ export function installNativeMemory(rt) {
   async function oneShot(bot, system, text, tag = {}) {
     const reference = await rt.desiredModel(bot) ?? await rt.defaultModel();
     const slash = reference?.indexOf('/'); if (!(slash > 0)) throw new Error('MEMORY_MODEL_UNAVAILABLE');
+    const modelOptions=await memoryModelOptions(ctx.llm,reference);
     const messages = [{ role: 'user', content: [{ type: 'text', text }] }];
     rt.tagUsage?.(messages, { sessionId: tag.sessionId || rt.chatOf(bot.id), kind: 'memory' });
     const assembled = new BlockAssembler();
-    for await (const chunk of ctx.llm.stream({ provider: reference.slice(0, slash), model: reference.slice(slash + 1),
+    for await (const chunk of ctx.llm.stream({ ...modelOptions,
       sessionId: tag.sessionId || rt.chatOf(bot.id), purpose: 'memory', system, messages, maxTokens: 8192,
-      reasoningEffort: 'low', signal: AbortSignal.timeout(120000) })) assembled.push(chunk);
+      signal: AbortSignal.timeout(120000) })) assembled.push(chunk);
     if (['error', 'aborted', 'max-tokens'].includes(assembled.finish.kind)) throw Object.assign(new Error(`MEMORY_MODEL_${assembled.finish.kind}: ${assembled.finish.failure?.code || ''} ${assembled.finish.failure?.message || ''}`), { code: assembled.finish.failure?.code });
     const reply = assembled.blocks().filter(block => block.type === 'text').map(block => block.text).join('\n');
     if (!reply.trim()) throw new Error('MEMORY_MODEL_EMPTY'); return reply;

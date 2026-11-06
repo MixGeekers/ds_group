@@ -6,9 +6,9 @@ import { createRuntime } from '../vendor/ds-bot/index.js';
 import { installNativeMemory } from '../memory/native.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
 import { NativeBridge } from '../dsh-connect/native-bridge.mjs';
+import {MODEL,testModelSelection} from './memory-test-model.mjs';
 
 export const inject = ['llm','tools','systemPrompt','sessionController','sessions','sessionTitle','workspaceRegistry','connection'];
-const MODEL = 'opencode-go/deepseek-v4.1-flash';
 export async function apply(ctx, config) {
   const directory = config.directory;
   let scenario;
@@ -38,7 +38,7 @@ export async function apply(ctx, config) {
   });
   async function bind(id, index) {
     const bot = await native.bot(id);
-    await native.selectModel(id, { model: MODEL, reasoningEffort: 'low', maxTokens: 4096 });
+    await native.selectModel(id, await testModelSelection(ctx.llm));
     await rt.setPermission(rt.botOf(id), 'danger-full-access');
     const bridge = await new NativeBridge({ ctx, native, node: { id: `@bot${index}:memory.test`, name: bot.name, nativeBotId: id,
       directory: join(directory, `bridge-${index}`) }, timeoutMs: 300000 }).initialize();

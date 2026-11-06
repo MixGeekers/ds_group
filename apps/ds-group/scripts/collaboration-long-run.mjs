@@ -15,6 +15,8 @@ import {resolveDsh} from './runtime-config.mjs';
 import {MatrixClient} from '../src/matrix-client.mjs';
 import {isModelQuotaFailure} from '../src/model-failure.mjs';
 import {readGoQuota} from './go-quota.mjs';
+import {readCommandCodeCatalog} from './commandcode-preflight.mjs';
+import {ORIGINAL_TEST_MODEL} from './memory-test-model.mjs';
 
 const env=JSON.parse(await readFile(path.join(packageRoot,'.local/collaboration-live-active.json'),'utf8'));
 assert.ok(process.argv.slice(2).every(arg=>arg==='--continuation'),'Only --continuation is supported');
@@ -51,8 +53,9 @@ if(prior){if(continuation&&prior.rounds?.length){assert.equal(prior.corpusHash,s
   if(continuation)try{const previousCorpus=JSON.parse(await readFile(path.join(directory,'corpus-private.json'),'utf8'));await savePrivateJson(path.join(directory,'prior-attempts',`corpus-${stamp}.json`),previousCorpus);}catch(error){if(error.code!=='ENOENT')throw error;}
   for(const key of ['rounds','attempts','failures','manualReviews','maintenance','embeddingByBoot','bots','rooms'])report[key]=prior[key]||[];
   report.initialStartedAt=prior.initialStartedAt||prior.startedAt;
-  report.generations=[...(prior.generations||[{generation:prior.generation,sourceCommit:prior.sourceCommit,startedAt:prior.startedAt}]),
-    {generation:(prior.generation||0)+1,sourceCommit:report.sourceCommit,startedAt:report.startedAt,resumedAfter:report.rounds.length}];
+  report.generations=[...(prior.generations||[{generation:prior.generation,sourceCommit:prior.sourceCommit,startedAt:prior.startedAt,model:prior.model}]),
+    {generation:(prior.generation||0)+1,sourceCommit:report.sourceCommit,startedAt:report.startedAt,resumedAfter:report.rounds.length,model:MODEL}];
+  if(prior.model!==MODEL)report.maintenance.push({type:'authorized-provider-change',at:new Date().toISOString(),previousModel:prior.model,model:MODEL,afterPostedMessages:report.rounds.length});
   report.maintenance.push({type:'runner-restart',at:new Date().toISOString(),previousStatus:prior.status,error:prior.error,completed:report.rounds.length});}
 report.generation=(prior?.generation||0)+1;
 let stopping=false;for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>{stopping=true;});
@@ -111,12 +114,13 @@ async function downloadArtifacts(delivered,room,n) {
 async function flush() {for(let attempt=0;;attempt++)try{return await host.api('flush');}catch(error){report.maintenance.push({type:'flush-error',at:new Date().toISOString(),error:error.message,attempt});await save();if(isModelQuotaFailure(error)||attempt>=3)throw error;await delay(10000*(attempt+1));}}
 async function snapshot(name) {await flush();const memory=await host.api('memory');await savePrivateJson(path.join(directory,`${name}.json`),memory);return memory;}
 async function checkAllowance() {
-  const quota=await readGoQuota(host.home);await savePrivateJson(path.join(directory,'provider-quota.json'),quota);
-  if(!quota.available)throw Object.assign(new Error(`Go allowance exhausted (${quota.blockedWindows.join(', ')}); provider reset: ${quota.resetAt}`),{code:'MODEL_QUOTA_EXCEEDED'});
+  const quota=MODEL===ORIGINAL_TEST_MODEL?await readGoQuota(host.home):await readCommandCodeCatalog(host.home);
+  await savePrivateJson(path.join(directory,'provider-quota.json'),quota);
+  if(!quota.available)throw Object.assign(new Error(quota.kind==='model-catalog'?'Authorized ordinary CommandCode model absent from catalog':`Go allowance exhausted (${quota.blockedWindows.join(', ')}); provider reset: ${quota.resetAt}`),{code:quota.kind==='model-catalog'?'MODEL_UNAVAILABLE':'MODEL_QUOTA_EXCEEDED'});
 }
 async function sourceManifest(name) {
   const files=execFileSync('git',['ls-files','-z','src','dsh-connect','memory','vendor/ds-bot','scripts/collaboration-long-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs','scripts/memory-visible-host-plugin.mjs'],{cwd:packageRoot}).toString().split('\0').filter(Boolean);
-  for(const file of ['scripts/collaboration-long-corpus.mjs','scripts/collaboration-continuation-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs','scripts/collaboration-long-audit.mjs','scripts/go-quota.mjs'])if(!files.includes(file))files.push(file);
+  for(const file of ['scripts/collaboration-long-corpus.mjs','scripts/collaboration-continuation-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs','scripts/collaboration-long-audit.mjs','scripts/go-quota.mjs','scripts/commandcode-preflight.mjs','scripts/memory-test-model.mjs','scripts/memory-host.mjs','scripts/memory-host-plugin.mjs'])if(!files.includes(file))files.push(file);
   const hashes={};for(const file of files)hashes[file]=sha(await readFile(path.join(packageRoot,file)));
   await savePrivateJson(path.join(directory,name),{at:new Date().toISOString(),hashes});
 }
@@ -191,7 +195,7 @@ try {
     }else{await delay(1200);row.checks.push({name:'realHumanChatPosted',passed:true});}
     row.finishedAt=new Date().toISOString();report.rounds.push(row);await save();
     console.log(JSON.stringify({completed:n+1,type:step.type,room:room.name,failures:report.failures.length}));
-    if(isModelQuotaFailure(report.attempts.find(attempt=>attempt.round===n+1)?.receipt))throw Object.assign(new Error('Go allowance exhausted; no later scenario messages were posted'),{code:'MODEL_QUOTA_EXCEEDED'});
+    if(isModelQuotaFailure(report.attempts.find(attempt=>attempt.round===n+1)?.receipt))throw Object.assign(new Error(`${MODEL} allowance exhausted; no later scenario messages were posted`),{code:'MODEL_QUOTA_EXCEEDED'});
     if(compactAt.includes(n+1)) {
       const index=compactAt.indexOf(n+1)%3;await flush();const result=await host.api('compact',{index});
       report.maintenance.push({type:'native-compaction',round:n+1,index,result});if(!result.compacted)report.failures.push({round:n+1,type:'compaction',result});await save();
