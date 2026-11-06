@@ -1,0 +1,17 @@
+{
+  "capturedAt": "2026-11-06T12:36:01.569Z",
+  "level": "existing-local-dscord-test-deployment-read-only-screenshot",
+  "screenshot": "dscord-current.png",
+  "sha256": "2908d1406932c9362e545ecf9179a32e8d8e515742862042ba1fb85bb2f41451",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "server": "onboarding.local",
+  "sourceWorktree": "dscord-connect",
+  "observed": "Connected DSCord chat page, existing synthetic users and Bots; selected channel has no messages.",
+  "scope": "This is the existing local test deployment, not a screenshot of the long-run memory dataset. The memory branch wires chat context to native memory but has no dedicated DSCord web memory-management or contact-dossier view.",
+  "sentMessages": 0,
+  "modelRequestsInitiated": 0,
+  "applicationCodeChanged": false
+}
