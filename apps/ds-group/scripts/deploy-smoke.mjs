@@ -84,15 +84,20 @@ async function restoreVolume(directory, archive) {
 async function checkRemoteAdapter(bundle, coreUrl, token) {
   const directory = await mkdtemp(path.join(path.dirname(reportPath), `${name}-node-`));
   let registrations = 0;
-  let unexpectedRequests = 0;
+  let statusReads = 0;
+  const unexpectedRequests = [];
   const bridge = http.createServer((incoming, response) => {
     incoming.resume();
     if (incoming.url === '/api/ds-group-node/bots' && incoming.method === 'POST') {
       registrations++;
       response.writeHead(200, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ status: 'ready' }));
+    } else if (incoming.url === '/api/ds-group-node/status' && incoming.method === 'GET') {
+      statusReads++;
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ status: 'ready', model: null }));
     } else {
-      unexpectedRequests++;
+      unexpectedRequests.push(`${incoming.method} ${incoming.url}`);
       response.writeHead(500, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ error: 'Generation is forbidden in deployment smoke' }));
     }
@@ -132,8 +137,10 @@ async function checkRemoteAdapter(bundle, coreUrl, token) {
     }
     assert.ok(synchronized, `Remote adapter did not sync a real Matrix event: ${diagnostics}`);
     assert.equal(registrations, 1);
-    assert.equal(unexpectedRequests, 0);
-    report.adapter = { core: 'real-container', matrix: 'real-container', adapter: 'real-host-process', inferenceBridge: 'registration-only-fixture', generationCalls: 0 };
+    assert.ok(statusReads > 0, 'Adapter must read runtime status without generating a reply');
+    assert.deepEqual(unexpectedRequests, [], 'Deployment smoke permits registration and runtime status only');
+    report.adapter = { core: 'real-container', matrix: 'real-container', adapter: 'real-host-process',
+      inferenceBridge: 'registration-and-status-fixture', statusReads, generationCalls: 0 };
   } finally {
     if (child && child.exitCode === null) {
       child.kill('SIGTERM');

@@ -22,5 +22,14 @@
   {
     "stage": "abandoned group-session experiment",
     "cause": "Original DS-Bot group requires at least two members. Per user direction, separate group execution was abandoned; vendor modifications reverted. Final path uses the original Bot Session."
+  },
+  {
+    "stage": "pre-merge Docker CI on 584f9a5",
+    "run": "https://github.com/MixGeekers/dscord/actions/runs/42159331967",
+    "failedJobs": [
+      "Deploy / Linux amd64",
+      "Deploy / Linux arm64"
+    ],
+    "cause": "The registration-only deployment fixture rejected the new GET runtime-status heartbeat as an unexpected generation request. Added the exact status endpoint, asserted that it is read, and retained rejection of all generation endpoints. Local full-release Docker deployment and platform checks passed; original CI failures remain recorded."
   }
 ]
