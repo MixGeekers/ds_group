@@ -17,12 +17,12 @@ async function unused(port) {
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
   await new Promise(resolve => server.close(resolve));
 }
-export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308 } = {}) {
+export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308, serverName = 'memory-live.local',
+  prefix = 'memory-visible', activeFile = 'memory-visible-active.json', preparingMessage } = {}) {
   await unused(port); await unused(matrixPort);
   await mkdir(path.join(packageRoot, '.local'), { recursive: true });
-  const directory = await mkdtemp(path.join(packageRoot, '.local/memory-visible-'));
+  const directory = await mkdtemp(path.join(packageRoot, `.local/${prefix}-`));
   const dataRoot = path.join(directory, 'core'), synapseRoot = path.join(directory, 'synapse');
-  const serverName = 'memory-live.local';
   const coreUrl = `http://127.0.0.1:${port}`, matrixUrl = `http://127.0.0.1:${matrixPort}`;
   const containerName = `dscord-memory-visible-${path.basename(directory).split('-').at(-1).toLowerCase()}`;
   const options = { dataRoot, synapseRoot, serverName, homeserverUrl: matrixUrl, publicUrl: coreUrl, publicHomeserverUrl: matrixUrl, webMode: 'bundled' };
@@ -59,10 +59,10 @@ export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308
     roomId: setup.roomId, observerId: setup.participants[0].id, model: 'opencode-go/deepseek-v4.1-flash',
     plannedRounds: 240, createdAt: new Date().toISOString() };
   await savePrivateJson(path.join(directory, 'environment.json'), state);
-  await savePrivateJson(path.join(packageRoot, '.local/memory-visible-active.json'), state);
+  await savePrivateJson(path.join(packageRoot, '.local', activeFile), state);
   const response = await fetch(`${coreUrl}/api/rooms/${encodeURIComponent(setup.roomId)}/messages`, { method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${setup.participants[0].accessToken}` },
-    body: JSON.stringify({ body: '【实时长程测试 · 准备中】\n这是新的隔离测试环境，消息通过真实 DSCord 与 Matrix 发送。计划 240 轮、3 个 Bot、4 个群。正在连接指定模型与 Ombre/Harrier 记忆检索；稍后每轮会保留真实输入、回答与检查结果。', transactionId: 'visible-test-preparing', to: [] }) });
+    body: JSON.stringify({ body: preparingMessage || '【实时长程测试 · 准备中】\n这是新的隔离测试环境，消息通过真实 DSCord 与 Matrix 发送。计划 240 轮、3 个 Bot、4 个群。正在连接指定模型与 Ombre/Harrier 记忆检索；稍后每轮会保留真实输入、回答与检查结果。', transactionId: 'visible-test-preparing', to: [] }) });
   if (!response.ok) throw new Error(`Initial visible message HTTP ${response.status}`);
   return state;
 }

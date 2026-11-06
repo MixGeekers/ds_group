@@ -10,7 +10,11 @@ import { NativeConnections } from '../dsh-connect/native-connections.mjs';
 const MODEL = 'opencode-go/deepseek-v4.1-flash';
 export const inject = ['llm','tools','systemPrompt','sessionController','sessions','sessionTitle','workspaceRegistry','connection'];
 export async function apply(ctx, config) {
-  const rt = createRuntime(ctx, { mainName: '识雨', workspace: config.workspace, memoryBackend: installNativeMemory, memoryReviewDelayMs: 250 });
+  let scenario;
+  try { scenario = JSON.parse(await readFile(join(config.directory, 'scenario-profile.json'), 'utf8')); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const rt = createRuntime(ctx, { mainName: '识雨', workspace: config.workspace, memoryBackend: installNativeMemory,
+    ...(scenario ? {} : { memoryReviewDelayMs: 250 }) });
   const native = new NativeBots(ctx), connections = new NativeConnections({ ctx, native });
   let writes = Promise.resolve();
   const log = (file, value) => { writes = writes.catch(() => {}).then(() => appendFile(join(config.directory, file), JSON.stringify(value) + '\n')); return writes; };
@@ -34,13 +38,14 @@ export async function apply(ctx, config) {
     for (const bot of state.bots) await (await native.agent(bot.sessionId)).whenIdle();
     for (const name of ['知秋', '听澜']) if (!state.bots.some(bot => bot.name === name)) {
       await native.call('create-bot', { name, role: '协作助手', model: MODEL,
-        instructions: '用简体中文完成协作；保留完整账号、群范围和原始来源；用户要求查询记忆时本轮实际调用 recall。' });
+        instructions: scenario?.instructions || '用简体中文完成协作；保留完整账号、群范围和原始来源；用户要求查询记忆时本轮实际调用 recall。' });
       state = await native.state();
       await (await native.agent(state.bots.find(bot => bot.name === name).sessionId)).whenIdle();
     }
     for (const bot of state.bots) {
       await native.selectModel(bot.id, { model: MODEL, reasoningEffort: 'low', maxTokens: 4096 });
       await rt.setPermission(rt.botOf(bot.id), 'danger-full-access');
+      if (scenario) await native.call('update-bot', { id: bot.id, instructions: scenario.instructions });
     }
     return native.list();
   }
