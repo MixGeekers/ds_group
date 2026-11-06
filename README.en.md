@@ -154,9 +154,7 @@ Run browser tests with `npm run test:browser`. Report bugs or discuss ideas in [
 
 <a id="gallery"></a>
 
-## Reaction gallery
-
-Select an image to view it at full size.
+## dafeiyu hehehe
 
 <table>
   <tr>
