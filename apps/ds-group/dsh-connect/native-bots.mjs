@@ -35,6 +35,9 @@ export class NativeBots {
       if (info?.runtime?.id !== KERNEL_ID || info.runtime.apiVersion !== KERNEL_API_VERSION) {
         throw Object.assign(new Error('此地址的运行时不是兼容的 DSCord 自有内核'), { code: 'DSCORD_KERNEL_INCOMPATIBLE', details: { runtime: info?.runtime ?? null } });
       }
+      if (info.runtime.status && info.runtime.status !== 'running') {
+        throw Object.assign(new Error('DSCord 内核仍在启动或已停止，请稍后重试'), { code: 'DSCORD_KERNEL_NOT_READY', details: { runtime: info.runtime } });
+      }
       this.runtimeInfo = info.runtime;
       this.bundled = true;
       return info.runtime;
@@ -70,6 +73,7 @@ export class NativeBots {
   }
 
   async models() {
+    await this.call('models');
     const state = await this.state();
     const providers = new Map();
     for (const model of state.models) {

@@ -24,7 +24,9 @@ test('owned kernel starts with source-aware memory; reads do not create a Chief 
   const f = await boot(t);
   assert.equal(f.rt.runtimeInfo().status, 'running'); assert.equal(f.rt.runtimeInfo().upstreamVersion, '0.3.1');
   assert.equal(f.rt.memoryBackend, 'source-aware-v1');
+  const catalog = f.rt.catalog; f.rt.catalog = async () => { throw new Error('Provider discovery must not block a state read during loader startup'); };
   for (let n = 0; n < 2; n++) assert.deepEqual((await f.native.state()).bots, []);
+  f.rt.catalog = catalog;
   assert.equal(f.ctx.agents.size, 0); assert.equal(f.ctx.modelCalls(), 0);
   assert.ok(f.ctx.routes.has(KERNEL_API)); assert.ok(f.ctx.routes.has(`${KERNEL_API}/feed`)); assert.equal(f.ctx.routes.has('/api/bot'), false);
   const bot = await f.native.call('create-bot', { name: '识雨', role: '协作', greet: false,

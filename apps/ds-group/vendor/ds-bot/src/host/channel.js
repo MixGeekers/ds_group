@@ -203,8 +203,13 @@ export function install(rt) {
         case 'state': {
           if (typeof body.locale === 'string' && /^[a-z]{2,3}(-[\w-]+)?$/i.test(body.locale)) uiLocale = body.locale
           if (readOnly === undefined && rt.config?.autoBootstrap !== false) await rt.bootstrap()
-          await rt.catalog()
-          await rt.loadSecrets()
+          // During DSH loader startup providers/credentials may themselves wait
+          // for loader settlement. The owned state route is a cached read;
+          // explicit model/provider operations refresh their own catalogs.
+          if (!rt.runtimeInfo) {
+            await rt.catalog()
+            await rt.loadSecrets()
+          }
           const answer = liveAnswer()
           if (body.since === state.revision && (body.models === undefined || body.models === modelsKey())) {
             if (body.live === answer.key) return ok({ revision: state.revision, unchanged: true, liveKey: answer.key })

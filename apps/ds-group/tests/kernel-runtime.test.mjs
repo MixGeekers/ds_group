@@ -110,4 +110,18 @@ test('source normalization keeps full IDs, transport, room, event and producer k
     assert.match(sourceLabel({ source }), new RegExp(kind === 'bot' ? 'Bot' : 'Context'));
   }
   assert.equal(isContextMessage({ source: { kind: 'knowledge-context' } }), true);
+  const relay = messageSource({ requestId: 'relay', source: { sender: { id: '@bot:test', kind: 'bot' }, roomId: '!relay:test', memoryOrigin: { authorId: '@alice:test', authorKind: 'human', roomId: '!original:test', eventId: '$original' } } });
+  assert.equal(relay.sender.id, '@bot:test'); assert.equal(relay.memoryOrigin.authorId, '@alice:test');
+  assert.equal(relay.roomId, '!relay:test'); assert.equal(relay.memoryOrigin.roomId, '!original:test');
+  assert.equal(sourceLabel({ source: { kind: 'user', sender: { id: '@unknown:test' } } }), 'Participant (@unknown:test)');
+});
+
+test('an owned kernel that is still starting is observable but receives no work', async () => {
+  let calls = 0;
+  const ctx = fetchContext(async request => {
+    calls++; const { endpoint } = await request.json(); assert.equal(endpoint, 'kernel-info');
+    return Response.json({ ok: true, value: { runtime: { id: KERNEL_ID, apiVersion: 1, status: 'starting' } } });
+  });
+  const native = new NativeBots(ctx);
+  await assert.rejects(native.call('send', { text: 'do work' }), { code: 'DSCORD_KERNEL_NOT_READY' }); assert.equal(calls, 1);
 });
