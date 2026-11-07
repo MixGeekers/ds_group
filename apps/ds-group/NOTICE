@@ -1,0 +1,22 @@
+DSCord
+Copyright 2026 DSCord contributors
+
+DSCord-specific source code and documentation in this package are licensed
+under the Apache License, Version 2.0. See LICENSE.
+
+Third-party components retain their own licenses and notices.
+
+DS-Bot
+The vendored kernel is based on DS-Bot 0.3.1 by Fei2411 and the DS Bot
+contributors, under Apache-2.0. See vendor/ds-bot/LICENSE,
+vendor/ds-bot/NOTICE and vendor/ds-bot/UPSTREAM.json for provenance,
+additional third-party notices and the DSCord modifications.
+
+Ombre
+The optional memory service is distributed under its MIT license.
+See service/ombre/LICENSE and service/ombre/SOURCE.json.
+
+Web interfaces
+Bundled UI and icon notices are in web/licenses/ and the corresponding
+licenses/ directory in each prebuilt interface. Other installed dependencies
+retain the licenses provided by their respective packages.
