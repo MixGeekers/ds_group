@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { mkdir } from 'node:fs/promises';
 import { readOptionalJson, savePrivateJson } from '../scripts/server-init.mjs';
 import { prepareWorkFiles, collectArtifacts, collectStagedArtifacts, MAX_ARTIFACTS } from '../dsh-plugin/work-files.mjs';
-import { nativeMessage } from '../src/message-context.mjs';
+import { nativeMessage, observedMemoryInput } from '../src/message-context.mjs';
 import { HANDOFF_ACK } from '../vendor/ds-bot/src/host/constants.js';
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 
@@ -68,8 +68,7 @@ function namesFile(text,name) {
     .test(text.replace(/```[\s\S]*?```/g,''));
 }
 
-/** DSCord is another input/output for the original Bot. Its native Session,
- * model, tools, permissions, working folder and autonomous work are untouched. */
+/** The Matrix binding and its native kernel Bot share one durable identity. */
 export class NativeBridge {
   constructor({ ctx, native, node, timeoutMs = 0 }) {
     Object.assign(this, { ctx, native, node, timeoutMs });
@@ -128,7 +127,62 @@ export class NativeBridge {
 
   async runtimeStatus() {
     const bot = await this.native.bot(this.node.nativeBotId);
-    return { model: bot.model, modelConfig: { model: bot.model }, mode: 'native' };
+    return { model: bot.model, modelConfig: { model: bot.model }, mode: 'native',
+      runtime: this.native.runtimeInfo || null };
+  }
+
+  async observe({ events = [], participants = [], rooms = {}, cursor, watermark, streamId } = {}) {
+    const inputs = events.map(event => observedMemoryInput(event, participants, rooms[event.room_id] || {}));
+    if (!inputs.length) return null;
+    return this.native.call('observe', { botId: this.node.nativeBotId, inputs,
+      options: { streamId: streamId || `matrix:${this.node.id}`,
+        ...(watermark?.sequence !== undefined ? { cursor: String(watermark.sequence) } : {}),
+        ...(cursor ? { transportCursor: cursor } : {}) } });
+  }
+
+  async kernelState() {
+    const state = await this.native.state();
+    const bot = state.bots?.find(bot => bot.id === this.node.nativeBotId);
+    if (!bot) throw error('NATIVE_BINDING_CONFLICT');
+    const activity = state.work?.bots?.[bot.id];
+    const waiting = state.work?.waiting?.[bot.id] || state.work?.waiting?.[bot.sessionId] || null;
+    const requests = Object.values(this.state?.requests || {}).filter(record => !terminal(record));
+    return {
+      runtime: { ...state.runtime, available: Boolean(state.runtime) },
+      self: { nativeBotId: bot.id, matrixId: this.node.id, name: bot.name, role: bot.role || '',
+        instructions: bot.instructions || '', ownerId: this.node.ownerId || null },
+      work: { status: activity ? 'working' : waiting ? 'waiting' : 'idle',
+        activeTasks: Math.max(requests.length, activity ? 1 : 0),
+        tasks: requests.map(record => ({ requestId: record.requestId, status: record.status,
+          stage: record.stage || null, summary: record.summary || '', roomId: record.source?.roomId || null })),
+        activity: activity || null, waiting: waiting ? Array.isArray(waiting) ? waiting.length : 1 : 0,
+        waitDetails: waiting },
+      memorySummary: { people: null, projects: null, pendingReview: null },
+    };
+  }
+
+  async readAttentionView({ roomId, threadRootId, watermark, eventIds = [], recentMessages = [],
+    query, subjectIds, budgetChars = 6500 } = {}) {
+    const kernel = await this.kernelState();
+    const last = recentMessages.at(-1);
+    const authorId = last?.senderId || last?.sender || last?.source?.sender?.id;
+    const memory = await this.native.call('attention-view', { botId: this.node.nativeBotId,
+      options: { roomId, eventIds, watermark, subjectIds, budgetChars,
+        context: { roomId, ...(authorId ? { authorId } : {}) },
+        query: query ?? recentMessages.map(message => message.body ?? message.content?.body ?? '').join('\n').slice(-2400),
+        self: kernel.self } });
+    return { self: kernel.self, memory, tasks: kernel.work,
+      runtime: { ...kernel.runtime, status: kernel.work.status,
+        interruptible: kernel.work.status === 'idle', observedAt: Date.now() },
+      roomId, threadRootId, watermark };
+  }
+
+  memoryProfiles(options = {}) {
+    return this.native.call('memory-profiles', { ...options, botId: this.node.nativeBotId });
+  }
+
+  memoryProfile(options = {}) {
+    return this.native.call('memory-profile', { ...options, botId: this.node.nativeBotId });
   }
 
   async event(session, event) {
@@ -285,8 +339,16 @@ export class NativeBridge {
         } catch { /* A temporary status failure does not stop the native Bot. */ }
         finally { reporting = false; }
       }, 500);
-      const text = nativeMessage({ input, bot, files });
-      await this.native.call('send', { sessionId: bot.id, text, memoryContext: input });
+      await this.native.call('observe', { botId: bot.id, inputs: [input] });
+      const memoryView = await this.native.call('attention-view', { botId: bot.id,
+        options: { sessionId: bot.sessionId, roomId: input.event.roomId,
+          context: { roomId: input.event.roomId, authorId: input.event.senderId },
+          eventIds: [input.event.eventId], query: input.event.body, budgetChars: 8000 } });
+      const text = nativeMessage({ input: { ...input, memoryView }, bot, files });
+      await this.native.call('send', { sessionId: bot.id, requestId: input.requestId, text,
+        source: input.context?.source || { sender: { id: input.event.senderId,
+          name: input.event.senderName || input.event.senderId, kind: input.event.senderKind || 'human' },
+          roomId: input.event.roomId, eventId: input.event.eventId }, memoryContext: input });
       await done;
       if (run.error) throw error(run.error);
       if (run.reason !== 'completed') {

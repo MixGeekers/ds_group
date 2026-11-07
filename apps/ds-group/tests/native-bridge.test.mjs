@@ -16,10 +16,14 @@ async function fixture(t, { idle = Promise.resolve(), send, cwd } = {}) {
   native.agent = async () => ({ whenIdle: () => idle, cancel: () => cancelled++, ctx: { tools: { schemas: () => ['create_bot','remember','bash'].map(name => ({ name })) } } });
   const calls = [];
   const event = async (type, data, sessionId = 'native-one') => handlers.get('session/event')?.({ id: sessionId }, { type, data });
-  native.call = async (_endpoint, payload) => {
+  native.call = async (endpoint, payload) => {
+    if (endpoint === 'observe') return { accepted: payload.inputs.length };
+    if (endpoint === 'attention-view') return { schema: 2, currentClaims: [], recentSources: [], historyGaps: [] };
+    assert.equal(endpoint, 'send');
+    assert.equal(payload.requestId, JSON.parse(payload.text.split('\n').at(-1)).requestId);
     calls.push(JSON.parse(payload.text.split('\n').at(-1))); turn++;
     await event('turn/start', { turn });
-    await event('user/message', { content: [{ type: 'text', text: payload.text }], source: { kind: 'user' } });
+    await event('user/message', { content: [{ type: 'text', text: payload.text }], source: payload.source });
     if (send) return send({ event, turn, payload });
     await event('assistant/message', { turn, message: { content: [{ type: 'text', text: calls.at(-1).currentMessage.body }] } });
     await event('turn/end', { turn, reason: { kind: 'completed' } });

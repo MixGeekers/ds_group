@@ -8,6 +8,15 @@ import os from 'node:os';
 import { NativeConnections } from '../dsh-connect/native-connections.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
 
+test('startup availability reads kernel identity without waiting for model discovery', async () => {
+  const runtime = { id: 'dscord-kernel', version: '0.4.0', upstreamVersion: '0.3.1' };
+  const connections = new NativeConnections({ ctx: {}, native: {
+    info: async () => ({ runtime }),
+    list: async () => { throw new Error('Model discovery is still waiting for host startup'); },
+  } });
+  assert.deepEqual(await connections.available(), { available: true, mode: 'native', runtime });
+});
+
 test('native connection processes Matrix traffic in the original Bot and disconnects only its transport', async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'native-connection-'));
   const bot = { id: '@bot:home.test', localpart: 'bot', name: 'Native', kind: 'bot', accessToken: 'synthetic' };
@@ -48,8 +57,13 @@ test('native connection processes Matrix traffic in the original Bot and disconn
   const native = new NativeBots(ctx);
   native.list = async () => [bot];
   native.bot = async () => ({ id: 'original', sessionId: 'original', name: 'Native', model: 'native/model' });
+  native.state = async () => ({ runtime: { id: 'dscord-kernel', version: '0.4.0', upstreamVersion: '0.3.1' },
+    bots: [await native.bot()], work: { bots: {}, waiting: {} } });
   native.agent = async () => ({ whenIdle: async () => {}, cancel: () => cancelled++, ctx: { tools: { schemas: () => [{ name: 'create_bot' }, { name: 'remember' }] } } });
-  native.call = async (_endpoint, { text }) => {
+  native.call = async (endpoint, { text }) => {
+    if (endpoint === 'observe') return { accepted: 1 };
+    if (endpoint === 'attention-view') return { schema: 2, currentClaims: [], historyGaps: [] };
+    assert.equal(endpoint, 'send');
     streamCalls++;
     const input = JSON.parse(text.split('\n').at(-1));
     assert.equal(input.context.room.name, '测试群'); assert.equal(input.context.source.sender.id, human.id);
@@ -61,10 +75,11 @@ test('native connection processes Matrix traffic in the original Bot and disconn
   };
   await writeFile(path.join(directory, 'matrix-setup.json'), JSON.stringify({ homeserverUrl: serverUrl, roomId: room, participants }));
   await writeFile(path.join(directory, 'core-config.json'), JSON.stringify({ nodeSecret: 'synthetic' }));
-  const connections = new NativeConnections({ ctx, native });
+  const connections = new NativeConnections({ ctx, native, enableKernelControl: false });
   const node = { id: bot.id, localpart: bot.localpart, directory, serverUrl, nativeBotId: 'original' };
   t.after(async () => { await connections.stop(node); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await rm(directory, { recursive: true, force: true }); });
   await connections.start(node);
+  assert.ok(connections.decisionSettings, 'direct node startup initializes decision settings');
   const deadline = Date.now() + 6000;
   while (!sent.length && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
   assert.equal(sent.length, 1, connections.connections.get(node.id)?.botNode.lastError);
