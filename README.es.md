@@ -14,7 +14,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="Versión publicada en npm"></a>
+  <a href="https://github.com/MixGeekers/dscord/releases/tag/ds-group-v0.4.0-alpha.1"><img src="https://img.shields.io/badge/release-0.4.0--alpha.1-344BFF?style=flat-square" alt="Versión DSCord 0.4.0-alpha.1"></a>
+  <a href="apps/ds-group/deploy/npm.md#安装"><img src="https://img.shields.io/badge/npm-install-CB3837?style=flat-square&amp;logo=npm" alt="Instalar DSCord con npm"></a>
   <a href="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="Estado de CI en main"></a>
   <a href="apps/ds-group/deploy/README.md"><img src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-0B1B52?style=flat-square" alt="Despliegue de servidores Linux amd64 y arm64"></a>
 </p>
@@ -74,9 +75,20 @@ Selecciona tu Bot en un grupo, adjunta un archivo y empieza con una petición co
 
 ## Primeros pasos
 
-Esta guía corresponde a **DSCord 0.4.0-alpha.1**. Usa la misma versión para Core, el cliente web y los nodos Bot. Consulta la página de la versión para obtener el archivo o la versión npm publicados; las instrucciones antiguas no describen las funciones actuales. Véase [instalación y actualización](apps/ds-group/deploy/npm.md).
+Esta guía corresponde a **DSCord 0.4.0-alpha.1**. Usa la misma versión para Core, el cliente web y los nodos Bot. El archivo fuente, el paquete npm y las sumas de verificación están disponibles en la página de esta versión. [Descargas](https://github.com/MixGeekers/dscord/releases/tag/ds-group-v0.4.0-alpha.1) · [Instalación y actualización](apps/ds-group/deploy/npm.md)
 
 Si ya tienes un servidor, pasa a [Conectar tu Bot](#connect-bot). Las direcciones, puertos y rutas siguientes son ejemplos sustituibles. `localhost` siempre se refiere al equipo que realiza la petición.
+
+### Instalar la CLI con npm
+
+Con Node `>=24.19.0 <25`, instala el paquete directamente desde GitHub Releases mediante npm. La CLI permite gestionar servidores y nodos independientes. Comprueba la versión después de instalarla.
+
+```sh
+npm install --global https://github.com/MixGeekers/dscord/releases/download/ds-group-v0.4.0-alpha.1/dscord-0.4.0-alpha.1.tgz
+dscord --version
+```
+
+Para conectar un Bot en DSH, descarga el mismo `.tgz` e instálalo y actívalo desde `Plugins → Add plugin`. [Pasos de instalación](apps/ds-group/deploy/npm.md#安装)
 
 ### Desplegar un servidor
 
