@@ -13,6 +13,15 @@ const terminal = record => ['completed', 'failed', 'cancelled', 'unknown'].inclu
 const digest = value => createHash('sha256').update(value).digest('hex');
 const error = code => Object.assign(new Error(code), { code });
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const interruption = signal => signal?.reason?.code === 'TASK_CANCELLED' ? error('TASK_CANCELLED') : error('CONNECTION_DETACHED');
+async function interruptible(operation, signal) {
+  if (signal?.aborted) throw interruption(signal);
+  let abort;
+  try {
+    return await Promise.race([Promise.resolve().then(() => { if (signal?.aborted) throw interruption(signal); return operation(); }),
+      new Promise((_, reject) => { abort = () => reject(interruption(signal)); signal?.addEventListener('abort', abort, { once: true }); })]);
+  } finally { signal?.removeEventListener('abort', abort); }
+}
 
 
 // Native answers may introduce their explicit delivery JSON with a sentence or
@@ -74,6 +83,7 @@ export class NativeBridge {
     Object.assign(this, { ctx, native, node, timeoutMs });
     this.filename = path.join(node.directory, 'native-bridge.json');
     this.pending = new Map();
+    this.jobs = new Map();
     this.writes = Promise.resolve();
     this.closed = false;
   }
@@ -301,24 +311,68 @@ export class NativeBridge {
     const record = { requestId: input.requestId, botId: input.botId, inputHash: hash, status: 'queued',
       stage: 'queued', summary: '等待原生 Bot', artifacts: [], calls: [], toolReceipts: [], mode: 'native' };
     this.state.requests[input.requestId] = record;
-    await this.save();
-    const pending = this.native.enqueue(this.node.nativeBotId, () => this.execute(record, input, options));
+    const pending = this.queue(record, input, options);
     this.pending.set(input.requestId, pending);
     try { return await pending; }
     finally { this.pending.delete(input.requestId); }
   }
 
+  async queue(record, input, options) {
+    await this.save();
+    const controller = new AbortController(), job = { controller, record, started: false, skipped: false };
+    this.jobs.set(record.requestId, job);
+    let stopQueued;
+    const interrupted = new Promise(resolve => {
+      stopQueued = () => {
+        if (job.started) return;
+        job.skipped = true;
+        const cause = interruption(controller.signal);
+        Object.assign(record, { status: cause.code === 'TASK_CANCELLED' ? 'cancelled' : 'unknown', errorCode: cause.code,
+          stage: cause.code === 'TASK_CANCELLED' ? 'cancelled' : 'unknown', finishedAt: new Date().toISOString() });
+        resolve(this.save().then(() => { this.durable.add(record.requestId); return structuredClone(record); }));
+      };
+      controller.signal.addEventListener('abort', stopQueued, { once: true });
+    });
+    const abort = () => controller.abort(error('CONNECTION_DETACHED'));
+    options.signal?.addEventListener('abort', abort, { once: true });
+    if (record.cancelRequested) controller.abort(error('TASK_CANCELLED'));
+    else if (this.closed || options.signal?.aborted) abort();
+    const queued = this.native.enqueue(this.node.nativeBotId, () => {
+      if (job.skipped) return interrupted;
+      job.started = true;
+      return this.execute(record, input, { ...options, signal: controller.signal });
+    });
+    try { return await Promise.race([queued, interrupted]); }
+    finally {
+      options.signal?.removeEventListener('abort', abort);
+      controller.signal.removeEventListener('abort', stopQueued);
+      this.jobs.delete(record.requestId);
+    }
+  }
+
   async execute(record, input, { signal, onProgress, control } = {}) {
     let timer, progressTimer, abort;
+    const check = () => { if (record.cancelRequested) throw error('TASK_CANCELLED'); if (this.closed || signal?.aborted) throw interruption(signal); };
     try {
-      if (this.closed) throw error('CONNECTION_DETACHED');
-      if (record.cancelRequested) throw error('TASK_CANCELLED');
-      const bot = await this.native.bot(this.node.nativeBotId);
-      const agent = await this.native.agent(bot.sessionId);
-      await Promise.race([agent.whenIdle(), new Promise((_, reject) => { this.waiting = { record, reject }; })]);
+      check();
+      let reporting = false;
+      const report = async () => {
+        if (reporting) return; reporting = true;
+        try {
+          await onProgress?.(await this.status(record.requestId));
+          if ((await control?.(record.requestId))?.cancelRequested) await this.cancel(record.requestId);
+        } catch { /* A temporary status failure does not stop the native Bot. */ }
+        finally { reporting = false; }
+      };
+      progressTimer = setInterval(report, 500);
+      await report(); check();
+      const bot = await interruptible(() => this.native.bot(this.node.nativeBotId), signal);
+      const agent = await interruptible(() => this.native.agent(bot.sessionId), signal);
+      await interruptible(() => Promise.race([agent.whenIdle(), new Promise((_, reject) => { this.waiting = { record, reject }; })]), signal);
       this.waiting = null;
-      if (this.closed || signal?.aborted) throw error('CONNECTION_DETACHED');
+      check();
       const files = await prepareWorkFiles({ dataDir: this.node.directory, requestId: input.requestId, workdir: input.workdir, files: input.files });
+      check();
       let resolve;
       const done = new Promise(done => { resolve = done; });
       const marker = `DSCORD_REQUEST=${input.requestId}`;
@@ -327,29 +381,27 @@ export class NativeBridge {
         contextKey: input.context?.key, source: input.context?.source,
         summary: '原生 Bot 正在处理', startedAt: new Date().toISOString() });
       await this.save();
+      check();
       if (this.timeoutMs > 0) timer = setTimeout(() => { run.error = 'NATIVE_TASK_TIMEOUT'; resolve(); }, this.timeoutMs);
-      abort = () => { run.error = 'CONNECTION_DETACHED'; resolve(); };
+      abort = () => { run.error = interruption(signal).code; resolve(); };
       signal?.addEventListener('abort', abort, { once: true });
-      let reporting = false;
-      progressTimer = setInterval(async () => {
-        if (reporting) return; reporting = true;
-        try {
-          await onProgress?.(await this.status(record.requestId));
-          if ((await control?.(record.requestId))?.cancelRequested) await this.cancel(record.requestId);
-        } catch { /* A temporary status failure does not stop the native Bot. */ }
-        finally { reporting = false; }
-      }, 500);
-      await this.native.call('observe', { botId: bot.id, inputs: [input] });
-      const memoryView = await this.native.call('attention-view', { botId: bot.id,
+      await interruptible(() => this.native.call('observe', { botId: bot.id, inputs: [input] }), signal);
+      const memoryView = await interruptible(() => this.native.call('attention-view', { botId: bot.id,
         options: { sessionId: bot.sessionId, roomId: input.event.roomId,
           context: { roomId: input.event.roomId, authorId: input.event.senderId },
-          eventIds: [input.event.eventId], query: input.event.body, budgetChars: 8000 } });
+          eventIds: [input.event.eventId], query: input.event.body, budgetChars: 8000 } }), signal);
+      check();
       const text = nativeMessage({ input: { ...input, memoryView }, bot, files });
       await this.native.call('send', { sessionId: bot.id, requestId: input.requestId, text,
         source: input.context?.source || { sender: { id: input.event.senderId,
           name: input.event.senderName || input.event.senderId, kind: input.event.senderKind || 'human' },
           roomId: input.event.roomId, eventId: input.event.eventId }, memoryContext: input });
+      run.sent = true;
+      if (record.cancelRequested) run.cancelling ??= this.cancelNative(run);
+      await run.cancelling;
+      check();
       await done;
+      await run.cancelling;
       if (run.error) throw error(run.error);
       if (run.reason !== 'completed') {
         if (run.failure) record.nativeFailure = { code: run.failure.code, message: String(run.failure.message||'').slice(0,4096) };
@@ -426,21 +478,40 @@ export class NativeBridge {
     if (!record || terminal(record)) return record;
     record.cancelRequested = true;
     if (this.waiting?.record === record) this.waiting.reject(error('TASK_CANCELLED'));
-    if (this.run?.record === record) {
-      const agent = await this.native.agent(record.sessionId);
-      agent.cancel({ kind: 'user' });
-      this.run.error = 'TASK_CANCELLED'; this.run.resolve();
+    const run = this.run?.record === record ? this.run : null;
+    if (run?.record === record) {
+      run.error = 'TASK_CANCELLED';
+      if (run.sent) run.cancelling ??= this.cancelNative(run);
+      run.resolve();
     }
+    this.jobs.get(requestId)?.controller.abort(error('TASK_CANCELLED'));
+    await run?.cancelling;
     await this.save();
     return record;
   }
 
+  async cancelNative(run) {
+    const agent = await this.native.agent(run.record.sessionId);
+    if (this.run !== run || terminal(run.record) || run.reason === 'completed' && run.exchanges.size === 0) return;
+    // Remove only this request if admission queued it behind different work.
+    for (const message of [...(agent.inbox?.nextTurn || []), ...(agent.inbox?.nextStep || [])]) {
+      if (message.source?.rpcId === run.record.requestId || message.source?.requestId === run.record.requestId || textOf(message).startsWith(`${run.marker}\n`)) {
+        agent.inbox.remove?.(message.id);
+        await this.ctx.sessions?.flush(agent.session);
+        return;
+      }
+    }
+    if (run.seen && run.currentTurn === run.turn) agent.cancel({ kind: 'user' });
+  }
+
   async detach() {
     this.closed = true;
+    for (const job of this.jobs.values()) job.controller.abort(error('CONNECTION_DETACHED'));
     this.waiting?.reject(error('CONNECTION_DETACHED'));
     // Disconnect never cancels or stops the underlying native Bot.
     if (this.run) { this.run.error = 'CONNECTION_DETACHED'; this.run.resolve(); }
     this.disposeEvents?.(); this.disposeUsage?.();
+    await Promise.allSettled([...this.pending.values()]);
     await this.writes;
   }
 }
