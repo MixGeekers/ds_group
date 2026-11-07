@@ -65,3 +65,5 @@ CI 保留十项正式门禁：四组 Linux/Node、两组 Docker/Compose、两组
 统一修补组合的双架构 SDK、实际账目、快照与新 npm 包结果见[运行时发行增量复验](kernel-validation-increment.md)。
 
 最终固定 `e284b21` 的可部署候选包、后台回顾停机复验和十项正式 CI 全绿记录见[最终候选验证](kernel-validation-e284.md)。
+
+当前 `79ae498` 候选增加来源过滤和可靠请求视图投影，其新包、双架构增强快照及固定 CI 全绿结果见[79ae498 候选复验](kernel-validation-79ae.md)。
