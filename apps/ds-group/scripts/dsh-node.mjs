@@ -13,11 +13,14 @@ import { readOptionalJson, savePrivateJson } from './server-init.mjs';
 const [operation = 'start', nodeId = 'finance'] = process.argv.slice(2);
 if (!['start', 'run', 'stop', 'status', 'prepare'].includes(operation)) throw new Error('Use start, run, stop, status or prepare');
 const settings = runtimeSettings(nodeId, { root: packageRoot });
-if (!process.env.DS_GROUP_CORE_URL) {
-  try {
-    const imported = JSON.parse(await readFile(settings.coreConfigPath, 'utf8'));
-    if (imported.publicUrl) settings.coreUrl = httpUrl(imported.publicUrl, 'Imported core URL');
-  } catch (error) { if (error.code !== 'ENOENT') throw error; }
+if (!process.env.DS_GROUP_CORE_URL || ['start', 'run', 'prepare'].includes(operation)) {
+  const imported = await readOptionalJson(settings.coreConfigPath);
+  if (!process.env.DS_GROUP_CORE_URL && imported?.publicUrl) settings.coreUrl = httpUrl(imported.publicUrl, 'Imported core URL');
+  if (imported?.nativeBinding && ['start', 'run', 'prepare'].includes(operation)) {
+    throw Object.assign(new Error('DSCORD_NATIVE_BOT_HOST_REQUIRED: Connect this Bot from DSCord in its owning DSH host. Its exported identity cannot start another standalone kernel.'), {
+      code: 'DSCORD_NATIVE_BOT_HOST_REQUIRED',
+    });
+  }
 }
 const { local, home, bridgeUrl, dataRoot } = settings;
 const webPort = process.env.DS_GROUP_DSH_WEB_PORT || '0';

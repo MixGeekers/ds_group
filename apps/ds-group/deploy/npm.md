@@ -1,8 +1,8 @@
 # DSCord
 
-人类与独立 Bot 共同参与的聊天协作框架，原项目名为 DS-Group。npm 包包含 Node 服务端、预构建 React PWA、Matrix 接入器、DSH 桥接和DSCord 自有内核（基于 DS-Bot 0.3.1）。
+人类与独立 Bot 共同参与的聊天协作框架，原项目名为 DS-Group。npm 包包含 Node 服务端、预构建 React PWA、Matrix 接入器、DSH 桥接和 DSCord 自有内核（基于 DS-Bot 0.3.1）。
 
-已公开的版本为 `0.2.0-alpha.1`，使用 `alpha` 标签。当前源码正在验证 `0.3.0-alpha.1` 候选，增加 DSH 图形连接页、账号注册和原生 Bot 接入。下文标明这些新入口的使用范围。
+已公开的版本为 `0.2.0-alpha.1`，使用 `alpha` 标签。当前源码正在验证 `0.4.0-alpha.1` 候选，增加 DSH 图形连接页、账号注册和原生 Bot 接入。下文标明这些新入口的使用范围。
 
 服务器发行目标为 Linux amd64/arm64，要求 Node 24.19.0 及以上的 24.x。Bot 节点另外需要 DSH 0.2.2-rc.1。当前源码候选支持为每个 Bot 选择 DSH 已配置的模型，服务商与凭据由 DSH 管理。升级已有安装时，Core 与节点使用同版本候选包。[配置与当前限制](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/README.md#configuration)
 
@@ -19,10 +19,10 @@ dscord --version
 使用当前源码候选功能时，安装自己构建或取得的同版本候选包。以下路径需要替换为实际文件的绝对路径。
 
 ```sh
-npm install --global /absolute/path/dscord-0.3.0-alpha.1.tgz
+npm install --global /absolute/path/dscord-0.4.0-alpha.1.tgz
 ```
 
-从源码构建时，在 `apps/ds-group/` 执行 `npm ci --ignore-scripts`，再执行 `npm run npm:pack`。当前候选生成 `.local/npm-release/dscord-0.3.0-alpha.1.tgz`，安装前用实际构建输出核对文件名和版本。
+从源码构建时，在 `apps/ds-group/` 执行 `npm ci --ignore-scripts`，再执行 `npm run npm:pack`。当前候选生成 `.local/npm-release/dscord-0.4.0-alpha.1.tgz`，安装前用实际构建输出核对文件名和版本。
 
 ## 部署当前源码候选
 
@@ -32,7 +32,7 @@ npm install --global /absolute/path/dscord-0.3.0-alpha.1.tgz
 
 ## 已发布 0.2 Alpha 的本机试用
 
-**本节针对 `0.2.0-alpha.1` 的单服 CLI 流程。** 它使用 Docker 运行 Synapse，Node 运行核心；当前 `0.3.0` 候选的完整部署使用上方 Compose 指南。先准备 Docker Engine，并确认示例端口未被占用。
+**本节针对 `0.2.0-alpha.1` 的单服 CLI 流程。** 它使用 Docker 运行 Synapse，Node 运行核心；当前 `0.4.0` 候选的完整部署使用上方 Compose 指南。先准备 Docker Engine，并确认示例端口未被占用。
 
 下面的 `localhost` 仅用于本机访问，数据路径与容器名可自选；对外部署需填写自己的地址和身份域。
 
@@ -65,15 +65,15 @@ dscord server
 
 ## 在 DSH 中连接
 
-这一入口随 `0.3.0-alpha.1` 候选提供。当前公开的 `0.2.0-alpha.1` 使用下方 CLI 接入。
+这一入口随 `0.4.0-alpha.1` 候选提供。当前公开的 `0.2.0-alpha.1` 使用下方 CLI 接入。
 
 1. 在 DSH 打开 `Plugins → Add plugin`，安装候选 `.tgz` 并启用 `dscord`。
-2. 在 DS-Bot 正常模式让 Main Bot 创建并配置伙伴。已有原生团队直接复用，未安装时使用包内完整 DS-Bot。
+2. 在 DSCord 的本机 Bot 界面创建或选择 Bot，并配置模型与职责。已有团队由自有内核在原目录接管；先停用旧 `ds-bot` 插件，再重载 DSCord。[内核生命周期与检查](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/kernel-runtime.md)
 3. 打开 **DSCord**，填写服务器地址和自己的账号密码并登录。Bot 模式左下角也有此入口。
 4. 在「本机原生 Bot」中选已有 Bot，点击「加入服务器」。也可在网页「我的 Bot → 添加已有 Bot」选择，当前 DSH 会自动接入。
 5. 模型下拉列表来自 DSH，保存即更新同一个原生 Bot；将 Bot 邀请到需要它参与的群聊。
 
-断开、退出 DSCord 和关闭网页均不停止原生 Bot。DSH 自身必须继续运行，Bot 才能继续执行。连接页不创建新的受限运行环境，不裁剪原生工具，不复制模型凭据。正常 DS-Bot UI 保留，可从 DSH 左下角返回。
+断开、退出服务器连接和关闭网页均不停止本机 Bot。DSH 自身必须继续运行，Bot 才能继续执行。连接页复用同一内核中的原生 Session、工具和模型配置。Bot 的本机聊天与工作进度由 DSCord 内核管理，可从 DSH 左下角返回本机 Bot 界面。
 
 服务器地址使用 Core/PWA 地址；Core 提供的 Matrix 地址必须从 Bot 所在机器可达。连接元数据默认位于 `<实际 DSH home>/dscord/<当前 profile>/`，原生 Bot 数据仍在原有 DS-Bot 目录。一个连接页使用一个归属账号，该账号可以连接多个本地 Bot；跨服务器聊天复用其 Matrix 身份。
 
@@ -120,7 +120,7 @@ dscord dsh stop "$BOT_ACCOUNT"
 
 ## 附件存储
 
-`0.3.0-alpha.1` 候选支持本地媒体目录和 S3-compatible 桶配置。Cloudflare R2 使用 S3 endpoint 和 `auto` region。启用 S3 需要带 `synapse-s3-storage-provider` 的 Synapse 镜像及 Compose overlay，部署文件随 Linux 源码发行包提供。[附件存储部署说明](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/storage/README.md)
+`0.4.0-alpha.1` 候选支持本地媒体目录和 S3-compatible 桶配置。Cloudflare R2 使用 S3 endpoint 和 `auto` region。启用 S3 需要带 `synapse-s3-storage-provider` 的 Synapse 镜像及 Compose overlay，部署文件随 Linux 源码发行包提供。[附件存储部署说明](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/storage/README.md)
 
 Core 的附件身份、哈希和上传状态保存在本地数据库，文件字节由 Synapse 保存到所选后端。Compose 另提供已有 rclone remote 的网关模板，本地目录 remote 已完成限定协议测试。Google Drive 和 OneDrive 的真实云账号授权、历史文件迁移和远端清理仍需后续验收。
 
