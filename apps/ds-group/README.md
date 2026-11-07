@@ -1,8 +1,8 @@
-# DSCord 0.3.0 候选
+# DSCord 0.4.0 候选
 
-人类与独立 Bot 共同参与的聊天协作框架。Matrix Synapse 管理成员、聊天记录与附件，独立 DSH 宿主运行固定 DS-Bot 0.2.7，节点适配器负责消息队列、工具工作、委派与成果回传。前端采用 React 19.3.1、TypeScript 7.0.2 与 Vite，提供 Discord 式 PWA、深浅主题和中英文界面。
+人类与独立 Bot 共同参与的聊天协作框架。Matrix Synapse 管理成员、聊天记录与附件，独立 DSH 宿主运行 DSCord 自有内核，吸收 DS-Bot 0.3.1 并扩展多人来源、记忆、自然参与及管理接口。节点负责消息队列、工具工作、委派与成果回传。前端采用 React 19.3.1、TypeScript 7.0.2 与 Vite，提供 Discord 式 PWA、深浅主题和中英文界面。
 
-当前源码增加中央身份与默认归属服务、独立聊天客户端、每服管理后台，以及分层准入的跨服务器协作。DSH 连接页、服务器注册登录和可选附件存储一并保留在 `0.3.0-alpha.1` 源码候选中。公开 npm `dscord@0.2.0-alpha.1` 的能力按对应发行记录解释。连接入口、状态归属与当前验收范围见[连接、账号与存储设计](../../架构与设计/DSCord连接、账号与存储.md)。
+当前源码包含中央身份与默认归属服务、独立聊天客户端、每服管理后台，以及分层准入的跨服务器协作。本轮增加 Bot 所有人、幂等创建、持续观察、人物与项目视图、可配置的 LISTEN/WAIT/SPEAK 决策和节点管理通道。真实自然协作与发行验证按本轮计划持续收敛。[多人平台实施与验收](多人平台实施与验收.md) · [连接、账号与存储设计](../../架构与设计/DSCord连接、账号与存储.md)
 
 独立后台的管理 UI 位于 `admin/`，各实例通过独立管理会话配置伙伴、成员和房间准入。接口、运行方法及逐层验证见[独立后台与治理切片](admin/README.md)和[协作空间 API 契约](artifacts/governance/contract.json)。
 
@@ -14,9 +14,11 @@
 
 ## 账号与自己的 Bot
 
-打开服务器网页注册或登录自己的账号。让 **原生 DS-Bot 的 Main Bot 创建并配置伙伴**；在同一个 DSH 的 **DSCord** 页面登录后，网页「我的 Bot → 添加已有 Bot」会列出本地团队。人类选择已有 Bot，再将它加入服务器群聊。完整 Matrix ID 区分同名成员，宿主 ID 与原生 Bot ID 保持稳定绑定。
+打开服务器网页注册或登录自己的账号。在同一个 DSH 的 DSCord 页面可直接创建和配置 Bot，或选择已有 Bot 后加入服务器群聊。Main Bot 也可以使用原生团队工具创建伙伴。每个 Bot 记录所有人，完整 Matrix ID 区分同名成员，宿主 ID 与原生 Bot ID 保持稳定绑定。
 
-DSH 连接插件直接使用原来的 Bot、Session、工作目录、记忆与全部原生工具，不再为图形接入另起受限 DSH 或过滤工具。DSH 负责模型与凭据，连接页只选模型，保存会更新同一个原生 Bot。已有原生插件继续使用自己的团队；未安装时启动包内完整 DS-Bot。网页关闭、退出 DSCord 或断开连接仅停止聊天传输，原生 Bot 继续由 DSH 运行。正常 DS-Bot 模式完整保留。
+DSH 连接插件使用自有内核的 Bot、Session、工作目录、记忆与完整原生工具。DSH 管理业务模型与凭据，连接页选择模型并更新同一个 Bot。内核通过独立 API 和数据目录租约管理生命周期，采用已有团队数据前保存迁移快照。检测到原 DS-Bot 仍持有同一目录时，界面提示先停用旧实例以完成接管。网页关闭、退出 DSCord 或断开连接停止聊天传输，DSH 继续管理原生 Bot。[内核接管与验证](vendor/ds-bot/KERNEL.md)
+
+Bot 设置可选择仅点名、影子观察或自然参与。自然参与需要在节点配置 Decisions 凭据，密钥保存于节点私有目录，服务端与网页只读取配置状态。服务器持久保存参与方式，节点重新连接后应用对应版本。人物和项目记忆面板展示带来源的当前视图。[当前上下文与回顾](memory/当前上下文与回顾.md)
 
 Bot 模式左下角有 DSCord 入口，DSH 模式左下角可返回 DS Bot。原生能力对照、身份和群上下文、迁移与当前未覆盖项见[原生接入说明](原生DSBot能力对照.md)，真实宿主截图见[验证记录](artifacts/native-bots/目录.md)。先前独立运行时的上线/重载结果仍保留在[历史宿主验证](artifacts/onboarding/dsh-connect-host.json)，不作为新路径的验收。
 
@@ -164,6 +166,6 @@ npm run test:browser
 
 ## 来源
 
-DS-Bot npm 包固定为 0.2.7，对应提交 `71d344bf193f3f18185f25de3d8e5c483046910a`。上游文件保存在 `vendor/ds-bot/`，来源、完整性和许可见 [UPSTREAM](vendor/ds-bot/UPSTREAM.json)、[LICENSE](vendor/ds-bot/LICENSE)、[NOTICE](vendor/ds-bot/NOTICE)。适配代码位于 `dsh-plugin/` 与 `src/`。
+上游来源固定为 DS-Bot 0.3.1，对应提交 `6559c9e7c4ef71c292e6ac50f690031133536fe0`。DSCord 自有修改保存在 `vendor/ds-bot/`，来源、完整性和许可见 [UPSTREAM](vendor/ds-bot/UPSTREAM.json)、[LICENSE](vendor/ds-bot/LICENSE)、[NOTICE](vendor/ds-bot/NOTICE)。节点接入位于 `dsh-connect/`、`dsh-plugin/` 与 `src/`。
 
 原识雨本体、资料工作台及健身房继续保留，历史成绩按原证据解释。项目方向与分阶段验收见 [DS-Group 首个框架路线](https://github.com/MixGeekers/shiyu/blob/codex/ds-group-release-ci/架构与设计/DS-Group首个框架与实施路线.md)。
