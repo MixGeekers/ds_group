@@ -230,7 +230,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   function nodeSnapshot() {
     return accounts.publicParticipants().filter(p => p.kind === 'bot').map(participant => {
       const active = nodes.get(participant.id);
-      if (!active) return { id: participant.localpart, botId: participant.id, name: participant.name, status: 'offline', engine: 'DS-Bot 0.2.7' };
+      if (!active) return { id: participant.localpart, botId: participant.id, name: participant.name, status: 'offline', engine: 'DSCord node' };
       // Owner-only kernel settings and memory counts stay out of public status.
       const { kernel, kernelControl: control, ...visible } = active;
       return { ...visible, status: Date.now() - active.heartbeatAt > 20000 ? 'offline' : active.status };
@@ -548,7 +548,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
           status: input.status, processed: input.processed ?? 0, pending: input.pending ?? 0,
           sessionId: input.sessionId ?? null, lastError: input.lastError ?? null,
           model: typeof input.model === 'string' ? input.model.slice(0, 512) : null,
-          engine: input.engine || 'DS-Bot 0.2.7', heartbeatAt: Date.now(), kernel: publicKernelSummary(input.kernel),
+          engine: input.engine || 'DSCord node', heartbeatAt: Date.now(), kernel: publicKernelSummary(input.kernel),
           kernelControl: input.kernelControl?.version === 1 ? { version: 1 } : null };
         nodes.set(input.botId, node);
         kernelControl.observeNode(input.botId);
