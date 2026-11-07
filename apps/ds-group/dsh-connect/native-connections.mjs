@@ -42,6 +42,13 @@ export class NativeConnections {
     catch (error) { return { available: false, mode: 'native', message: error.message }; }
   }
 
+  observe(entry, input) {
+    const { botNode, bridge } = entry;
+    const rooms = Object.fromEntries([...new Set(input.events.map(event => event.room_id))]
+      .map(roomId => [roomId, input.rooms?.[roomId] || botNode.store.roomContext(roomId)]));
+    return bridge.observe({ ...input, participants: botNode.participants, rooms });
+  }
+
   async start(node) {
     if (!node.nativeBotId) throw new Error('请先为此服务器账号绑定一个已有的原生 Bot');
     if (this.connections.has(node.id)) return;
@@ -64,9 +71,7 @@ export class NativeConnections {
       const botNode = new BotNode({ participant, participants: setup.participants, roomId: setup.roomId, matrix, store, bridge, work,
         executionMode: 'native', attention: savedAttention || node.attention || { mode: 'mention' },
         decisionProvider: this.decisionSettings?.provider,
-        observe: input => bridge.observe({ ...input, participants: botNode.participants,
-          rooms: Object.fromEntries([...new Set(input.events.map(event => event.room_id))]
-            .map(roomId => [roomId, store.roomContext(roomId)])) }),
+        observe: input => this.observe(entry, input),
         readAttentionView: input => bridge.readAttentionView(input),
         files: new NodeFiles({ coreUrl: node.serverUrl, accessToken: participant.accessToken, directory: path.join(directory, 'tasks'), work, matrix }),
         tasks: createTaskClient(node.serverUrl, config.nodeSecret),
