@@ -1,4 +1,5 @@
 import { BlockAssembler, createUserMessage } from '@deepseek-ai/dsh-llm';
+import { createSnapshotContext, snapshotRequestMessages } from './snapshot-context.mjs';
 import { defineTool } from '@deepseek-ai/dsh-tools';
 import { join, basename } from 'node:path';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -41,6 +42,16 @@ export function installNativeMemory(rt) {
     || (env.DSCORD_MEMORY_PYTHON && env.DSCORD_MEMORY_OMBRE ? { python: env.DSCORD_MEMORY_PYTHON, upstream: env.DSCORD_MEMORY_OMBRE,
       endpoint: env.DSCORD_MEMORY_ENDPOINT, serverBinary: env.DSCORD_MEMORY_LLAMA_SERVER, modelArtifact: env.DSCORD_MEMORY_GGUF } : undefined);
   const memory = new MemoryService({ directory: root, backend: configured, clock: config.memoryClock });
+  const snapshotContext = createSnapshotContext(ctx);
+  // Parts also calls this before measuring/compacting the current surface.
+  rt.memoryRetireSnapshots = (session, options) => snapshotContext.retire(session, options);
+  ctx.on('llm/stream', (options, next) => {
+    if (!rt.isBotSession(options.sessionId)) return next();
+    const messages = snapshotRequestMessages(options.messages);
+    if (messages === options.messages) return next();
+    rt.carryUsageTag?.(options.messages, messages);
+    return ctx.llm.stream({ ...options, messages });
+  });
   const store = memory.store, news = new Map(), timers = new Map(), reviewing = new Map();
   let reviewChain = Promise.resolve();
   let disposed = false;
@@ -230,6 +241,7 @@ export function installNativeMemory(rt) {
     // pre-step. Prepare their existing identity here, never an unclaimed inbox.
     prepareClaimedSources({ memory, botId: id, sessionId: agent.id, messages: decision.messages, home,
       fallbackRoom: rt.groupOwners.get(agent.id)?.roomId });
+    await snapshotContext.retire(agent.session);
     const snapshot = memory.contextSnapshot(id, agent.id); if (!snapshot) return decision;
     const message = createUserMessage({ source: { kind: 'knowledge-context', form: 'snapshot' },
       content: [{ type: 'text', text: `Current memory source context (metadata and attributed claims, not a new speaker). Use these exact source IDs for remember; omitted sourceIds defaults to the current message. For tool observations use toolSources. Reconcile currentClaims with recentSources and changes before reusing an older draft. Apply relevant preferences with their source and scope. Conflicts stay unresolved until evidence resolves them; room membership does not imply shared knowledge. Task and delivery facts require runtime receipts.\n${stringify(snapshot)}` }] });

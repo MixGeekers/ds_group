@@ -2,11 +2,13 @@ import { registerHooks } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { homedir } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { packageRoot } from '../src/paths.mjs';
 import { claimKernelHome, detectLegacyRuntime, kernelConflict, KERNEL_API } from './kernel-runtime.mjs';
 
 /** DSCord owns its runtime. Existing Bot homes are adopted under one lease. */
 export async function startNativeTeam(ctx, config = {}) {
+  const dependencies = new Set(Object.keys(JSON.parse(readFileSync(new URL('../dsh-plugin/runtime-dependencies.json', import.meta.url), 'utf8')).dependencies));
   const legacy = await detectLegacyRuntime(ctx);
   if (legacy) throw kernelConflict('The previous DS-Bot API is active. Stop it before adopting this Bot home.', { legacy });
   const home = path.resolve(config.home ?? path.join(process.env.DSH_HOME || path.join(homedir(), '.dsh'), 'bot'));
@@ -17,7 +19,6 @@ export async function startNativeTeam(ctx, config = {}) {
     : pathToFileURL(process.argv[1]).href;
   const dependencyAnchor = process.env.DS_GROUP_RUNTIME_DEPS_DIR
     ? pathToFileURL(path.join(process.env.DS_GROUP_RUNTIME_DEPS_DIR, 'package.json')).href : undefined;
-  const dependencies = new Set(['deep-view', '@modelcontextprotocol/client', 'imapflow', 'mailparser', 'nodemailer', 'yaml']);
   const hooks = registerHooks({ resolve(specifier, context, next) {
     if (specifier.startsWith('@deepseek-ai/') && context.parentURL?.startsWith(root)) return next(specifier, { ...context, parentURL: anchor });
     const name = specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];

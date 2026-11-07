@@ -285,10 +285,11 @@ export function install(rt) {
   // than the backend writing one of its own.
   async function condenseRange(target, run, { forSwitch = false } = {}) {
     const sessionId = target.session.id
+    const retired = await rt.memoryRetireSnapshots?.(target.session, { keepLatest: true }) ?? []
     condensing.add(sessionId)
     if (forSwitch) switchRanges.add(sessionId)
     try {
-      return await run()
+      return await run(retired)
     } finally {
       condensing.delete(sessionId)
       if (forSwitch) switchRanges.delete(sessionId)
@@ -325,7 +326,12 @@ export function install(rt) {
       // Without the summary hook the backend would summarize a Bot conversation itself,
       // so that case keeps the refusal.
       if (original.summarize === undefined) return refuseCompaction()
-      return condenseRange(target, () => original.compactRegion.call(this, start, end, target, signal), { forSwitch: true })
+      return condenseRange(target, retired => {
+        // Range endpoints name surface nodes. Retirement replaces a node in the
+        // same position; follow that replacement if the caller selected it.
+        const current = seq => retired.find(frame => frame.seq === seq)?.replacementSeq ?? seq
+        return original.compactRegion.call(this, current(start), current(end), target, signal)
+      }, { forSwitch: true })
     }
     if (original.summarize !== undefined) {
       engine.summarize = function summarizeForBots(input, agent, signal) {
@@ -675,6 +681,7 @@ export function install(rt) {
   // the check line, false when it did not (it then moves on), undefined when a turn
   // got in first (the part is checked again when that turn ends).
   async function condense(agent, lines, { inTurn, signal }) {
+    await rt.memoryRetireSnapshots?.(agent.session, { keepLatest: true })
     const engine = engineOf(agent)
     const before = tokensOf(agent.session)
     const sessionId = agent.session.id
@@ -1013,6 +1020,7 @@ export function install(rt) {
       : job.roomId !== undefined && (room === undefined || !room.members.includes(bot.id))) return
     const name = bot?.name ?? room?.name ?? agent.id
     const session = agent.session
+    await rt.memoryRetireSnapshots?.(session, { keepLatest: true })
     const tokens = tokensOf(session)
     const lines = await contextLines(session).catch(() => undefined)
     const parts = bot === undefined ? partsOf(undefined, room.id) : partsOf(bot.id, room?.id)
@@ -1159,6 +1167,9 @@ export function install(rt) {
   ctx.on('agent/pre-step', async (payload, next) => {
     await rt.load()
     const { agent } = payload
+    // Memory snapshots describe one model step. Retire earlier frames before
+    // measuring pressure or preparing a checkpoint, while their raw events stay.
+    if (rt.isBotSession(agent.id)) await rt.memoryRetireSnapshots?.(agent.session)
     const past = rt.pastOwners.get(agent.id)
     if (past !== undefined && !rt.isBotSession(agent.id)) {
       await forward(past, payload.messages).catch(error => rt.warn('ds-bot: input for %s was not handed on: %s', agent.id, error))
@@ -1320,6 +1331,7 @@ export function install(rt) {
     // A local agent CLI owns its in-session compaction.
     if (rt.isLocalAgentRef?.(rt.botOf(placeOf(agent.id)?.botId)?.appliedModel ?? rt.botOf(placeOf(agent.id)?.botId)?.model) === true) return
     if (lastTurnEnd(agent)?.data?.reason?.kind === 'error') return
+    await rt.memoryRetireSnapshots?.(agent.session, { keepLatest: true })
     const lines = await contextLines(agent.session)
     const tokens = tokensOf(agent.session)
     if (lines === undefined || tokens === undefined || tokens < lines.check || !grown(agent.id, tokens, lines)) return
@@ -1652,6 +1664,7 @@ export function install(rt) {
       const agent = await rt.resolveAgent(rt.chatOf(botId))
       await agent.whenIdle()
       if (!isContextOverflow(lastTurnEnd(agent)?.data?.reason?.error)) throw new Error('The latest turn did not end with a context overflow')
+      await rt.memoryRetireSnapshots?.(agent.session, { keepLatest: true })
       if (switches.has(agent.id) || !await canMakeRoom(agent)) throw new Error('A fresh part cannot make room now')
       const previousSessionId = agent.id
       await startSwitch(agent, { overflow: true, resume: false })

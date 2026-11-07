@@ -5,6 +5,11 @@ import os from 'node:os';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { LocalAgentAdapter } from '../vendor/ds-bot/src/host/local-agents/adapter.js';
 import { AcpEngine } from '../vendor/ds-bot/src/host/local-agents/acp.js';
+import { Context } from '@deepseek-ai/cordis';
+import { SessionId } from '@deepseek-ai/dsh-session';
+import { createUserMessage } from '@deepseek-ai/dsh-llm';
+import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit';
+import { createSnapshotContext, snapshotRequestMessages } from '../memory/snapshot-context.mjs';
 
 const user = (id, text, source = { kind: 'user' }) => ({ id, role: 'user', content: [{ type: 'text', text }], source });
 const context = (id, text) => user(id, text, { kind: 'knowledge-context', form: 'snapshot', sections: [{ name: 'memory', text }] });
@@ -47,4 +52,25 @@ test('memory snapshots never answer an open human question; Bot input keeps its 
   const text = await f.send([first, snapshot, bot]);
   assert.equal(answered, false); assert.match(text, /Bot \(@bot:test\): Peer progress/);
   assert.match(text, /Context \(knowledge-context\)/); assert.equal(f.adapter.live.size, 1);
+});
+
+test('the same native CLI route receives only the latest projected snapshot and fresh replay omits retired frames', async t => {
+  const ctx = new Context(); await mountAgentLoopTestDependencies(ctx); t.after(() => ctx.fiber.dispose());
+  const session = ctx.sessions.create(SessionId('cli-snapshots')), snapshots = createSnapshotContext(ctx);
+  session.append('turn/start', { turn: 1 }); session.append('step/start', { turn: 1, step: 1 });
+  const append = (text, source) => session.append('user/message', createUserMessage({ source, content: [{ type: 'text', text }] }), { surfaceOp: 'append' });
+  append('Obsolete snapshot marker.', { kind: 'knowledge-context', form: 'snapshot' });
+  append('First human input.', { kind: 'user' });
+  const live = await adapterFor(t);
+  assert.match(await live.send(snapshotRequestMessages(session.deriveMessages())), /Obsolete snapshot marker/);
+  await snapshots.retire(session);
+  append('Current snapshot marker.', { kind: 'knowledge-context', form: 'snapshot' });
+  append('Second human input.', { kind: 'user' });
+  const continuing = await live.send(snapshotRequestMessages(session.deriveMessages()));
+  assert.match(continuing, /Current snapshot marker/); assert.doesNotMatch(continuing, /Obsolete snapshot marker/);
+  assert.equal(live.adapter.live.size, 1);
+  // A fresh CLI replays the native projected history, not its raw event log.
+  const fresh = await adapterFor(t), replay = await fresh.send(snapshotRequestMessages(session.deriveMessages()));
+  assert.match(replay, /First human input/); assert.match(replay, /Second human input/);
+  assert.match(replay, /Current snapshot marker/); assert.doesNotMatch(replay, /Obsolete snapshot marker/);
 });
