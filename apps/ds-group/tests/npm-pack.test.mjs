@@ -32,6 +32,7 @@ async function fixture(t) {
     'dist/web/licenses/lucide.txt': 'ISC and MIT notices',
     'dist/web/licenses/ui-foundation.txt': 'MIT and Apache-2.0 notices',
     'dist/admin/licenses/ui-foundation.txt': 'MIT and Apache-2.0 notices',
+    'dist/web/licenses/bundled-dependencies.txt': 'Bundled licenses', 'dist/admin/licenses/bundled-dependencies.txt': 'Bundled licenses',
     'dist/web/.vite/manifest.json': '{}',
     'dsh-plugin/index.mjs': 'export {};', 'dsh-plugin/runtime-dependencies-lock.json': '{}',
     'dsh-plugin/runtime-dependencies.json': '{"dependencies":{}}',
@@ -67,6 +68,7 @@ test('npm packs the exact source version, runtime and licenses without internal 
     'LICENSE', 'memory/复用与运行.md', 'vendor/ds-bot/src/office/skills/office/SKILL.md',
     'memory/native.mjs', 'service/ombre/service.py', 'service/ombre/LICENSE',
     'dist/web/index.html', 'dist/web/sw.js', 'dist/web/licenses/lucide.txt', 'dist/web/licenses/ui-foundation.txt', 'dist/admin/licenses/ui-foundation.txt', 'vendor/ds-bot/LICENSE',
+    'dist/web/licenses/bundled-dependencies.txt', 'dist/admin/licenses/bundled-dependencies.txt',
     'vendor/ds-bot/NOTICE', 'dsh-plugin/runtime-dependencies-lock.json', 'dsh-connect/index.mjs',
     'dsh-connect/client.js', 'cordis.patch.yml', 'dist/admin/index.html', 'dist/admin/theme.js', 'deploy/synapse/dscord_guard.py', 'scripts/admin.mjs', 'scripts/central-init.mjs']) assert.ok(result.files.includes(name), name);
   assert.equal(result.files.some(name => /\.local|\.npmrc|artifacts|\.env|\.vite|credentials|personal-config|实施与长程测试|vendor\/ds-bot\/README/.test(name)), false);

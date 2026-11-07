@@ -17,7 +17,7 @@ FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733cee
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean --force
-COPY --chown=node:node LICENSE ./LICENSE
+COPY --chown=node:node LICENSE NOTICE ./
 COPY --chown=node:node src ./src
 COPY --chown=node:node web ./web
 COPY --chown=node:node scripts ./scripts

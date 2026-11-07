@@ -16,5 +16,5 @@ export default defineConfig({
     },
     fs: { allow: [path.join(root, "..")] },
   },
-  build: { outDir: "../dist/admin", emptyOutDir: true, target: "es2022" },
+  build: { outDir: "../dist/admin", emptyOutDir: true, target: "es2022", license: { fileName: "licenses/bundled-dependencies.txt" } },
 });

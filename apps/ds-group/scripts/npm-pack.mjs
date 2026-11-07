@@ -73,6 +73,7 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
   const legalFiles = await projectLicense(root, source);
   await verifyRuntimeDependencyManifests(root);
   for (const filename of ['dist/web/index.html', 'dist/web/sw.js', 'dist/web/client-config.json', 'dist/web/licenses/lucide.txt', 'dist/web/licenses/ui-foundation.txt', 'dist/admin/index.html', 'dist/admin/licenses/ui-foundation.txt', 'deploy/synapse/dscord_guard.py',
+    'dist/web/licenses/bundled-dependencies.txt', 'dist/admin/licenses/bundled-dependencies.txt',
     'dsh-connect/kernel-runtime.mjs', 'memory/snapshot-context.mjs', 'src/native-request.mjs', 'vendor/ds-bot/src/host/message-source.js', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE',
     'vendor/ds-bot/UPSTREAM.json', 'service/ombre/LICENSE', 'service/ombre/SOURCE.json']) {
     await readFile(path.join(root, filename));
