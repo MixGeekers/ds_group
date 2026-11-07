@@ -6,13 +6,15 @@ import { createServer } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { chromium } from 'playwright';
 import { packageRoot } from '../src/paths.mjs';
+import { ConnectController } from '../dsh-connect/controller.mjs';
+import { DecisionSettings } from '../dsh-connect/decision-settings.mjs';
 
 const temporary = await mkdtemp(path.join(os.tmpdir(), 'dscord-kernel-ui-'));
 const output = path.join(packageRoot, '.local/kernel-settings-browser');
 await mkdir(output, { recursive: true });
 const checks = [];
 const errors = [];
-const report = { status: 'failed', level: 'real-chromium-component-and-dsh-client-fixture', modelCalls: 0, checks, errors, screenshots: [] };
+const report = { status: 'failed', level: 'real-chromium-web-fixture-and-actual-dsh-controller-with-synthetic-native-runtime', modelCalls: 0, checks, errors, screenshots: [] };
 const style = `<meta name="viewport" content="width=device-width, initial-scale=1"><script src="/theme.js"></script><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/@fs/${packageRoot}/ui/tailwind.css"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/@fs/${packageRoot}/ui/styles.css">`;
 const webHtml = `<!doctype html><html><head>${style}</head><body><div id="root"></div><script type="module">
   import React from 'react'; import { createRoot } from 'react-dom/client';
@@ -27,8 +29,8 @@ const webHtml = `<!doctype html><html><head>${style}</head><body><div id="root">
   const source = {id:'source-2',revision:2,authorId:person.id,authorKind:'human',eventId:'$updated-plan',roomId:room.roomId,timestamp:1793898000000};
   const claim = {id:'claim-1',revision:2,text:'Bob proposed planting herbs on Saturday.',claimState:'proposal',kind:'reported',saidBy:owner.id,scope:'room:'+room.roomId,sources:[source],sourceRefs:[{id:source.id,revision:2}],conflicts:['claim-conflicting-date']};
   const api = async (route, options={}) => {
-    fixture.calls.push({route,method:options.method,body:options.body});
-    if(route.endsWith('/kernel')) return {runtime:{id:'dscord-kernel',version:'0.4.0',available:!fixture.offline},online:!fixture.offline,updatedAt:Date.now(),desiredAttention:fixture.desired,attention:fixture.offline?null:{mode:fixture.mode,activity:'waiting',provider:{configured:true,available:null,health:'unknown',model:'participation-model'},queue:{pending:2,waiting:1,evaluating:0,errors:0}},work:{status:fixture.offline?null:'waiting',activeTasks:fixture.offline?null:0,waiting:fixture.offline?null:1},memorySummary:{people:1,projects:1,pendingReview:0}};
+    fixture.calls.push({route,method:options.method,body:options.body,timeout:options.timeout});
+    if(route.endsWith('/kernel')) return {runtime:{id:fixture.offline?null:'dscord-kernel',version:fixture.offline?null:'0.4.0',available:!fixture.offline},online:!fixture.offline,updatedAt:Date.now(),desiredAttention:fixture.desired,attention:fixture.offline?{mode:fixture.desired?.mode??null,activity:null,provider:{configured:null,available:null,model:null},queue:null}:{mode:fixture.mode,activity:'waiting',provider:{configured:true,available:null,health:'unknown',model:'participation-model'},queue:{pending:2,waiting:1,evaluating:0,errors:0}},work:{status:fixture.offline?'unknown':'waiting',activeTasks:fixture.offline?null:0,waiting:fixture.offline?null:1},memorySummary:{people:fixture.offline?null:1,projects:fixture.offline?null:1,pendingReview:fixture.offline?null:0}};
     if(route.endsWith('/attention')) {if(fixture.failSave)throw new Error('Synthetic uncertain save'); fixture.desired={mode:options.body.mode,revision:1,status:'pending',applied:false,online:!fixture.offline};return fixture.desired;}
     if(route.includes('/memory/profile')) {
       if(fixture.holdMemory) await new Promise(resolve=>{fixture.releaseMemory=resolve;});
@@ -77,6 +79,7 @@ const server = await createServer({
 });
 let browser;
 let page;
+let controller;
 async function screenshot(name) { const filename = path.join(output, name); await page.screenshot({ path: filename }); report.screenshots.push(filename); }
 async function fits(selector) {
   const bounds = await page.locator(selector).evaluate(element => { const r = element.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, scroll: element.scrollWidth, client: element.clientWidth, viewport: innerWidth, top: r.top, bottom: r.bottom, height: innerHeight }; });
@@ -125,6 +128,7 @@ try {
   await record.locator('summary').click();
   assert.match(await record.innerText(), /Bob/); assert.match(await record.innerText(), /Garden project/); assert.match(await record.innerText(), /\$updated-plan/);
   assert.match(await page.locator('.bot-memory-profile').innerText(), /not presented as current facts/);
+  assert.equal(await page.evaluate(() => window.fixture.calls.find(call => call.route.includes('/memory/profile')).timeout), 20000);
   checks.push('memoryKeepsOriginalSourcesReportedClaimsConflictsAndHistoricalChanges');
   await screenshot('bot-memory-dark-en.png');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -139,6 +143,8 @@ try {
   await page.locator('[data-activity="unknown"]').waitFor();
   assert.match(await page.locator('[data-bot-panel="overview"]').innerText(), /离线/);
   await page.getByRole('button', { name: '参与方式', exact: true }).click();
+  assert.doesNotMatch(await page.locator('.bot-decision-status').innerText(), /未配置/);
+  assert.match(await page.locator('[data-bot-panel="participation"]').innerText(), /当前参与方式 · 未知/);
   await page.getByRole('radio', { name: /自然参与/ }).check();
   await page.locator('#save-bot-participation').click();
   await page.getByRole('status').filter({ hasText: '下次同步' }).first().waitFor();
@@ -160,28 +166,45 @@ try {
 
   const nativeState = { serverUrl: 'https://chat.example.test', user: { id: '@alice:home.test', name: 'Alice' }, bots: [], nativeBots: [], nativeMode: true, hostId: 'node-a', runtime: { available: true }, models: { available: true, defaultSelection: { model: 'local/chat' }, providers: [{ id: 'local', name: 'Local', models: [{ model: 'local/chat', name: 'Local chat', needsKey: false }] }] } };
   const nativeRequests = [];
-  let nativeMode = 'mention';
-  let keySubmitted = false;
   let creationReceiptLost = false;
   const creations = new Map();
+  await mkdir(path.join(temporary, 'decision'), { recursive: true });
+  const decisionSettings = await new DecisionSettings({ directory: path.join(temporary, 'decision'), environment: {}, providerFactory: () => ({ model: 'participation-model', health: () => ({ health: 'ok' }) }) }).initialize();
+  const native = {
+    list: async () => nativeState.nativeBots,
+    bot: async id => { const bot = nativeState.nativeBots.find(bot => bot.id === id); if (!bot) throw new Error('Unknown local Bot'); return bot; },
+    models: async () => nativeState.models,
+    async call(endpoint, body) {
+      if (endpoint === 'create-bot') {
+        if (!creations.has(body.requestId)) {
+          const created = { id: 'local-shiyu', name: body.name, role: body.role, model: body.model, owner: body.owner };
+          nativeState.nativeBots.push(created); creations.set(body.requestId, created);
+        }
+        if (!creationReceiptLost) { creationReceiptLost = true; throw new Error('Synthetic creation receipt lost'); }
+        return creations.get(body.requestId);
+      }
+      if (endpoint === 'memory-profile') return { kind: body.kind, id: body.id, identity: { id: body.id, name: 'Bob' }, view: { currentClaims: [{ id: 'native-claim', text: 'Bob prefers herbs.', claimState: 'statement', kind: 'stated', sources: [{ id: 's', authorId: '@bob:home.test', roomId: '!project:home.test', eventId: '$source' }] }] } };
+      if (endpoint === 'memory-profiles') return { kind: body.kind, items: [{ id: '@bob:home.test', name: 'Bob' }], more: false };
+      throw new Error('Unexpected native fixture endpoint ' + endpoint);
+    },
+  };
+  controller = await new ConnectController({ directory: path.join(temporary, 'controller'), native, models: {}, processes: {
+    available: async () => nativeState.runtime,
+    async kernelState(nativeBotId) { return { runtime: { id: 'dscord-kernel', available: true }, decisionProvider: decisionSettings.publicStatus(), ...(nativeBotId ? { attention: { mode: 'mention', activity: 'unknown', online: false, provider: decisionSettings.publicStatus() }, work: { activeTasks: 0, waiting: 0 }, memorySummary: { people: null, projects: null, pendingReview: null } } : {}) }; },
+    saveDecisionProvider: settings => decisionSettings.save(settings),
+    stop: async () => {},
+  } }).initialize();
+  await controller.restoring;
+  controller.state.user = nativeState.user;
+  controller.state.serverUrl = nativeState.serverUrl;
   await page.route('**/api/dscord', async route => {
     const body = route.request().postDataJSON(); nativeRequests.push({ ...body, ...(body.apiKey ? { apiKey: '[redacted synthetic test key]' } : {}) });
-    let value;
-    if (body.action === 'status') value = nativeState;
-    else if (body.action === 'create-native') {
-      if (!creations.has(body.requestId)) {
-        const created = { id: 'local-shiyu', name: body.name, role: body.role, model: body.model };
-        nativeState.nativeBots.push(created); creations.set(body.requestId, created);
-      }
-      if (!creationReceiptLost) { creationReceiptLost = true; await route.fulfill({ json: { ok: false, error: { message: 'Synthetic creation receipt lost' } } }); return; }
-      value = nativeState;
+    try {
+      const value = await controller.handle(body);
+      await route.fulfill({ json: { ok: true, value } });
+    } catch (error) {
+      await route.fulfill({ json: { ok: false, error: { code: error.code, message: error.message } } });
     }
-    else if (body.action === 'kernel-state') value = { runtime: { id: 'dscord-kernel', available: true }, decisionProvider: { configured: keySubmitted, available: keySubmitted, model: 'participation-model' }, ...(body.nativeBotId ? { attention: { mode: nativeMode, activity: 'listening', provider: { configured: keySubmitted, available: keySubmitted } }, work: { activeTasks: 0, waiting: 0 }, memorySummary: { people: 1, projects: 0, pendingReview: 0 } } : {}) };
-    else if (body.action === 'attention-update') { nativeMode = body.mode; value = { mode: nativeMode, status: 'applied' }; }
-    else if (body.action === 'save-decision-provider') { assert.equal(body.apiKey, 'synthetic-decision-key'); keySubmitted = true; value = { configured: true, available: true, model: 'participation-model' }; }
-    else if (body.action === 'memory-profile') value = body.id ? { kind: body.kind, id: body.id, identity: { id: body.id, name: 'Bob' }, view: { currentClaims: [{ id: 'native-claim', text: 'Bob prefers herbs.', claimState: 'statement', kind: 'stated', sources: [{ id: 's', authorId: '@bob:home.test', roomId: '!project:home.test', eventId: '$source' }] }] } } : { kind: body.kind, items: [{ id: '@bob:home.test', name: 'Bob' }], more: false };
-    else throw new Error('Unexpected native fixture action ' + body.action);
-    await route.fulfill({ json: { ok: true, value } });
   });
   await page.setViewportSize({ width: 1000, height: 900 });
   await page.goto(`${origin}/__native`);
@@ -203,11 +226,15 @@ try {
   await page.getByRole('button', { name: 'Bot settings', exact: true }).click();
   await page.getByRole('radio', { name: /Join naturally/ }).check();
   await page.getByRole('button', { name: 'Save participation', exact: true }).click();
-  await page.getByRole('status').filter({ hasText: 'Participation saved' }).waitFor();
+  await page.getByRole('status').filter({ hasText: 'The node will apply this' }).first().waitFor();
+  await page.getByRole('button', { name: 'Save participation', exact: true }).waitFor({ state: 'visible' });
+  await page.waitForFunction(() => !document.querySelector('.dc-mode-options').disabled);
+  assert.equal(await page.getByRole('radio', { name: /Join naturally/ }).isChecked(), true);
+  assert.equal(await page.getByRole('button', { name: 'Save participation', exact: true }).isDisabled(), true);
   assert.equal(nativeRequests.find(item => item.action === 'attention-update').nativeBotId, 'local-shiyu');
   await page.getByRole('button', { name: 'Bob', exact: true }).click();
   await page.getByText('Bob prefers herbs.', { exact: true }).waitFor();
-  checks.push('dshLocalModeAndMemoryUseStableNativeBotIdentity');
+  checks.push('actualDshControllerKeepsDesiredModePendingWithoutRevertingAndReadsMemoryForExactBot');
   await page.getByText('Participation service', { exact: true }).click();
   await page.getByLabel('Decision service API key', { exact: true }).fill('synthetic-decision-key');
   await page.getByRole('button', { name: 'Save participation service', exact: true }).click();
@@ -224,6 +251,18 @@ try {
   const nativeBounds = await page.locator('.dscord-connect').evaluate(element => ({ scroll: element.scrollWidth, client: element.clientWidth }));
   assert.ok(nativeBounds.scroll <= nativeBounds.client + 1);
   await screenshot('local-kernel-light-zh-mobile.png');
+  await page.evaluate(() => {
+    const value = window.fixture.connection.getSnapshot().value;
+    sessionStorage.setItem(`dscord.pending-native.${value.hostId}.${value.user.id}`, JSON.stringify({
+      requestId: 'alice-pending-request', fingerprint: 'alice-only', input: { name: 'Alice private draft', role: 'Alice draft role', model: 'local/chat' },
+    }));
+  });
+  controller.state.user = { id: '@bob:home.test', name: 'Bob' };
+  await page.evaluate(() => window.fixture.connection.refresh());
+  await page.getByText('此节点尚无 Bot，可以在这里创建。', { exact: true }).waitFor();
+  assert.equal(await page.getByLabel('名称', { exact: true }).inputValue(), '');
+  assert.doesNotMatch(await page.locator('.dc-content').innerText(), /Alice private draft|Alice draft role|local-shiyu/);
+  checks.push('changingLocalAccountClearsSelectedBotAndKeepsOtherOwnersCreationDraftPrivate');
   assert.deepEqual(errors, []);
   checks.push('dshNativeSettingsRenderInChineseOnMobileWithoutOverflowOrBrowserErrors');
   report.status = 'passed';
@@ -233,6 +272,7 @@ try {
   throw error;
 } finally {
   await writeFile(path.join(output, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+  await controller?.dispose();
   await browser?.close(); await server.close(); await rm(temporary, { recursive: true, force: true });
   console.log(JSON.stringify(report));
 }

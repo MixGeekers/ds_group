@@ -110,12 +110,12 @@ export function BotSettings({ bot, session, api, status, rooms, participants, in
       <div className="bot-memory-summary"><h3>{t("memory")}</h3>{view?.memorySummary ? <dl>
         <div><dt>{t("people")}</dt><dd>{number(view.memorySummary.people)}</dd></div><div><dt>{t("projects")}</dt><dd>{number(view.memorySummary.projects)}</dd></div><div><dt>{t("pendingReview")}</dt><dd>{number(view.memorySummary.pendingReview)}</dd></div>
       </dl> : <p>{t("noSummary")}</p>}<Button variant="ghost" type="button" onClick={() => setTab("memory")}><Icon name="memory" />{t("memory")}</Button></div>
-      {!!view?.runtime && <details className="bot-runtime-details"><summary>{t("details")}</summary><p>{t("engine")} · {t("node")}</p><small>{view.runtime.id}{view.runtime.version ? ` · ${view.runtime.version}` : ""}</small></details>}
+      {!!view?.runtime?.id && <details className="bot-runtime-details"><summary>{t("details")}</summary><p>{t("engine")} · {t("node")}</p><small>{view.runtime.id}{view.runtime.version ? ` · ${view.runtime.version}` : ""}</small></details>}
       {updatedAt && <p className="muted small">{t("updated", { time: formatDateTime(updatedAt) })}</p>}
     </div>}
     {tab === "participation" && <div data-bot-panel="participation">
       <h3>{t("mode")}</h3>
-      <p>{t("currentMode")} · {t(view?.attention?.mode && modes.includes(view.attention.mode) ? view.attention.mode : "unknown")}</p>
+      <p>{t("currentMode")} · {t(view?.online !== false && view?.attention?.mode && modes.includes(view.attention.mode) ? view.attention.mode : "unknown")}</p>
       {view?.desiredAttention?.status === "pending" && <p role="status">{t("pending")}</p>}
       <RadioGroup className="bot-participation-modes" value={mode} onValueChange={value => { if (modes.includes(value as ParticipationMode)) { setMode(value as ParticipationMode); setFeedback(""); } }} aria-label={t("mode")} disabled={loading || saving || !view || locked}>
         {modes.map(value => <label className="bot-mode-option" data-selected={mode === value} key={value}>
@@ -123,9 +123,9 @@ export function BotSettings({ bot, session, api, status, rooms, participants, in
         </label>)}
       </RadioGroup>
       <p>{t("naturalNote")}</p>
-      <div className="bot-decision-status"><h3>{t("decisionModel")}</h3><p><span className="bot-state-pill">{provider ? t(provider.configured ? "configured" : "notConfigured") : t("unknown")}</span>{provider?.configured && <span className="bot-state-pill">{t(health)}</span>}</p>
+      <div className="bot-decision-status"><h3>{t("decisionModel")}</h3><p><span className="bot-state-pill">{typeof provider?.configured === "boolean" ? t(provider.configured ? "configured" : "notConfigured") : t("unknown")}</span>{provider?.configured && <span className="bot-state-pill">{t(health)}</span>}</p>
         {provider?.model && <small className="member-full-id">{provider.model}</small>}<p>{t("decisionPrivate")}</p>
-        {mode === "natural" && (!provider?.configured || health === "unavailable") && <p>{t("decisionRequired")}</p>}
+        {mode === "natural" && (provider?.configured === false || health === "unavailable") && <p>{t("decisionRequired")}</p>}
       </div>
       <div className="settings-actions"><Button id="save-bot-participation" type="button" disabled={loading || saving || locked || !view || !mode || mode === (view.desiredAttention?.mode ?? view.attention?.mode)} onClick={() => void save()}>{t(saving ? "saving" : "save")}</Button></div>
       <p role="status" className="settings-feedback">{feedback && t(feedback)}</p>

@@ -438,7 +438,7 @@ body[data-ds-dark-theme] .dscord-connect {
     function CreateLocalBot({ connection, state, t }) {
       const catalog = state.value?.models;
       const models = (catalog?.providers || []).flatMap(provider => provider.models);
-      const storageKey = `dscord.pending-native.${state.value?.hostId || 'local'}`;
+      const storageKey = `dscord.pending-native.${state.value?.hostId || 'local'}.${state.value?.user?.id || 'local-owner'}`;
       const [draft] = React.useState(() => {
         try {
           const value = JSON.parse(sessionStorage.getItem(storageKey));
@@ -561,7 +561,7 @@ body[data-ds-dark-theme] .dscord-connect {
         const controller = new AbortController();
         setLoading(true); setError(null); setKernel(null);
         void connection.kernel('kernel-state', { nativeBotId: bot.id }, controller).then(value => {
-          if (!controller.signal.aborted) { setKernel(value); setMode(value.attention?.mode || ''); }
+          if (!controller.signal.aborted) { setKernel(value); setMode(value.desiredAttention?.mode || value.attention?.mode || ''); }
         }).catch(reason => { if (!controller.signal.aborted) setError(reason.message); })
           .finally(() => { if (!controller.signal.aborted) setLoading(false); });
         return () => controller.abort();
@@ -575,6 +575,7 @@ body[data-ds-dark-theme] .dscord-connect {
         kernel && h('p', { className: 'dc-model-info' }, t(['listening', 'waiting', 'working', 'speaking'].includes(activity) ? activity : 'unknown')),
         h('p', { className: 'dc-muted dc-model-info' }, t('waitHelp')),
         h('h3', null, t('participation')),
+        kernel?.desiredAttention?.status === 'pending' && h('p', { role: 'status', className: 'dc-muted dc-model-info' }, t('participationPending')),
         h('form', { onSubmit: async event => {
           event.preventDefault(); setBusy(true); setFeedback(null);
           try {
@@ -586,7 +587,7 @@ body[data-ds-dark-theme] .dscord-connect {
           h('fieldset', { className: 'dc-mode-options', disabled: busy || loading || !kernel }, h('legend', { className: 'dc-muted' }, t('participation')),
             ...['mention', 'shadow', 'natural'].map(value => h('label', { className: 'dc-mode-option', key: value },
               h('input', { type: 'radio', name: 'participationMode', value, checked: mode === value, onChange: () => setMode(value) }), h('span', null, h('strong', null, t(value)), h('small', null, t(`${value}Help`)))))),
-          h(Button, { type: 'submit', variant: 'primary', disabled: busy || loading || !kernel || !mode || mode === kernel.attention?.mode }, t('saveParticipation'))),
+          h(Button, { type: 'submit', variant: 'primary', disabled: busy || loading || !kernel || !mode || mode === (kernel.desiredAttention?.mode || kernel.attention?.mode) }, t('saveParticipation'))),
         feedback && h('p', { role: feedback.error ? 'alert' : 'status', className: feedback.error ? 'dc-error dc-model-info' : 'dc-model-info' }, feedback.error || t(feedback.pending ? 'participationPending' : 'participationSaved')),
         h(LocalSourceMemory, { connection, nativeBotId: bot.id, t }));
     }
@@ -681,7 +682,7 @@ body[data-ds-dark-theme] .dscord-connect {
           state.loading && h('p', { role: 'status', className: 'dc-muted' }, t('readStatus')),
           runtimeError && h('p', { role: 'status', className: 'dc-notice dc-error' }, value.runtime.message || t('runtimeUnavailable')),
           !state.loading && !value?.user && h(LoginForm, { key: value?.serverUrl || 'login', connection, state, t }),
-          value?.nativeMode && h(LocalKernelPanel, { connection, state, t }),
+          value?.nativeMode && h(LocalKernelPanel, { key: `${value.hostId || 'local'}/${value.user?.id || 'local-owner'}`, connection, state, t }),
           value?.user && h(React.Fragment, null,
             h('section', { className: 'dc-panel dc-account', 'aria-label': t('account') },
               h('div', null,

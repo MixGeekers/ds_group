@@ -35,7 +35,7 @@ export function BotMemory({ bot, api, rooms, participants }: {
     if (profileId) params.set("id", profileId);
     setLoading(true); setError(""); setProfile(null);
     if (!profileId) setItems([]);
-    void api<MemoryProfile | { kind: MemoryProfileKind; items: MemoryProfileItem[]; more: boolean }>(`${route}?${params}`, { signal: controller.signal }).then(result => {
+    void api<MemoryProfile | { kind: MemoryProfileKind; items: MemoryProfileItem[]; more: boolean }>(`${route}?${params}`, { signal: controller.signal, timeout: 20000 }).then(result => {
       if (controller.signal.aborted) return;
       if ("items" in result) {
         if (!Array.isArray(result.items)) throw new Error("Invalid memory profile list");

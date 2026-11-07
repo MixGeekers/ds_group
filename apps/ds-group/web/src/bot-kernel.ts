@@ -2,12 +2,12 @@ export type ParticipationMode = "mention" | "shadow" | "natural";
 export type BotActivity = "listening" | "waiting" | "working" | "speaking";
 export interface BotAttention {
   mode: ParticipationMode | null;
-  activity?: BotActivity;
+  activity?: BotActivity | null;
   status?: string | null;
   provider: {
     id?: string | null;
     model?: string | null;
-    configured: boolean;
+    configured: boolean | null;
     available?: boolean | null;
     health?: "unknown" | "ok" | "error" | "unconfigured";
   } | null;
@@ -18,7 +18,7 @@ export interface BotKernelView {
   online?: boolean;
   updatedAt?: number | null;
   desiredAttention?: AttentionReceipt | null;
-  runtime: { id: string; version?: string | null; upstreamVersion?: string | null; available: boolean | null } | null;
+  runtime: { id: string | null; version?: string | null; upstreamVersion?: string | null; available: boolean | null } | null;
   attention: BotAttention | null;
   work: { status: string | null; activeTasks: number | null; waiting: number | boolean | null } | null;
   memorySummary: { people: number | null; projects: number | null; pendingReview: number | null } | null;
