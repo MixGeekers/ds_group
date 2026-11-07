@@ -660,6 +660,44 @@ export class NodeStore {
       watermark: last ? { sequence: last.sequence, eventId: last.event_id, roomId: last.room_id } : null };
   }
 
+  /** Per-Bot queue ownership, derived only from this inbox and sent task chain.
+   * The label never approves work, removes a source, or changes a queue item.
+   * Memory separately acknowledges a request when its actual native turn starts.
+   */
+  sourceDisposition(eventId) {
+    const item = this.item(eventId);
+    if (!item || item.attention?.kind === 'natural') return { kind: 'context' };
+    const route = item.attention;
+    if (['active_task_control', 'reply_to_conversation'].includes(route?.reason)
+      && typeof route.sourceEventId === 'string' && this.hasEvent(route.sourceEventId)) {
+      return { kind: 'task-update', forEventId: route.sourceEventId };
+    }
+    const event = item.event;
+    const meta = event.content?.['org.ds_group'] || {};
+    if (['task.result', 'task.failure'].includes(meta.kind) && typeof meta.taskId === 'string'
+      && typeof meta.originEventId === 'string' && typeof meta.originRoomId === 'string'
+      && typeof meta.originSenderId === 'string') {
+      const reference = meta.replyTo || event.content?.['m.relates_to']?.['m.in_reply_to']?.event_id;
+      const candidates = this.db.prepare(`SELECT source_event_id,sent_event_id,options_json FROM outbox WHERE status='sent'
+        AND json_extract(options_json,'$.kind')='task.request' AND json_extract(options_json,'$.taskId')=?
+        AND json_extract(options_json,'$.originEventId')=?`).all(meta.taskId, meta.originEventId);
+      const matching = candidates.find(row => {
+        const sent = JSON.parse(row.options_json);
+        return row.sent_event_id && (!reference || reference === row.sent_event_id)
+          && Array.isArray(sent.to) && sent.to.includes(event.sender) && sent.returnTo === this.botId
+          && sent.originRoomId === meta.originRoomId && sent.originSenderId === meta.originSenderId;
+      });
+      if (matching) return { kind: 'task-update', forEventId: matching.source_event_id };
+    }
+    return { kind: 'pending-request' };
+  }
+
+  sourceDispositions(events = []) {
+    return Object.fromEntries(events.map(event => typeof event === 'string' ? event : event?.event_id)
+      .filter(eventId => typeof eventId === 'string' && eventId)
+      .map(eventId => [eventId, this.sourceDisposition(eventId)]));
+  }
+
   withdrawnAttentionSource(evidence) {
     if (!evidence?.eventIds?.length) return false;
     return [...evidence.eventIds, ...(evidence.sourceEventIds || [])].some(eventId => this.messageRedacted(eventId, evidence.watermark.roomId));

@@ -243,6 +243,7 @@ export class BotNode {
             cursor: batch.cursor, watermark: batch.watermark,
             rooms: Object.fromEntries([...new Set(batch.events.map(event => event.room_id))].map(roomId => [roomId, this.roomContextFor(roomId)])),
             eventRooms: Object.fromEntries(batch.events.map(event => [event.event_id, this.store.roomContextForEvent(event)])),
+            sourceDispositions: this.store.sourceDispositions(batch.events),
           }, { signal }), this.attention.providerTimeoutMs, this.controller.signal);
           this.store.acknowledgeObservation(batch.after, batch.watermark.sequence);
           this.lastObservationError = null;
