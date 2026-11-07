@@ -24,7 +24,7 @@ curl --fail http://127.0.0.1:18100/readyz
 
 已经绑定原生 Bot 的导出文件含 `nativeBinding`，只能从所属 DSH 的 DSCord 连接。独立 CLI 会在创建 home、依赖或子进程前返回 `DSCORD_NATIVE_BOT_HOST_REQUIRED`，避免把原身份复制到另一套内核。明确创建全新独立成员且没有已有绑定的节点仍可使用独立启动入口。
 
-固定运行依赖包括 MCP client `2.4.0`、deep-view `0.1.2`、imapflow `2.9.1`、mailparser `3.12.4`、nodemailer `10.2.1` 和 YAML `2.9.1`。启动器按随包的 npm/pnpm 锁安装私有依赖并核验版本和入口，随后将 vendored 代码的依赖解析到该目录，DSH SDK 则解析到实际宿主。用户无需手工复制依赖目录。
+固定运行依赖包括 MCP client `2.4.0`、deep-view `0.1.2`、imapflow `2.9.1`、mailparser `3.12.4`、nodemailer `10.2.1`、YAML `2.9.1` 和 zod `4.6.7`。启动器按随包的 npm/pnpm 锁安装私有依赖并核验版本和入口，随后将 vendored 代码的依赖解析到该目录，DSH SDK 则解析到实际宿主。用户无需手工复制依赖目录。zod 从已有传递依赖提升为直接冻结依赖的核对见[依赖收尾记录](evidence/zod-direct-dependency.json)。
 
 ## 健康查询
 

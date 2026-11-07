@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-07",
+  "scope": "dependency-only verification before the pending knowledge projection integration",
+  "sourceBase": "af92c26",
+  "zodVersion": "4.6.7",
+  "previouslyTransitive": true,
+  "newPackages": [],
+  "changedPackageArchives": [],
+  "directManifests": [
+    "package.json",
+    "dsh-plugin/runtime-dependencies.json",
+    "generated npm package.json"
+  ],
+  "locks": [
+    "package-lock.json",
+    "dsh-plugin/runtime-dependencies-lock.json",
+    "dsh-plugin/runtime-dependencies-pnpm-lock.yaml"
+  ],
+  "checks": {
+    "rootAndPrivateNpmGraphsAndIntegrityUnchanged": true,
+    "pnpmPackagesSnapshotsAndIntegrityUnchanged": true,
+    "dependencyResolutionAndPackagingModules": "14/14 passed",
+    "officialDsh022rc1PeerContracts": "11/11 passed",
+    "privateNpmColdInstallAndStandardZodEsmImport": "passed",
+    "privateBundledPnpmColdInstallAndStandardZodEsmImport": "passed",
+    "generatedNpmManifestPinsDirectZod": "4.6.7",
+    "runtimeHookRoutesZodToItsPrivateDependencyDirectory": true
+  },
+  "preservedFixedNpmArchiveSha256": "fda5e4d313e66d932e1bd49f171af02af97fd697a975a4fd443574250fc1dfba",
+  "runtimeHookIntegration": "dsh-plugin hook derives names from the manifest; native-team hook and knowledge projection behavior are verified separately with the kernel integration",
+  "remoteModelCalls": 0,
+  "status": "passed"
+}
