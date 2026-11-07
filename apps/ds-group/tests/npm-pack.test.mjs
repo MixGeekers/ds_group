@@ -30,6 +30,7 @@ async function fixture(t) {
     'vendor/ds-bot/package.json': JSON.stringify({ dependencies: {} }),
     'dsh-connect/kernel-runtime.mjs': 'export {};', 'vendor/ds-bot/src/host/message-source.js': 'export {};',
     'memory/snapshot-context.mjs': 'export {};',
+    'src/native-request.mjs': 'export {};',
     'vendor/ds-bot/LICENSE': 'Apache-2.0', 'vendor/ds-bot/NOTICE': 'DS-Bot notice',
     'vendor/ds-bot/client.js': 'window.__ModuleLoader__.load({\n  id: "ds-bot",\n  factory: (require) => {\n    return { apply() {} };\n  },\n});',
     'deploy/npm.md': '# DSCord',

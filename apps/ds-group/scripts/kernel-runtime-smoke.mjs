@@ -119,7 +119,7 @@ function kernelInfo(value) {
 try {
   for (const filename of ['package.json', 'vendor/ds-bot/UPSTREAM.json', 'vendor/ds-bot/index.js', 'vendor/ds-bot/src/host/channel.js',
     'dsh-connect/index.mjs', 'dsh-connect/native-team.mjs', 'dsh-connect/native-bots.mjs', 'dsh-connect/native-connections.mjs',
-    'dsh-connect/kernel-runtime.mjs', 'memory/native.mjs', 'memory/snapshot-context.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime-dependencies.json', 'scripts/kernel-runtime-smoke.mjs']) {
+    'dsh-connect/kernel-runtime.mjs', 'memory/native.mjs', 'memory/snapshot-context.mjs', 'src/native-request.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime-dependencies.json', 'scripts/kernel-runtime-smoke.mjs']) {
     report.sourceHashes[filename] = hash(await readFile(path.join(packageRoot, filename)));
   }
   const version = await promisify(execFile)(installation.cli, ['--version'], { env, timeout: 30_000 });

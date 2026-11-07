@@ -28,6 +28,7 @@ async function fixture(t) {
     'dsh-plugin/runtime-dependencies-pnpm-lock.yaml': 'lockfileVersion: 9.0',
     'dsh-connect/kernel-runtime.mjs': 'export {};', 'vendor/ds-bot/src/host/message-source.js': 'export {};',
     'memory/snapshot-context.mjs': 'export {};',
+    'src/native-request.mjs': 'export {};',
     '.local/credential.json': 'PRIVATE', 'artifacts/evidence.json': 'PRIVATE',
     'deploy/.env': 'PRIVATE', 'deploy/backup.sqlite': 'PRIVATE',
   };

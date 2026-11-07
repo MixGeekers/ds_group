@@ -40,7 +40,7 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
   if (!/^\d+\.\d+\.\d+-alpha\.\d+$/.test(version)) throw new Error('Use an explicit alpha version such as 0.2.0-alpha.1');
   await verifyRuntimeDependencyManifests(root);
   for (const filename of ['dist/web/index.html', 'dist/web/sw.js', 'dist/web/client-config.json', 'dist/web/licenses/lucide.txt', 'dist/web/licenses/ui-foundation.txt', 'dist/admin/index.html', 'dist/admin/licenses/ui-foundation.txt', 'deploy/synapse/dscord_guard.py',
-    'dsh-connect/kernel-runtime.mjs', 'memory/snapshot-context.mjs', 'vendor/ds-bot/src/host/message-source.js', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE']) {
+    'dsh-connect/kernel-runtime.mjs', 'memory/snapshot-context.mjs', 'src/native-request.mjs', 'vendor/ds-bot/src/host/message-source.js', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE']) {
     await readFile(path.join(root, filename));
   }
   const manifest = {
