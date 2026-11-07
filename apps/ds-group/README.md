@@ -56,7 +56,7 @@ Bot 可以调用 DSH 文件读写、终端、后台作业及图片工具，连�
 
 ## 服务器部署与发行
 
-npm 发行名为 `dscord`。已公开的 `0.2.0-alpha.1` 包含预构建 PWA、核心服务和 Bot 节点 CLI，当前 `0.3.0-alpha.1` 候选另含 DSH 安装清单及连接页面。安装与启动步骤见 [npm 部署说明](deploy/npm.md)。通过 `npm run npm:pack` 构建带文件白名单的独立发行包，源工程的私有包清单用于本地开发。
+npm 发行名为 `dscord`。历史发行 `0.2.0-alpha.1` 包含预构建 PWA、核心服务和 Bot 节点 CLI。本分支的 `0.4.0-alpha.1` 候选增加自有内核、DSH 安装清单、连接页面和 Bot 设置。通过 `npm run npm:pack` 构建带文件白名单的独立发行包，源工程的私有包清单用于本地开发。[npm 部署说明](deploy/npm.md)
 
 Linux x64 与 ARM64 服务器使用 [Docker Compose 部署说明](deploy/README.md)。服务器默认采用密码登录，核心、Synapse、Bot 节点分别运行。文档包含 HTTPS、个人账号与 Bot、远程节点导出、备份与升级。正式发行和 CI 目标为 Linux amd64/arm64 与 Docker/Compose。
 
