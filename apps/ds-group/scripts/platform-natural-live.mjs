@@ -11,6 +11,7 @@ import { readCommandCodeCatalog } from './commandcode-preflight.mjs';
 import { MODEL, ORIGINAL_TEST_MODEL } from './memory-test-model.mjs';
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 import { readNaturalDecisions } from './platform-natural-accounting.mjs';
+import { KERNEL_API } from '../dsh-connect/kernel-runtime.mjs';
 
 const sha = value => createHash('sha256').update(value).digest('hex');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -110,7 +111,7 @@ export class NaturalLiveAdapter {
     const state = await this.host.api('state');
     const result = { enabled: state.memory, nativeBackend: state.memoryBackend || 'unknown', backend: 'unknown', observedAt: new Date().toISOString() };
     try {
-      const response = await fetch(`http://127.0.0.1:${this.host.port}/api/bot`, { method: 'POST',
+      const response = await fetch(`http://127.0.0.1:${this.host.port}${KERNEL_API}`, { method: 'POST',
         headers: { 'content-type': 'application/json', cookie: this.host.cookie },
         body: JSON.stringify({ endpoint: 'memory-view', payload: { botId: state.bots[0].id } }), signal: AbortSignal.timeout(30000) });
       const body = await response.json();

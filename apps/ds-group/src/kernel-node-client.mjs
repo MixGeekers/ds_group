@@ -50,7 +50,7 @@ export class KernelNodeClient {
       throw Object.assign(new Error('This node cannot configure participation'), { code: 'KERNEL_CONTROL_UNAVAILABLE' });
     }
     const state = await this.operations.configureAttention({ mode: desired.mode, revision: desired.revision });
-    if (state?.mode !== desired.mode) {
+    if (state?.mode !== desired.mode || state?.revision !== desired.revision) {
       throw Object.assign(new Error('The participation setting has not been applied'), { code: 'ATTENTION_NOT_APPLIED' });
     }
     this.appliedAttention = { mode: desired.mode, revision: desired.revision };

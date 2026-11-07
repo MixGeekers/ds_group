@@ -65,3 +65,10 @@ test('a command for another Bot cannot invoke local operations', async t => {
   assert.equal(result.error.code, 'KERNEL_COMMAND_STALE');
   assert.equal(applied.length, 0);
 });
+
+test('a node cannot acknowledge a participation revision it did not apply', async t => {
+  const { client } = await fixture(t);
+  client.operations.configureAttention = setting => ({ ...setting, revision: setting.revision + 1 });
+  await assert.rejects(client.applyAttention({ mode: 'natural', revision: 1 }), { code: 'ATTENTION_NOT_APPLIED' });
+  assert.equal(client.appliedAttention, null);
+});
