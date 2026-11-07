@@ -130,7 +130,8 @@ export function providerConfiguration({ env = process.env, sourceProviders = {},
   } else {
     const recordKey = `llm-pi-ai/${route.provider}`;
     for (const ref of sourceCredentialRefs) {
-      if (typeof sourceCredentials?.refs?.[ref] === 'string') credentials.refs[ref] = sourceCredentials.refs[ref];
+      const value = sourceCredentials?.refs?.[ref] || env[ref];
+      if (typeof value === 'string' && value.trim()) credentials.refs[ref] = value;
     }
     if (sourceCredentials?.records?.[recordKey]) credentials.records[recordKey] = structuredClone(sourceCredentials.records[recordKey]);
   }
