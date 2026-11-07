@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-07T03:15:41.017Z",
+  "evidenceLevel": "this-turn zero-model self-check",
+  "baseCommit": "93e7d99f001b50110ea7e8b24ca4d9d057bcf187",
+  "workingTreeImplementation": true,
+  "actualModelCalls": 0,
+  "actualServiceStarts": 0,
+  "actualMatrixMessages": 0,
+  "checks": {
+    "command": "node --test tests/platform-natural-validation.test.mjs",
+    "tests": 22,
+    "passed": 22,
+    "failed": 0,
+    "syntaxCheckedScripts": 10,
+    "syntaxFailures": 0
+  },
+  "covered": [
+    "96-message three-day definition, human conversation majority and distinct diagnostic facts",
+    "Independent 17-case code contract: reference implementation passes, defective seed rejected",
+    "Actual received files, private destinations, byte identity and exact quoted CSV text",
+    "Child suite executes in an empty directory; prose pass claims are insufficient",
+    "Cancellation after completion is not an in-flight pass; late print delivery and public attachment leaks fail",
+    "Natural decision evidence must link each Bot to actual source events",
+    "Read-only nested SQLite export preserves source ids, usage and missing-store errors",
+    "Synthetic driver stop/resume uses stable posted ids, preserves failures and refuses changed definitions",
+    "Open social turns allow silence; synthetic adapters are labelled and never counted as real acceptance",
+    "Fresh actor namespaces and intended bootstrap owner; initial Core/Matrix names must match before model startup"
+  ],
+  "retainedInitialFailure": {
+    "command": "node --test tests/platform-natural-validation.test.mjs",
+    "tests": 19,
+    "passed": 18,
+    "failed": 1,
+    "name": "downloaded test file really runs with the downloaded module in a new directory",
+    "observed": "Node child test inherited NODE_TEST_CONTEXT and skipped its suite with a recursive-run warning, despite exit code 0",
+    "fix": "Remove only the parent test-runner marker for the independent subprocess and request fixed TAP output; require an actual nonzero test count"
+  },
+  "definitions": {
+    "diagnostic": {
+      "hash": "11cbd53b735a46fcdda162c7f0de08e59d53c7c81f00c30917039535ffb2e599",
+      "messages": 16,
+      "humanConversation": 10,
+      "directedMessages": 6
+    },
+    "full": {
+      "hash": "b3a824e4eac0ca77c34aebe7e9cd50dfd3054968126c3c0a6daaa23701722920",
+      "messages": 96,
+      "humanConversation": 62,
+      "directedMessages": 34
+    }
+  },
+  "sourceHashes": {
+    "scripts/platform-natural-accounting.mjs": "b70bd180d784c26bd7fd996cf79cfe10d8e06a0a49a2aabfa9c06af52572beb8",
+    "scripts/platform-natural-check.mjs": "dd8f7dc284698f261319d58e3a380b47da82e9fa687f29767776eddd63908497",
+    "scripts/platform-natural-corpus.mjs": "b3a702fc3c72b2b926cf9da98572a09e5acd58caf3feee98d40c129e6c67a567",
+    "scripts/platform-natural-environment.mjs": "03abf1b3ad58a8e4ad898ebfaeb71b1593263fe1a4a551b8e4d2ff63083a6ce5",
+    "scripts/platform-natural-evidence.mjs": "a9b0b4c3e8cca12d48da07363d5d57e9603e94280a4fc5f6bdba4d28d93b68f5",
+    "scripts/platform-natural-host.mjs": "944cf546cc487c8c52def69205a6d124093b01bee6cb322eef05f42f7ee7702e",
+    "scripts/platform-natural-live.mjs": "e75a378b57a56da830c3f245b65a5b0db9ea6843761e66e1448b58aa0a970d1d",
+    "scripts/platform-natural-oracle.mjs": "06bc7c7d0bec9666e34937a46f4d6de59faf65d71fdbdd71a8055b8d66a91db5",
+    "scripts/platform-natural-run.mjs": "95ac50b4aaaffdc38e28b9fa8b34d71728b66d72f46b9c7b17ecadd8c3bb57d0",
+    "tests/platform-natural-validation.test.mjs": "137afa5dd20d84ef9d469530b2c52cae5ccd723ae8e73dab7b56e3cb24ad544d",
+    "scripts/memory-visible-environment.mjs": "84be601c50e3ae904dc366410434d490be7b099243d887b1f0a672152354e8b4"
+  },
+  "limits": [
+    "No real DSH, provider, Synapse, Matrix, browser or physical cross-machine acceptance was performed in this slice",
+    "Synthetic controller completion-with-failures was an expected test result; it is not product acceptance",
+    "Full native compression/restart and open social/source-priority judgments remain untested until the main thread starts a live run"
+  ],
+  "authorizedExistingChange": "Main-thread authorization: add optional profiles to memory-visible-environment.mjs while retaining all legacy defaults; new scenarios register their own names and accounts directly"
+}

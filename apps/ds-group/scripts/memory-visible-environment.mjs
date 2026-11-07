@@ -18,7 +18,11 @@ async function unused(port) {
   await new Promise(resolve => server.close(resolve));
 }
 export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308, serverName = 'memory-live.local',
-  prefix = 'memory-visible', activeFile = 'memory-visible-active.json', preparingMessage } = {}) {
+  prefix = 'memory-visible', activeFile = 'memory-visible-active.json', preparingMessage,
+  profiles = [ ['watch', '长测观察员'], ['lin_a', '林青'], ['lin_b', '林青'], ['song', '宋禾'] ] } = {}) {
+  if (!Array.isArray(profiles) || !profiles.length || profiles.some(profile => !Array.isArray(profile) || profile.length !== 2
+    || !/^[a-z0-9._=-]+$/.test(profile[0]) || typeof profile[1] !== 'string' || !profile[1].trim())
+    || new Set(profiles.map(profile => profile[0])).size !== profiles.length) throw new Error('Profiles require unique synthetic localparts and nonempty display names');
   await unused(port); await unused(matrixPort);
   await mkdir(path.join(packageRoot, '.local'), { recursive: true });
   const directory = await mkdtemp(path.join(packageRoot, `.local/${prefix}-`));
@@ -27,7 +31,6 @@ export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308
   const containerName = `dscord-memory-visible-${path.basename(directory).split('-').at(-1).toLowerCase()}`;
   const options = { dataRoot, synapseRoot, serverName, homeserverUrl: matrixUrl, publicUrl: coreUrl, publicHomeserverUrl: matrixUrl, webMode: 'bundled' };
   await initializeServer(options);
-  const profiles = [ ['watch', '长测观察员'], ['lin_a', '林青'], ['lin_b', '林青'], ['song', '宋禾'] ];
   await savePrivateJson(path.join(dataRoot, 'matrix-setup.json'), { serverName, homeserverUrl: matrixUrl,
     publicHomeserverUrl: matrixUrl, roomId: null, participants: profiles.map(([localpart, name]) => ({
       id: `@${localpart}:${serverName}`, localpart, name, kind: 'human', password: randomBytes(24).toString('base64url'), accessToken: null,
