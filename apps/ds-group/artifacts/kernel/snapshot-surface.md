@@ -34,3 +34,7 @@
 CLI 检查证明新的 adapter 请求和新 CLI 回放不再携带旧 snapshot；持续运行的外部 CLI 可能保留之前已提交内容，其私有历史由 CLI 自身管理。本次不宣称擦除外部进程历史。原始 Session 事件继续增长以保留审计，活动模型请求不会重复携带旧 snapshot；这也不证明长程远端模型的语义质量已通过。
 
 原生模型切换所用的范围 compaction 入口已核对接线与 surface 端点更新；本轮实际 provider 场景使用同一模型，未把模型切换记为实测通过。
+
+## 官方 CLI 的 SDK 测试前置修补
+
+首轮 SDK 检查使用包含开发 testkit 的 harness；发行线随后发现干净的官方 CLI 不安装该包，三个测试文件因此无法加载。测试现改用 `tests/fixtures/sdk-session-context.mjs` 直接加载官方 `SessionStore` 与 `SessionProjectionRegistry`，无需 testkit、额外开发依赖或运行 manifest 变化。全新隔离前缀只安装 `@deepseek-ai/dsh@0.2.2-rc.1`，确认 testkit 解析为 `MODULE_NOT_FOUND` 后，20 项 SDK/CLI 检查通过；原来的实际宿主证据独立保留。详见[前置修补证据](sdk-session-fixture.json)。

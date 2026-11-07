@@ -5,10 +5,9 @@ import os from 'node:os';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { LocalAgentAdapter } from '../vendor/ds-bot/src/host/local-agents/adapter.js';
 import { AcpEngine } from '../vendor/ds-bot/src/host/local-agents/acp.js';
-import { Context } from '@deepseek-ai/cordis';
 import { SessionId } from '@deepseek-ai/dsh-session';
 import { createUserMessage } from '@deepseek-ai/dsh-llm';
-import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit';
+import { createSessionContext } from './fixtures/sdk-session-context.mjs';
 import { createSnapshotContext, snapshotRequestMessages } from '../memory/snapshot-context.mjs';
 
 const user = (id, text, source = { kind: 'user' }) => ({ id, role: 'user', content: [{ type: 'text', text }], source });
@@ -55,7 +54,7 @@ test('memory snapshots never answer an open human question; Bot input keeps its 
 });
 
 test('the same native CLI route receives only the latest projected snapshot and fresh replay omits retired frames', async t => {
-  const ctx = new Context(); await mountAgentLoopTestDependencies(ctx); t.after(() => ctx.fiber.dispose());
+  const ctx = await createSessionContext(); t.after(() => ctx.fiber.dispose());
   const session = ctx.sessions.create(SessionId('cli-snapshots')), snapshots = createSnapshotContext(ctx);
   session.append('turn/start', { turn: 1 }); session.append('step/start', { turn: 1, step: 1 });
   const append = (text, source) => session.append('user/message', createUserMessage({ source, content: [{ type: 'text', text }] }), { surfaceOp: 'append' });

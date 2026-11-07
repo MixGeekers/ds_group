@@ -1,16 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Context } from '@deepseek-ai/cordis';
 import { createUserMessage, createMessage, createDeveloperMessage } from '@deepseek-ai/dsh-llm';
 import { Session, SessionId } from '@deepseek-ai/dsh-session';
-import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit';
+import { createSessionContext } from './fixtures/sdk-session-context.mjs';
 import { createSnapshotContext, RETIRED_SNAPSHOT_KIND, snapshotRequestMessages } from '../memory/snapshot-context.mjs';
 
 const user = (text, source = { kind: 'user' }) => createUserMessage({ content: [{ type: 'text', text }], source });
 const snapshot = text => user(text, { kind: 'knowledge-context', form: 'snapshot', sections: [{ name: 'source-memory', text }] });
 const frames = session => session.deriveMessages().filter(message => message.source?.kind === 'knowledge-context');
 async function fixture(t) {
-  const ctx = new Context(); await mountAgentLoopTestDependencies(ctx);
+  const ctx = await createSessionContext();
   t.after(() => ctx.fiber.dispose());
   const events = [];
   ctx.on('session/event', (session, event) => { if (session.id === 'snapshots') events.push(event); });

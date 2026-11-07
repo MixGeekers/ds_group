@@ -4,14 +4,13 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createUserMessage } from '@deepseek-ai/dsh-llm';
-import { Context } from '@deepseek-ai/cordis';
 import { SessionId } from '@deepseek-ai/dsh-session';
-import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit';
+import { createSessionContext } from './fixtures/sdk-session-context.mjs';
 import { installNativeMemory } from '../memory/native.mjs';
 
 test('the actual SDK identified claimed messages produce the first-step snapshot before their user/message event', async () => {
   const home = await mkdtemp(join(tmpdir(), 'memory-claimed-sdk-')), cleanups = [], handlers = new Map();
-  const ctx = new Context(); await mountAgentLoopTestDependencies(ctx);
+  const ctx = await createSessionContext();
   const rt = { home, config: { memoryReview: false }, teamTools: [], groupOwners: new Map(), selfOf: () => 'a', botOf: id => id === 'a' ? { id } : null,
     ctx: { get: name => ctx.get(name), on(name, callback) { handlers.set(name, callback); }, systemPrompt: { section: () => () => {} },
       effect(setup) { const cleanup = setup(); if (typeof cleanup === 'function') cleanups.push(cleanup); } } };

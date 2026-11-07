@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07",
+  "level": "official-clean-cli-sdk-and-local-acp-process",
+  "status": "passed",
+  "installation": {
+    "command": "npm install --prefix .cache/snapshot-clean-sdk --ignore-scripts --no-audit --no-fund --save-exact @deepseek-ai/dsh@0.2.2-rc.1",
+    "explicitDependencies": { "@deepseek-ai/dsh": "0.2.2-rc.1" },
+    "resolvedServices": {
+      "@deepseek-ai/cordis": "4.1.0",
+      "@deepseek-ai/dsh-session": "0.2.2-rc.1",
+      "@deepseek-ai/dsh-session-projection": "0.2.2-rc.1"
+    },
+    "agentLoopTestkitResolve": "MODULE_NOT_FOUND",
+    "sharedOrUserDshChanged": false
+  },
+  "validation": {
+    "command": "DSH_HARNESS=$PWD/.cache/snapshot-clean-sdk npm run test:kernel-host",
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "remoteModelCalls": 0,
+    "providerHttpCalls": 0
+  },
+  "fixture": {
+    "file": "tests/fixtures/sdk-session-context.mjs",
+    "publicServices": ["SessionStore", "SessionProjectionRegistry"],
+    "extraDevelopmentPackages": [],
+    "runtimeManifestChanges": [],
+    "productRuntimeChanges": []
+  },
+  "priorFailure": "The original three SDK test files imported dsh-agent-loop-testkit from a development harness. The official CLI does not install that package, so those files failed to load in clean installations. The original actual-process snapshot evidence remains separate; this change removes the implicit test prerequisite."
+}
