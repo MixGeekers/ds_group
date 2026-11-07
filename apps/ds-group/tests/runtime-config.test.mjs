@@ -52,6 +52,19 @@ test('legacy explicit opencode environment remains usable for existing deploymen
   assert.equal(JSON.stringify(config.provider).includes('synthetic-key'), false);
 });
 
+test('an unrelated legacy credential cannot replace the selected source provider', () => {
+  const config = providerConfiguration({ env: { OPENCODE_API_KEY: 'unrelated-legacy-key' },
+    sourceSelection: { model: 'company/team/model', maxTokens: 2048 },
+    sourceProviders: { company: { api: 'openai-completions', baseURL: 'https://models.example/v1',
+      models: [{ id: 'team/model' }], apiKeyEnv: 'COMPANY_KEY' } },
+    sourceCredentials: { refs: { COMPANY_KEY: 'selected-private-key' } } });
+  assert.equal(config.providerId, 'company');
+  assert.deepEqual(config.selection, { model: 'company/team/model', maxTokens: 2048 });
+  assert.equal(config.provider.baseURL, 'https://models.example/v1');
+  assert.deepEqual(config.credentials.refs, { COMPANY_KEY: 'selected-private-key' });
+  assert.equal(JSON.stringify(config).includes('unrelated-legacy-key'), false);
+});
+
 test('imports native model catalogs, overrides and provider options without mutating the source', () => {
   const provider = { apiKeyEnv: 'EXISTING_KEY', api: 'openai-completions', modelOverrides: { 'team-chat': { contextWindow: 65536 } },
     retryPolicy: { mode: 'normal', maxRetries: 5 }, headers: { 'X-Route': 'team' }, transport: 'sse' };

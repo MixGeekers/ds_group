@@ -95,7 +95,7 @@ export async function resolveDsh({ env = process.env, platform = process.platfor
 
 export function providerConfiguration({ env = process.env, sourceProviders = {}, sourceSelection, sourceCredentials = {}, sourceCredentialRefs = [], previousSelection } = {}) {
   const reference = env.DS_GROUP_MODEL || previousSelection?.model
-    || (env.OPENCODE_API_KEY?.trim() ? LEGACY_MODEL : sourceSelection?.model);
+    || sourceSelection?.model || (env.OPENCODE_API_KEY?.trim() ? LEGACY_MODEL : undefined);
   const route = modelReference(reference);
   const inherited = reference === previousSelection?.model ? previousSelection
     : reference === sourceSelection?.model ? sourceSelection
