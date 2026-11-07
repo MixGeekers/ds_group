@@ -1,6 +1,6 @@
 {
   "name": "ds-group",
-  "version": "0.4.0",
+  "version": "0.4.0-alpha.1",
   "private": true,
   "type": "module",
   "description": "Human and independent Bot collaboration over Matrix and DS-Bot",
