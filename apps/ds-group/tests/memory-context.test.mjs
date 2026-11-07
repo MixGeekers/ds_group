@@ -237,12 +237,14 @@ test('person and project profiles distinguish equal names, unknown identities an
   memory.observe('b', input('secret', '只被 b 看到', { sender: '@private:test', room: '!private:test' }));
   const list = memory.profiles('a', { kind: 'person' });
   assert.equal(list.items.filter(item => item.name === '林青').length, 2);
+  assert.ok(list.items.every(item => item.kind === 'person' && item.entityKind === 'human'));
   assert.equal(list.items.some(item => item.id === 'matrix:@private:test'), false);
   const profile = memory.profile('a', { kind: 'person', id: '@lin:b.test' });
   assert.equal(profile.identity.id, 'matrix:@lin:b.test');
   assert.deepEqual(profile.view.preferences.map(row => row.text), ['English']);
   assert.equal(profile.view.currentClaims.some(row => row.id === projectFact.id), false);
   const projects = memory.profiles('a', { kind: 'project' });
+  assert.ok(projects.items.every(item => item.kind === 'project' && item.entityKind));
   assert.ok(projects.items.some(item => item.id === 'open-day-2026'));
   assert.throws(() => memory.profile('a', { kind: 'person', id: '@private:test' }), /MEMORY_PROFILE_NOT_KNOWN/);
 }));

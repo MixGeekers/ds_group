@@ -184,7 +184,8 @@ export function memoryProfiles(memory, botId, { kind = 'person', query = '', roo
     : unique([...rows.map(row => row.subjectId).filter(project), ...rows.flatMap(row => row.projectIds || []), ...sources.map(source => source.roomId && canonicalIdentity(source.roomId))]);
   const matches = ids.map(id => {
     const relevant = rows.filter(row => row.subjectId === id || (kind === 'person' ? row.entityIds : row.projectIds)?.includes(id));
-    return { ...identity(memory.store, id), currentCount: relevant.filter(row => memory.store.derivation(row) === 'current').length,
+    const entity = identity(memory.store, id);
+    return { ...entity, kind, entityKind: entity.kind, currentCount: relevant.filter(row => memory.store.derivation(row) === 'current').length,
       historyCount: relevant.length, scopes: [...new Set(relevant.map(row => row.scope))] };
   }).filter(item => !query || `${item.id} ${item.name} ${item.aliases?.join(' ') || ''}`.toLowerCase().includes(query.toLowerCase()));
   const count = limit(requestedLimit, 50, 100);
