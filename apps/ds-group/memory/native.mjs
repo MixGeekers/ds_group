@@ -46,13 +46,15 @@ export function installNativeMemory(rt) {
   const snapshotContext = createSnapshotContext(ctx);
   // Parts also calls this before measuring/compacting the current surface.
   rt.memoryRetireSnapshots = (session, options) => snapshotContext.retire(session, options);
+  // Rewriting re-enters the stream waterfall. It must precede accounting
+  // observers so only the final request reaches admission and usage hooks.
   ctx.on('llm/stream', (options, next) => {
     if (!rt.isBotSession(options.sessionId)) return next();
     const messages = snapshotRequestMessages(options.messages);
     if (messages === options.messages) return next();
     rt.carryUsageTag?.(options.messages, messages);
     return ctx.llm.stream({ ...options, messages });
-  });
+  }, { prepend: true });
   const store = memory.store, news = new Map(), timers = new Map(), reviewing = new Map();
   let reviewChain = Promise.resolve();
   let disposed = false;

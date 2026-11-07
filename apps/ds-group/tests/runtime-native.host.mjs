@@ -121,6 +121,7 @@ try {
   assert.equal(receipt.text, 'Native response from the owned kernel.'); assert.equal(receipt.mode, 'native');
   assert.equal(receipt.usage.complete, false); assert.equal(ledgerCalls.length, 0);
   report.checks.push('nativeRequestRunsWithOriginalToolsAndIndependentUsage');
+  assert.equal(receipt.calls.length, 1); assert.equal(receipt.usage.observedCalls, 1);
   for (let n = 0; n < 80 && !providerCalls.some(call => call.kind === 'memory'); n++) await sleep(100);
   assert.ok(providerCalls.some(call => call.kind === 'memory'), 'Native automatic memory review did not reach its provider');
   const nodeStatus = await api('/status');
@@ -128,12 +129,25 @@ try {
   report.checks.push('nativeAutomaticMemoryReviewRetainsItsOwnObservedStream');
   const generated = providerCalls.filter(call => call.kind === 'generation').length;
   assert.equal((await api('/turns', input)).duplicate, true);
-  await finish(turnInput(two.botId, 'native-two'));
-  assert.equal(providerCalls.filter(call => call.kind === 'generation').length, generated + 1);
+  // Reusing this Bot retires its previous snapshot and exercises the recursive
+  // stream rewrite, unlike a first request in a newly created Session.
+  const repeated = await finish(turnInput(one.botId, 'native-next'));
+  const other = await finish(turnInput(two.botId, 'native-two'));
+  for (const item of [repeated, other]) {
+    assert.equal(item.calls.length, 1); assert.equal(item.usage.observedCalls, 1);
+    assert.equal(item.calls[0].usage.totalTokens, 20);
+  }
+  const observed = JSON.parse(await readFile(path.join(directory, 'dsh-finance/runtime/node-state.json'), 'utf8')).nativeUsage;
+  assert.equal(observed.length, providerCalls.length);
+  assert.ok(observed.every(call => call.status === 'completed' && call.usage.totalTokens === 20));
+  report.accounting = { providerCalls: providerCalls.length, observedCalls: observed.length,
+    bridgeCalls: [receipt, repeated, other].map(item => ({ requestId: item.requestId, calls: item.calls.length })) };
+  report.checks.push('retiredSnapshotRewriteCountsOneNativeObservationAndBridgeCall');
+  assert.equal(providerCalls.filter(call => call.kind === 'generation').length, generated + 2);
   await stop(); await start();
   const restored = await create(one.botId); assert.equal(restored.dsBotId, one.dsBotId); assert.equal(restored.sessionId, one.sessionId);
   assert.equal((await api('/turns', input)).duplicate, true);
-  assert.equal(providerCalls.filter(call => call.kind === 'generation').length, generated + 1);
+  assert.equal(providerCalls.filter(call => call.kind === 'generation').length, generated + 2);
   report.checks.push('restartKeepsNativeIdentityAndDoesNotReplayCompletedWork');
   report.status = 'passed';
 } catch (error) { report.error = error.message; report.diagnosticDirectory = directory; process.exitCode = 1; }
