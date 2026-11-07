@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-07T03:17:31.188Z",
+  "generatedAt": "2026-11-07T03:28:18.275Z",
   "evidenceLevel": "this-turn zero-model self-check",
   "baseCommit": "93e7d99f001b50110ea7e8b24ca4d9d057bcf187",
   "workingTreeImplementation": true,
@@ -9,8 +9,8 @@
   "actualMatrixMessages": 0,
   "checks": {
     "command": "node --test tests/platform-natural-validation.test.mjs",
-    "tests": 22,
-    "passed": 22,
+    "tests": 25,
+    "passed": 25,
     "failed": 0,
     "syntaxCheckedScripts": 10,
     "syntaxFailures": 0
@@ -44,7 +44,7 @@
       "directedMessages": 6
     },
     "full": {
-      "hash": "c591a0281796a049a87af836bc17de4d609c848c9a11dd39e3b9c959f9a78146",
+      "hash": "4131ac33fc2f0b24be4bac18e91b9fe8728f9e08ab1bf5361dc1d44b12098c02",
       "messages": 96,
       "humanConversation": 62,
       "directedMessages": 34
@@ -52,16 +52,16 @@
   },
   "sourceHashes": {
     "scripts/platform-natural-accounting.mjs": "b70bd180d784c26bd7fd996cf79cfe10d8e06a0a49a2aabfa9c06af52572beb8",
-    "scripts/platform-natural-check.mjs": "dd8f7dc284698f261319d58e3a380b47da82e9fa687f29767776eddd63908497",
+    "scripts/platform-natural-check.mjs": "ae6621cd5b8362833bf01df51830cc4ef3a81b92dc9774d6ad0356f1f4cc15b8",
     "scripts/platform-natural-corpus.mjs": "d99d738bfb9c5dd61380055d53c31ec85f898788a8903fe9c51377e131459504",
-    "scripts/platform-natural-environment.mjs": "03abf1b3ad58a8e4ad898ebfaeb71b1593263fe1a4a551b8e4d2ff63083a6ce5",
-    "scripts/platform-natural-evidence.mjs": "a9b0b4c3e8cca12d48da07363d5d57e9603e94280a4fc5f6bdba4d28d93b68f5",
-    "scripts/platform-natural-host.mjs": "944cf546cc487c8c52def69205a6d124093b01bee6cb322eef05f42f7ee7702e",
-    "scripts/platform-natural-live.mjs": "e75a378b57a56da830c3f245b65a5b0db9ea6843761e66e1448b58aa0a970d1d",
-    "scripts/platform-natural-oracle.mjs": "06bc7c7d0bec9666e34937a46f4d6de59faf65d71fdbdd71a8055b8d66a91db5",
+    "scripts/platform-natural-environment.mjs": "21038ee745181720033d3971b9c09d79eca23723f54cab4dafba85197f3890f7",
+    "scripts/platform-natural-evidence.mjs": "ac3829aa30e25163d078f3437fa216647bc08a56e9c8d246125756135a51a212",
+    "scripts/platform-natural-host.mjs": "cd605ae2fc91289dc455b021c64b229cdeb4c6e84602ad1756d8332a15739999",
+    "scripts/platform-natural-live.mjs": "c8339ba2ddc86e3a1c7ff618867d59ffaafd6a6b7264da31fd9af9dc8de8f4d8",
+    "scripts/platform-natural-oracle.mjs": "92d5d651b55607e7bbf7b0659bf633cc77c155e7742ce046ecce76e5896eef43",
     "scripts/platform-natural-run.mjs": "95ac50b4aaaffdc38e28b9fa8b34d71728b66d72f46b9c7b17ecadd8c3bb57d0",
-    "tests/platform-natural-validation.test.mjs": "137afa5dd20d84ef9d469530b2c52cae5ccd723ae8e73dab7b56e3cb24ad544d",
-    "scripts/memory-visible-environment.mjs": "84be601c50e3ae904dc366410434d490be7b099243d887b1f0a672152354e8b4"
+    "tests/platform-natural-validation.test.mjs": "6147cf51f19ddbc4baa1d7f682ce429eaa389d5cb0226aaf3a2d9ca3caf8dff6",
+    "scripts/memory-visible-environment.mjs": "024f55defb9f95a4dc89cd9b978e577293229839745ddc98831d667d85f8d38c"
   },
   "limits": [
     "No real DSH, provider, Synapse, Matrix, browser or physical cross-machine acceptance was performed in this slice",
@@ -69,5 +69,14 @@
     "Full native compression/restart and open social/source-priority judgments remain untested until the main thread starts a live run"
   ],
   "authorizedExistingChange": "Main-thread authorization: add optional profiles to memory-visible-environment.mjs while retaining all legacy defaults; new scenarios register their own names and accounts directly",
-  "preLiveRefinement": "Before any live messages, add natural Monday/Tuesday/Wednesday cues and day 20 to the human-confirmed move time; private business metadata is not assumed visible to Bots"
+  "preLiveRefinement": "Before any live messages, add natural Monday/Tuesday/Wednesday cues and day 20 to the human-confirmed move time; private business metadata is not assumed visible to Bots",
+  "followupValidation": {
+    "modelSettings": {
+      "ordinaryGo": true,
+      "ordinaryCommandCode": true,
+      "actualProviderCalls": 0
+    },
+    "nativeMemory": "Topology only from native state + memory-view backend; optional embedding env not inherited; no backend started in zero-model checks",
+    "dateAudit": "No hidden businessAt calendar requirement; full day accepts equivalent visible formats; diagnostic criteria unchanged"
+  }
 }

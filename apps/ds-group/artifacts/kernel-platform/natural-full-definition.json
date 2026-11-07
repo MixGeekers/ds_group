@@ -1292,7 +1292,7 @@
       ],
       "moveContract": true,
       "review": [
-        "简短中文可被阿宁在手机上读完；实际周五搬家尚未发生"
+        "简短中文可被阿宁在手机上读完；实际周五搬家尚未发生；日期可用周五20号、11月20日等自然等价表述，不要求推断私有业务时钟"
       ]
     },
     "full-089": {
@@ -1342,7 +1342,7 @@
     "time": "业务时间横跨三天是合成叙事；首末实际墙钟、停机与模型调用耗时另列，不能宣称经历真实三天"
   },
   "corpusHash": "02d4e5afdaa197446fa0b10f06465f7a1a91f3d9129bb6c453e627a817b8033a",
-  "oracleHash": "d9d6398d2deb3aedacd57fde4b84f0da80616a383967e7c972f20efafbce50a1",
+  "oracleHash": "e5d70b2fc0ca5305fb76211c46f5f36fb76ab7d3b446d16cd6e842960aff1c82",
   "fixtureHash": "3dd53d96cf6fd5d440286df3ccb9f28639651b475f3899cbba46a60471a50023",
-  "definitionHash": "c591a0281796a049a87af836bc17de4d609c848c9a11dd39e3b9c959f9a78146"
+  "definitionHash": "4131ac33fc2f0b24be4bac18e91b9fe8728f9e08ab1bf5361dc1d44b12098c02"
 }

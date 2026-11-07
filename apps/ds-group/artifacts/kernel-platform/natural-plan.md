@@ -67,6 +67,8 @@ node scripts/platform-natural-run.mjs --run --profile full \
 
 初期生成路由默认 `opencode-go/deepseek-v4.1-flash`，主线程核查额度并选择已授权普通版后才启动。入口沿用 `DSCORD_MEMORY_TEST_MODEL` 显式选择；普通版CommandCode可由主线程设置 `commandcode-goat/deepseek/deepseek-v4.1-flash`，Fast被既有守卫拒绝。Decisions通过主线程的私有配置注入，走独立client；不改用户主DSH配置，不把key写进证据。Go预检不通过时在启动模型宿主前停止。
 
+新环境将同一个当前授权MODEL同时写入Core白名单和环境model字段，plannedRounds使用16或96，旧环境默认Go/240不变。本轮原生记忆采用SQLite的exact/lexical存储与模型回顾，不配置或启动旧embedding。隔离子宿主清除继承的可选embedding环境变量，若发现已有外部backend配置则停止而不改文件；报告读取native state与真实memory-view的backend，未知时明确unverified，不能凭历史实验写Ombre/Harrier已运行。
+
 生成home、四个合成账号配置、原始Session、协议日志、kernel快照、decision完整输入和下载字节均留在包内忽略的 `.local/`；原生工作目录由既有 `MemoryTestHost` 放在系统临时目录，隔开工程AGENTS及隐藏判据。新生成harness读取当前私有运行依赖清单，复用可用的通用resolver；不改旧实验harness或旧规则。
 
 `pause`文件在当前消息边界暂停后续投放，`stop`或SIGINT/SIGTERM请求有序停止。同目录加 `--resume` 沿用同一语料、home、账号和稳定消息transactionId，已投放消息不重发；定义或合同摘要变化会拒绝恢复。每次尝试另存先前报告与源码摘要。服务和容器继续保留供界面检查，生成宿主在执行器退出时关闭。

@@ -20,7 +20,7 @@ export async function exportNaturalEvidence(directory, destination) {
     startedAt: report.startedAt, finishedAt: report.finishedAt, wallElapsedMs: report.wallElapsedMs,
     businessTime: { start: report.businessStart, end: report.businessEnd, zone: report.businessTimeZone, synthetic: true },
     planned: report.planned, posted: report.rows.length, evaluated: report.rows.filter(row => row.completedAt).length,
-    bots: report.bots, people: report.people, rooms: report.rooms, membershipEvidence: report.membershipEvidence,
+    bots: report.bots, people: report.people, rooms: report.rooms, membershipEvidence: report.membershipEvidence, topology: report.topology, memoryObservation: report.memoryObservation,
     attempts: report.attempts.map(attempt => ({ startedAt: attempt.startedAt, finishedAt: attempt.finishedAt, resumedAfter: attempt.resumedAfter, model: attempt.model,
       startCommit: attempt.source?.commit, endCommit: attempt.sourceEnd?.commit,
       sourceHashesAtStart: attempt.source?.hashes, sourceHashesAtEnd: attempt.sourceEnd?.hashes })),
@@ -32,7 +32,7 @@ export async function exportNaturalEvidence(directory, destination) {
     runChecks: report.runChecks, decisionChecks: report.decisionChecks, failures: report.failures,
     reviews: report.reviews, allBotMessageReview: report.allBotMessageReview, maintenance: report.maintenance,
     accounting: report.accounting, finalEvidence: report.final ? { eventCount: report.final.eventCount, kernelSnapshots: report.final.kernelSnapshots,
-      decisionExportErrors: report.final.decisionExportErrors, memoryUsage: report.final.memoryUsage } : undefined,
+      decisionExportErrors: report.final.decisionExportErrors, memoryUsage: report.final.memoryUsage, memoryObservation: report.final.memoryObservation } : undefined,
     artifacts, criteria: definition.globalCriteria, error: safeError(report.error?.message),
     limits: ['Synthetic roles and accelerated story dates; not a real three-day observation', 'One physical host; no physical cross-machine result',
       'completed-awaiting-review is not acceptance; social/source-priority reviews must be finished separately', 'Provider billed total and complete embedding cost remain unknown unless separately reconciled'] };

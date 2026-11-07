@@ -4,7 +4,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { MatrixClient } from '../src/matrix-client.mjs';
 import { importNodeBundle } from './server-admin.mjs';
-import { prepareNaturalHost } from './platform-natural-host.mjs';
+import { prepareNaturalHost, observedNaturalTopology } from './platform-natural-host.mjs';
 import { naturalAssets } from './platform-natural-corpus.mjs';
 import { readGoQuota } from './go-quota.mjs';
 import { readCommandCodeCatalog } from './commandcode-preflight.mjs';
@@ -61,6 +61,7 @@ export class NaturalLiveAdapter {
     await this.saveHostState();
     this.nativeBots = await this.host.api('init');
     assert.equal(this.nativeBots.length, 3);
+    this.memoryObservation = await this.observeMemoryBackend();
     const hostId = `natural-${sha(this.directory).slice(0, 20)}`;
     await this.api('/api/bot-catalog', { body: { hostId, label: this.corpus.scenario, bots: this.nativeBots } });
     const nodes = [];
@@ -103,7 +104,20 @@ export class NaturalLiveAdapter {
       people: Object.fromEntries(Object.entries(this.people).map(([key, person]) => [key, { id: person.id, name: person.name }])),
       rooms: Object.fromEntries(Object.entries(this.rooms).map(([key, room]) => [key, { roomId: room.roomId, kind: room.definition.kind || 'group', historyVisibility: room.definition.historyVisibility }])),
       membershipEvidence,
-      topology: 'real Synapse/Core/Matrix/NativeConnections/DSH/Ombre/Harrier on one physical host' };
+      memoryObservation: this.memoryObservation, topology: observedNaturalTopology(this.memoryObservation) };
+  }
+  async observeMemoryBackend() {
+    const state = await this.host.api('state');
+    const result = { enabled: state.memory, nativeBackend: state.memoryBackend || 'unknown', backend: 'unknown', observedAt: new Date().toISOString() };
+    try {
+      const response = await fetch(`http://127.0.0.1:${this.host.port}/api/bot`, { method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: this.host.cookie },
+        body: JSON.stringify({ endpoint: 'memory-view', payload: { botId: state.bots[0].id } }), signal: AbortSignal.timeout(30000) });
+      const body = await response.json();
+      if (!response.ok || !body.ok) throw new Error(body.error?.message || `Memory view HTTP ${response.status}`);
+      result.backend = body.value?.backend || 'unknown';
+    } catch (error) { result.observationError = error.message; }
+    return result;
   }
   async saveHostState() {
     await writeFile(path.join(this.directory, 'host-current.json'), JSON.stringify({ pid: this.host.child?.pid, port: this.host.port, logfile: this.host.logfile, home: this.host.home, workspace: this.host.workspace }, null, 2), { mode: 0o600 });
@@ -285,7 +299,8 @@ export class NaturalLiveAdapter {
     try { calls = (await readFile(path.join(this.hostDirectory, 'calls.jsonl'), 'utf8')).split('\n').filter(Boolean).map(JSON.parse); } catch (error) { if (error.code !== 'ENOENT') throw error; }
     const { decisions, records, errors: decisionExportErrors } = await readNaturalDecisions(this.bots.map((bot, index) => ({ ...bot, directory: path.join(this.hostDirectory, `node-${index}`) })));
     await writeFile(path.join(this.directory, 'decision-evidence.json'), JSON.stringify({ source: 'read-only node attention_decisions tables', records }, null, 2), { mode: 0o600 });
-    return { calls, decisions, decisionExportErrors, receipts, memoryUsage: memory.usage, eventCount: this.ledger.length, kernelSnapshots: this.kernel.length };
+    return { calls, decisions, decisionExportErrors, receipts, memoryUsage: memory.usage,
+      memoryObservation: await this.observeMemoryBackend(), eventCount: this.ledger.length, kernelSnapshots: this.kernel.length };
   }
   async close() {
     if (this.host?.child) await this.host.api('disconnect').catch(() => {});

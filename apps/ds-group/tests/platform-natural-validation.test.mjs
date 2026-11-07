@@ -10,8 +10,9 @@ import { checkNaturalStep, checkNaturalRun, runPackingContract, naturalResearchE
 import { definitionFor, validateNaturalDefinition, summarizeObservedCalls, checkDecisionEvidence, parseNaturalArguments, runNaturalScenario } from '../scripts/platform-natural-run.mjs';
 import { exportNaturalEvidence } from '../scripts/platform-natural-evidence.mjs';
 import { readNaturalDecisions } from '../scripts/platform-natural-accounting.mjs';
-import { naturalEnvironmentProfiles } from '../scripts/platform-natural-environment.mjs';
-import { naturalHarness } from '../scripts/platform-natural-host.mjs';
+import { naturalEnvironmentProfiles, naturalEnvironmentModelSettings } from '../scripts/platform-natural-environment.mjs';
+import { naturalHarness, observedNaturalTopology } from '../scripts/platform-natural-host.mjs';
+import { MODEL } from '../scripts/memory-test-model.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const referenceModule = `export function summarize(rows) {
@@ -48,6 +49,16 @@ test('each new environment creates its own names and account namespace with the 
   assert.equal([...full, ...diagnostic].some(([localpart]) => ['watch', 'lin_a', 'lin_b', 'song'].includes(localpart)), false);
   assert.equal(full.filter(([, name]) => name === '周宁').length, 2);
 });
+test('environment admission and metadata use the selected authorized model and actual scenario size', () => {
+  assert.deepEqual(naturalEnvironmentModelSettings('diagnostic'), { allowedModels: [MODEL], model: MODEL, plannedRounds: 16 });
+  assert.deepEqual(naturalEnvironmentModelSettings('full'), { allowedModels: [MODEL], model: MODEL, plannedRounds: 96 });
+});
+test('topology reports only the observed backend and never guesses an embedding model', () => {
+  const unknown = observedNaturalTopology(); assert.match(unknown, /unverified/); assert.doesNotMatch(unknown, /Ombre|Harrier|SQLite/);
+  const local = observedNaturalTopology({ nativeBackend: 'source-aware-v1', backend: 'local-exact' });
+  assert.match(local, /SQLite\/exact\/lexical/); assert.doesNotMatch(local, /Ombre|Harrier/);
+  assert.match(observedNaturalTopology({ backend: 'ombre' }), /embedding model unverified/);
+});
 test('definition hashes change when criteria or fixtures change and remain deterministic', () => {
   assert.equal(definitionFor('full').definitionHash, definitionFor('full').definitionHash);
   assert.notEqual(definitionFor('full').corpusHash, definitionFor('diagnostic').corpusHash);
@@ -75,6 +86,14 @@ test('JSON financial values are parsed from actual received bytes', async t => {
   await writeFile(file.path, JSON.stringify({ totalCents: 58100, remainingCents: 31900, purchasedBoxes: 12 }));
   result = await checkNaturalStep({ step, delivered: reply('18 boxes'), artifacts: [file], directory });
   assert.equal(result.checks.find(row => row.name === 'json:purchasedBoxes').passed, false);
+});
+test('move date accepts equivalent human-visible expressions without a hidden calendar format', async t => {
+  const directory = await temporary(t), step = buildNaturalCorpus().steps.find(step => step.id === 'full-086');
+  for (const day of ['周五20号', '11月20日', '20号', '2026-11-20']) {
+    const file = await artifact(directory, 'move-run.json', JSON.stringify({ day, time: '10:20', entrance: '西侧坡道', floor: '一层', boxLift: '只运箱子', passengerRoute: '西侧坡道', contact: '沈遥' }));
+    const result = await checkNaturalStep({ step, delivered: reply(), artifacts: [file], directory });
+    assert.equal(result.checks.every(check => check.passed), true, day);
+  }
 });
 test('quoted CSV notes require exact spaces, quotes, rows and line breaks', async t => {
   const directory = await temporary(t), step = buildNaturalCorpus().steps.find(step => step.id === 'full-074');

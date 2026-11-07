@@ -86,7 +86,7 @@ async function runDeliveredSuite(artifacts, directory) {
 function moveFieldChecks(value) {
   const text = key => String(value[key] ?? '').replace(/\s/g, '');
   return {
-    day: /周五|星期五|2026-11-20|Friday/i.test(text('day')),
+    day: /周五|星期五|2026[-/.]11[-/.]20|2026年11月20[日号]?|11月20[日号]?|^20(?:日|号)?$|Friday/i.test(text('day')),
     time: /10[:：]20|十点二十/.test(text('time')),
     entrance: /西侧坡道/.test(text('entrance')),
     floor: /^(?:1|1F|一层|1层|一楼|1楼)$/i.test(text('floor')),

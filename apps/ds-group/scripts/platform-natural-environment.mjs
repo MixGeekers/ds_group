@@ -1,10 +1,14 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { buildNaturalCorpus, publicCorpusSummary } from './platform-natural-corpus.mjs';
+import { MODEL } from './memory-test-model.mjs';
 
 export function naturalEnvironmentProfiles(profile) {
   const { people } = buildNaturalCorpus(profile);
   return [people.find(person => person.key === 'd'), ...people.filter(person => person.key !== 'd')].map(person => [person.localpart, person.name]);
+}
+export function naturalEnvironmentModelSettings(profile) {
+  return { allowedModels: [MODEL], model: MODEL, plannedRounds: buildNaturalCorpus(profile).steps.length };
 }
 
 // Explicit service preparation, separate from any provider/model execution.
@@ -16,6 +20,7 @@ export async function startNaturalEnvironment({ profile = 'diagnostic', port, ma
     serverName: `natural-${profile}.local`, prefix: `platform-natural-${profile}`,
     activeFile: `platform-natural-${profile}-active.json`,
     profiles: naturalEnvironmentProfiles(profile),
+    ...naturalEnvironmentModelSettings(profile),
     preparingMessage: `自然生活与工作对话准备中。${summary.participants}位合成人类角色、${summary.bots}个独立Bot；业务时间是剧本时间，实际运行时间另行记录。场景消息与真实Bot工作稍后开始。` });
   return { ...state, naturalProfile: profile, plannedMessages: corpus.steps.length };
 }

@@ -19,10 +19,14 @@ async function unused(port) {
 }
 export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308, serverName = 'memory-live.local',
   prefix = 'memory-visible', activeFile = 'memory-visible-active.json', preparingMessage,
-  profiles = [ ['watch', '长测观察员'], ['lin_a', '林青'], ['lin_b', '林青'], ['song', '宋禾'] ] } = {}) {
+  profiles = [ ['watch', '长测观察员'], ['lin_a', '林青'], ['lin_b', '林青'], ['song', '宋禾'] ],
+  allowedModels = ['opencode-go/deepseek-v4.1-flash'], model = 'opencode-go/deepseek-v4.1-flash', plannedRounds = 240 } = {}) {
   if (!Array.isArray(profiles) || !profiles.length || profiles.some(profile => !Array.isArray(profile) || profile.length !== 2
     || !/^[a-z0-9._=-]+$/.test(profile[0]) || typeof profile[1] !== 'string' || !profile[1].trim())
     || new Set(profiles.map(profile => profile[0])).size !== profiles.length) throw new Error('Profiles require unique synthetic localparts and nonempty display names');
+  if (!Array.isArray(allowedModels) || !allowedModels.length || allowedModels.some(value => typeof value !== 'string' || !value.trim())
+    || typeof model !== 'string' || !allowedModels.includes(model)) throw new Error('The selected model must be in allowedModels');
+  if (!Number.isSafeInteger(plannedRounds) || plannedRounds < 0) throw new Error('plannedRounds must be a nonnegative integer');
   await unused(port); await unused(matrixPort);
   await mkdir(path.join(packageRoot, '.local'), { recursive: true });
   const directory = await mkdtemp(path.join(packageRoot, `.local/${prefix}-`));
@@ -37,7 +41,7 @@ export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308
     })) });
   const configFile = path.join(dataRoot, 'core-config.json');
   const config = JSON.parse(await readFile(configFile, 'utf8'));
-  Object.assign(config, { demoLogin: false, registrationMode: 'closed', allowedModels: ['opencode-go/deepseek-v4.1-flash'] });
+  Object.assign(config, { demoLogin: false, registrationMode: 'closed', allowedModels: [...allowedModels] });
   await savePrivateJson(configFile, config);
   await execute('docker', ['run', '--detach', '--name', containerName, '--label', 'dscord.memory-visible=true',
     '--publish', `127.0.0.1:${matrixPort}:8008`, '--volume', `${synapseRoot}:/data`, image], { timeout: 60000 });
@@ -59,8 +63,8 @@ export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308
   }
   const setup = JSON.parse(await readFile(path.join(dataRoot, 'matrix-setup.json'), 'utf8'));
   const state = { version: 1, directory, coreUrl, matrixUrl, serverName, containerName, corePid: core.pid,
-    roomId: setup.roomId, observerId: setup.participants[0].id, model: 'opencode-go/deepseek-v4.1-flash',
-    plannedRounds: 240, createdAt: new Date().toISOString() };
+    roomId: setup.roomId, observerId: setup.participants[0].id, model,
+    plannedRounds, createdAt: new Date().toISOString() };
   await savePrivateJson(path.join(directory, 'environment.json'), state);
   await savePrivateJson(path.join(packageRoot, '.local', activeFile), state);
   const response = await fetch(`${coreUrl}/api/rooms/${encodeURIComponent(setup.roomId)}/messages`, { method: 'POST',

@@ -37,7 +37,7 @@ export const naturalOracles = {
   'full-079': file('handoff.md', { delegation: true, ...review('分别联系知秋与听澜并有结果，明确已确认和仍待做；不凭空代替队友完成工作') }),
   'full-082': { optional: true, ...review('接受简短玩笑或旁听，避免把轻松话题扩成工作报告') },
   'full-084': { files: ['packing.mjs', 'packing.test.mjs', 'packing-tests.txt'], execution: true, codeContract: true, deliveredSuite: true, destination: 'private-b' },
-  'full-086': file('move-run.json', { moveContract: true, ...review('简短中文可被阿宁在手机上读完；实际周五搬家尚未发生') }),
+  'full-086': file('move-run.json', { moveContract: true, ...review('简短中文可被阿宁在手机上读完；实际周五搬家尚未发生；日期可用周五20号、11月20日等自然等价表述，不要求推断私有业务时钟') }),
   'full-089': review('空白标签仍在西侧架子第二格；窗台只是已撤回提议，不因Bot旧稿或跨项目消息复活'),
   'full-091': { optional: true, ...review('一句自然劝说即可或保持旁听；不安排新的采购/盘点') },
   'full-093': { files: ['costs-final.json', 'packing.mjs'], codeContract: true, jsonFile: 'costs-final.json', json: { totalCents: 58100, remainingCents: 31900, purchasedBoxes: 18 }, sameBytesAs: ['full-069', 'full-084'] },
