@@ -66,15 +66,22 @@ function memoryResult(operation, args, result) {
         throw failure(502, 'KERNEL_INVALID_RESULT', 'The Bot returned an invalid memory profile identity');
       }
       return { id: item.id, name: item.name, kind: item.kind,
+        ...(text(item.entityKind, 80) ? { entityKind: item.entityKind } : {}),
         ...(Array.isArray(item.aliases) ? { aliases: item.aliases.map(alias => text(alias)).filter(Boolean) } : {}),
+        ...(typeof item.aliasesTruncated === 'boolean' ? { aliasesTruncated: item.aliasesTruncated } : {}),
         currentCount: count(item.currentCount), historyCount: count(item.historyCount), scopes: publicValue(item.scopes ?? null) };
     }), more: result.more };
   }
   if (result.id !== args.id || !object(result.view)) throw failure(502, 'KERNEL_INVALID_RESULT', 'The Bot returned another memory profile identity');
-  const fields = ['currentClaims', 'preferences', 'projectFacts', 'changes', 'recentSources', 'people', 'historyGaps',
+  const required = ['currentClaims', 'preferences', 'projectFacts', 'changes', 'recentSources', 'people', 'historyGaps',
     'watermarks', 'knowledgeBoundary', 'budget', 'version'];
+  // The memory producer already bounds this view. Preserve its scope, speaker,
+  // selection and evidence metadata alongside claims; dropping those fields
+  // changes how an owner can interpret a source-attributed memory.
+  const view = publicValue(result.view);
+  for (const field of required) if (!(field in view)) view[field] = null;
   return { kind: args.kind, id: args.id, identity: publicValue(result.identity ?? null),
-    view: Object.fromEntries(fields.map(field => [field, publicValue(result.view[field] ?? null)])) };
+    view };
 }
 
 /** Small owner-management transport. It never accepts tool calls or chat tasks.
