@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { startNativeTeam } from '../dsh-connect/native-team.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
-import { KERNEL_API } from '../dsh-connect/kernel-runtime.mjs';
+import { claimKernelHome, KERNEL_API } from '../dsh-connect/kernel-runtime.mjs';
 import { kernelContext } from './fixtures/kernel-context.mjs';
 
 const seed = () => ({ version: 1, bots: { original: { id: 'original', sessionId: 'current', name: '识雨', role: 'Research', createdAt: 1 } }, mainBotIds: ['original'], rooms: {} });
@@ -106,4 +106,23 @@ test('a legacy owner route refuses startup before listeners, files or work are i
   const ctx = kernelContext(); ctx.routes.set('/api/bot', { fetch: () => Response.json({ ok: false, error: { code: 'bot/not-found' } }) });
   await assert.rejects(startNativeTeam(ctx, { home }), error => error.code === 'DSCORD_KERNEL_CONFLICT' && error.details.action === 'stop-legacy-and-reload');
   assert.equal(ctx.listeners.size, 0); await assert.rejects(readFile(path.join(home, 'dscord-kernel.json')), { code: 'ENOENT' });
+});
+
+test('the home lease outlives parallel native module cleanup', async t => {
+  const f = await boot(t, { state: seed(), configure(ctx) {
+    ctx.plugin = plugin => {
+      const effects = [], scope = Object.create(ctx);
+      scope.effect = execute => { const dispose = execute(); if (typeof dispose === 'function') effects.push(dispose); };
+      const loaded = Promise.resolve().then(() => plugin.apply(scope)); let stopping;
+      const child = { then(resolve, reject) { return loaded.then(() => ({})).then(resolve, reject); },
+        dispose() { return stopping ??= loaded.then(() => Promise.all(effects.splice(0).reverse().map(dispose => dispose()))); } };
+      ctx.effect(() => () => child.dispose()); return child;
+    };
+  } });
+  let finish;
+  const pending = new Promise(resolve => { finish = resolve; }); f.rt.ctx.effect(() => () => pending);
+  const stopping = f.stop(); await new Promise(resolve => setImmediate(resolve));
+  assert.throws(() => claimKernelHome(f.home), { code: 'DSCORD_KERNEL_CONFLICT' });
+  finish(); await stopping;
+  const next = claimKernelHome(f.home); next.release();
 });

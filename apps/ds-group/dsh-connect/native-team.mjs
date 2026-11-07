@@ -24,16 +24,16 @@ export async function startNativeTeam(ctx, config = {}) {
     if (dependencyAnchor && dependencies.has(name) && context.parentURL?.startsWith(root)) return next(specifier, { ...context, parentURL: dependencyAnchor });
     return next(specifier, context);
   } });
+  let child;
+  const release = () => { lease.release(); hooks.deregister(); };
   try {
     const { createRuntime, inject } = await import('../vendor/ds-bot/index.js');
     const { installNativeMemory } = await import('../memory/native.mjs');
     const { apply: applySearch } = await import('../vendor/ds-bot/web-search.js');
     let runtime;
     const install = async scope => {
-      // Registered first: cleanup waits for the native modules to flush state.
-      scope.effect(() => () => { lease.release(); hooks.deregister(); }, 'dscord: kernel lifecycle');
       scope.inject(['web'], search => { if (!search.web.searchProviders.has('auto')) applySearch(search); });
-      runtime = createRuntime(scope, { ...config, home: lease.home, homeLock: lease.lock, apiRoute: KERNEL_API,
+      runtime = createRuntime(scope, { ...config, home: lease.home, homeLock: lease.lock, releaseHomeLock: false, apiRoute: KERNEL_API,
         autoBootstrap: false, structuredSources: true, preserveNativeTools: true, memoryBackend: installNativeMemory, updateCheck: false,
         runtimeInfo: lease.info, resumeInterrupted: !lease.adopted });
       await runtime.load();
@@ -42,11 +42,21 @@ export async function startNativeTeam(ctx, config = {}) {
       lease.ready(runtime);
     };
     // Cordis rolls back every installed listener/effect if startup fails.
-    if (typeof ctx.plugin === 'function') await ctx.plugin({ name: 'dscord-kernel', inject, apply: install });
-    else await install(ctx);
+    if (typeof ctx.plugin === 'function') {
+      child = ctx.plugin({ name: 'dscord-kernel', inject, apply: install });
+      // Cordis unloads a fiber's separate effects in parallel. The home lease is
+      // outside the child fiber and joins its entire shutdown, including memory
+      // reviews, inbox notes and state writes, before admitting a replacement.
+      ctx.effect(() => async () => { try { await child.dispose(); } finally { release(); } }, 'dscord: kernel lifecycle');
+      await child;
+    } else {
+      // Minimal synthetic hosts dispose effects in registration order reversed.
+      ctx.effect(() => release, 'dscord: kernel lifecycle');
+      await install(ctx);
+    }
     return runtime;
   } catch (error) {
-    lease.release(); hooks.deregister();
+    try { await child?.dispose(); } finally { release(); }
     throw error;
   }
 }

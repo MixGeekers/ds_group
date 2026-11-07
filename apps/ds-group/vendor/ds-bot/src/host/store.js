@@ -407,7 +407,7 @@ export function install(rt) {
 
   ctx.effect(() => () => {
     stopped = true
-    return writing.finally(() => lock.release())
+    return writing.finally(() => { if (rt.config?.releaseHomeLock !== false) lock.release() })
   }, 'ds-bot: state lock')
 
   const botOf = id => (id === undefined ? undefined : own(state.bots, id))
