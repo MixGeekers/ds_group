@@ -71,6 +71,29 @@ test('cross-room raw selection requires this Bot observation, even when a shared
   assert.ok(memory.querySources('b', { query: '银杏线材' }).entries.some(source => source.id === ref.id));
 }));
 
+test('an explicit author filter finds an original crowded out by later summaries without changing default rank or bypassing work ownership', async () => withMemory(async memory => {
+  const original = input('original-allowance', 'The allowance is 2400 yuan.', project, { timestamp: 100 });
+  const ref = observe(memory, 'a', original);
+  for (let index = 0; index < 18; index++) observe(memory, 'a', input(`summary-${index}`, '沿用 2400 预算的复述。', project,
+    { senderId: '@bot:test', kind: 'bot', timestamp: 200 + index }));
+  memory.ingest('a', input('current', '检查现有交接依据。', project, { timestamp: 300 }), { sessionId: 's' });
+  const tool = memory.observeTool('a', { sessionId: 's', callId: 'actual-tool', name: 'read', body: '{"observedTotal":2400}', timestamp: 400 });
+  const pending = observe(memory, 'a', input('pending-human', '另一个新任务的2400。', project, { timestamp: 500 }), { kind: 'pending-request' });
+  observe(memory, 'b', input('other-bot-private', 'The allowance is 2400 yuan.', '!private:test', { privateChat: true, timestamp: 600 }));
+  const before = memory.store.watermarks('a'), defaults = memory.querySources('a', { query: '2400', limit: 12, budgetChars: 24000 });
+  assert.equal(defaults.entries.some(source => source.id === ref.id), false);
+  const originals = memory.querySources('a', { query: '2400 预算', authorKind: 'human' });
+  assert.equal(originals.authorKind, 'human'); assert.equal(originals.entries.length, 1);
+  assert.equal(originals.entries[0].id, ref.id); assert.equal(originals.entries[0].body, original.event.body);
+  assert.equal(originals.entries.some(source => source.id === pending.id || source.eventId === '$other-bot-private'), false);
+  assert.equal(memory.readSource('a', originals.entries[0].originalRead).body, original.event.body);
+  const observed = memory.querySources('a', { query: '2400', authorKind: 'tool' });
+  assert.deepEqual(observed.entries.map(source => source.id), [tool.id]);
+  assert.equal(observed.entries[0].authorId, 'tool:read');
+  assert.deepEqual(memory.querySources('a', { query: '2400', limit: 12, budgetChars: 24000 }), defaults);
+  assert.deepEqual(memory.store.watermarks('a'), before);
+}));
+
 test('new queued work stays excluded while earlier admitted request originals remain explicitly reviewable', async () => withMemory(async memory => {
   const earlier = input('earlier', '请核对 ginkgo-check.json 交接数据。', direct, { privateChat: true });
   const earlierRef = observe(memory, 'a', earlier, { kind: 'pending-request' });

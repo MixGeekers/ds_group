@@ -33,7 +33,7 @@ test('native memory installs with DSH value schemas and enforces every basis ref
     const raw = rt.teamTools.find(tool => tool.name === 'raw_source_query');
     assert.ok(raw);
     assert.deepEqual(raw.parameters.required, ['query']);
-    assert.deepEqual(validateJsonSchemaValue(raw.parameters, { query: 'project-file.json', limit: 3, includeDirect: true }), []);
+    assert.deepEqual(validateJsonSchemaValue(raw.parameters, { query: 'project-file.json', limit: 3, includeDirect: true, authorKind: 'human' }), []);
     await assert.rejects(raw.execute({ query: 'project-file.json', limit: 1.5 }, {}), error => error instanceof ToolArgsError);
   } finally {
     for (const cleanup of cleanups.reverse()) await cleanup();
@@ -98,5 +98,9 @@ test('review input and the actual contacts tool omit a stranger and aliases know
     const aContacts = JSON.parse(await contacts.execute({}, { agent: { id: 'a' } }));
     assert.deepEqual(aContacts.find(contact => contact.id === 'matrix:@stranger:test').aliases, ['私聊旧称', '私聊新称']);
     assert.ok(rt.knowledge.store.getContact('matrix:@stranger:test'));
+    const query = rt.teamTools.find(tool => tool.name === 'raw_source_query');
+    const raw = JSON.parse(await query.execute({ query: '普通讨论', roomId: '!b-room:test', authorKind: 'human' }, { agent: { id: 'b' } }));
+    assert.equal(raw.authorKind, 'human');
+    assert.deepEqual(raw.entries.map(source => source.eventId), ['$b-discussion']);
   } finally { for (const cleanup of cleanups.reverse()) await cleanup(); await rm(home, { recursive: true }); }
 });
