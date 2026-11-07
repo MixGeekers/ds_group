@@ -12,6 +12,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import path from 'node:path';
+import { tmpdir } from 'node:os';
 import { once } from 'node:events';
 import { packageRoot } from '../src/paths.mjs';
 import { resolveDsh } from './runtime-config.mjs';
@@ -25,9 +26,8 @@ assert.ok(
   Number.isSafeInteger(basePort) && basePort >= 1024 && basePort <= 65534,
   'DS_GROUP_SCOPED_SMOKE_PORT must be an integer from 1024 to 65534',
 );
-await mkdir(path.join(packageRoot, '.local'), { recursive: true });
 const directory = await realpath(
-  await mkdtemp(path.join(packageRoot, '.local/scoped-runtime-')),
+  await mkdtemp(path.join(tmpdir(), 'dscord-scoped-runtime-')),
 );
 const installation = await resolveDsh();
 const botId = '@helper:a.runtime.test';
