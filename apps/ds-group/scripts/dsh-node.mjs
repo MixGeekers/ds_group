@@ -99,7 +99,7 @@ if (operation === 'start') {
   const logPath = join(local, 'host.log');
   const log = await open(logPath, 'a', 0o600);
   const child = spawn(process.execPath, [script, 'run', nodeId], {
-    cwd: packageRoot, detached: true, stdio: ['ignore', log.fd, log.fd],
+    cwd: process.cwd(), detached: true, stdio: ['ignore', log.fd, log.fd],
     env: { ...process.env, DS_GROUP_DATA_DIR: dataRoot },
   });
   await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); });

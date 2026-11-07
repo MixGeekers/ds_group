@@ -48,7 +48,7 @@ async function start(name, file, args = []) {
   await mkdir(localPath('logs'), { recursive: true });
   const script = path.join(packageRoot, file);
   const log = await open(paths(name).log, 'a', 0o600);
-  const child = spawn(process.execPath, [script, ...args], { cwd: packageRoot, detached: true, stdio: ['ignore', log.fd, log.fd], env: process.env });
+  const child = spawn(process.execPath, [script, ...args], { cwd: process.cwd(), detached: true, stdio: ['ignore', log.fd, log.fd], env: process.env });
   await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); });
   await writeFile(paths(name).record, JSON.stringify({ name, pid: child.pid, script, startedAt: new Date().toISOString() }) + '\n', { mode: 0o600 });
   child.unref();
@@ -64,7 +64,7 @@ async function stop(name) {
   await unlink(paths(name).record).catch(error => { if (error.code !== 'ENOENT') throw error; });
 }
 async function run(file, args) {
-  const child = spawn(process.execPath, [path.join(packageRoot, file), ...args], { cwd: packageRoot, stdio: 'inherit' });
+  const child = spawn(process.execPath, [path.join(packageRoot, file), ...args], { cwd: process.cwd(), stdio: 'inherit' });
   const exit = await new Promise((resolve, reject) => { child.once('error', reject); child.once('close', resolve); });
   if (exit !== 0) throw new Error(`${file} exited ${exit}`);
 }
