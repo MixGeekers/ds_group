@@ -28,6 +28,7 @@ export function messageSource(event, participants, room = {}) {
   const meta = metadata(event);
   const replyTo = meta.replyTo || event.content?.['m.relates_to']?.['m.in_reply_to']?.event_id;
   return { transport: 'matrix', eventId: event.event_id, roomId: event.room_id,
+    ...(event.withdrawn || event.unsigned?.redacted || event.unsigned?.redacted_because ? { withdrawn: true } : {}),
     ...(event.type === 'm.room.redaction' && (event.redacts || event.content?.redacts) ? { retractsEventId: event.redacts || event.content.redacts } : {}),
     ...(event.content?.['m.relates_to']?.rel_type === 'm.replace' ? { replacesEventId: event.content['m.relates_to'].event_id } : {}),
     sender: speakerOf(event.sender, participants, room), timestamp: event.origin_server_ts ?? null,

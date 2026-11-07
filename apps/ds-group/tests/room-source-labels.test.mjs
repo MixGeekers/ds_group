@@ -107,3 +107,26 @@ test('native observation retains before/after rename snapshots, aliases and same
     assert.equal(alice.name, '周宁');
   } finally { await memory.close(); await rm(directory, { recursive: true }); }
 });
+
+test('withdrawn quoted and thread-root sources remain withdrawal metadata when native ingress rereads them', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'quoted-withdrawal-'));
+  const memory = new MemoryService({ directory });
+  try {
+    const original = event('$original'); original.content.body = '原始安排';
+    memory.ingest('a', observedMemoryInput(original, people, room('周宁')));
+    const saved = await memory.remember('a', { text: '原始安排', predicate: 'arrangement' });
+    const redaction = { type: 'm.room.redaction', event_id: '$redaction', room_id: original.room_id, sender: alice.id,
+      redacts: original.event_id, content: {} };
+    memory.observe('a', observedMemoryInput(redaction, people, room('阿宁')));
+    const visible = { ...original, content: { body: '[message withdrawn]' }, unsigned: { redacted_because: redaction } };
+    const ask = event('$ask'); ask.content = { body: '刚才这条还有效吗？', 'org.ds_group': { replyTo: original.event_id },
+      'm.relates_to': { rel_type: 'm.thread', event_id: original.event_id } };
+    const context = conversationContext({ event: ask, participants: people, room: room('阿宁'), reply: visible, threadRoot: visible });
+    memory.ingest('a', { event: { eventId: ask.event_id, roomId: ask.room_id, senderId: ask.sender, body: ask.content.body }, context });
+    assert.equal(context.reply.source.withdrawn, true);
+    assert.equal(context.threadRoot.source.withdrawn, true);
+    assert.equal(memory.store.source(saved.sourceRefs[0].id, 1).body, '原始安排');
+    assert.equal(memory.store.derivation(memory.store.get(saved.id)), 'source-withdrawn');
+    assert.equal(memory.store.sources().some(source => source.body === '[message withdrawn]'), false);
+  } finally { await memory.close(); await rm(directory, { recursive: true }); }
+});
