@@ -2,6 +2,8 @@
 
 2026-11-07。实施针对 DSH `0.2.2-rc.1`，不改写 run01 的 53 帧、约 483k 字符累积失败。此次使用隔离 DSH home、官方 SDK、真实 read 工具与 localhost 脚本 provider；没有远端模型、用户当前 DSH、真实 Matrix 或物理跨机器操作。当前上下文的作者/房间首步准备沿用 `afb0429`，跨原生 part 的原文保留沿用 `871742b`。
 
+后续可靠请求内嵌 view 的独立修补见[历史派生记忆视图](native-request-views.md)，不回改本页首轮证据。
+
 ## 官方接入与事件含义
 
 `memory/snapshot-context.mjs` 向 `ctx.sessionProjections.register()` 注册 `dscord-memory-snapshots`，索引只保存 snapshot 的 Session seq 和 message ID。重放、缓存、水位及生命周期由官方 registry 管理；热路径不调用已弃用的 `eventAt/snapshotEvents/ownEvents`，也不复制 snapshot 正文到第二套历史。
