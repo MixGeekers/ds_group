@@ -206,8 +206,8 @@ export function installNativeMemory(rt) {
     // DSH also writes runtime snapshots, instructions, skill catalogues and
     // compaction notes as user/message events. They are not new human statements.
     if (!isSourceMessage(message)) return;
-    const heldKey = heldIngressKey(session.id, nativeSource);
-    const held = heldKey && store.getMeta(heldKey);
+    const heldKey = heldIngressKey(botId, nativeSource), legacyKey = heldIngressKey(session.id, nativeSource);
+    const held = heldKey && store.getMeta(heldKey) || legacyKey && store.getMeta(legacyKey);
     if (held) { memory.ingest(botId, held, { sessionId: session.id }); return; }
     const prepared = message.id && store.getMeta(`prepared-source:${session.id}:${message.id}`);
     if (prepared) { memory.ingest(botId, prepared, { sessionId: session.id }); return; }
@@ -285,7 +285,7 @@ export function installNativeMemory(rt) {
     memoryValidateBasis: (_botId, refs) => store.basisStatus(refs),
     memoryIngress: (sessionId, _text, input) => {
       const source = input?.context?.source || input?.event;
-      const key = source && heldIngressKey(sessionId, { ...source, eventId: input.event?.eventId || source.eventId,
+      const key = source && heldIngressKey(rt.selfOf(sessionId) || sessionId, { ...source, eventId: input.event?.eventId || source.eventId,
         roomId: input.event?.roomId || source.roomId });
       if (key) store.setMeta(key, input);
     },

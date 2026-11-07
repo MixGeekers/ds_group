@@ -19,6 +19,8 @@ test('the actual SDK identified claimed messages produce the first-step snapshot
       const original = { event: { eventId, senderId, roomId, body: text, timestamp: index }, context: { source: { transport: 'matrix', eventId, roomId,
         sender: { id: senderId, name: senderId, kind: 'human' }, timestamp: index } } };
       rt.memoryIngress(agent.id, `routing ${index}`, original);
+      // The receiving Bot stays the same when parts moves a pending claim.
+      if (index === 2) agent.id = 'new-native-part';
       const message = createUserMessage({ source: { kind: 'user', eventId, roomId, sender: original.context.source.sender }, content: [{ type: 'text', text: `routing ${index}` }] });
       const decision = await handlers.get('agent/pre-step')({ agent, messages: [message] }, async () => ({ kind: 'enter', messages: [message] }));
       const snapshot = JSON.parse(decision.messages.at(-1).content[0].text.split('\n').slice(1).join('\n'));

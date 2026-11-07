@@ -56,6 +56,20 @@ test('equal routing text and event IDs in separate rooms or Sessions do not coll
   }
 }));
 
+test('a held original follows its receiving Bot across native parts without becoming routing-envelope bytes', async () => withMemory(async memory => {
+  const msg = message('$transfer', '!project:test', '@alice:test', 'routing JSON envelope');
+  const original = input(msg); original.event.body = 'Exact original Matrix body';
+  const key = heldIngressKey('a', msg.source);
+  memory.store.setMeta(key, original);
+  assert.notEqual(key, heldIngressKey('b', msg.source));
+  prepareClaimedSources({ memory, botId: 'a', sessionId: 'old-part', messages: [msg], home: '/synthetic' });
+  const oldRef = memory.current('a').sourceRefs[0];
+  prepareClaimedSources({ memory, botId: 'a', sessionId: 'new-part', messages: [msg], home: '/synthetic' });
+  assert.deepEqual(memory.current('a', 'new-part').sourceRefs, [oldRef]);
+  assert.equal(memory.store.source(oldRef.id).body, original.event.body);
+  assert.equal(memory.store.observations('a').length, 1);
+}));
+
 test('a stable SDK message ID or request ID is usable before a log sequence exists', async () => withMemory(async memory => {
   const plain = { id: 'sdk-stable', source: { kind: 'user' }, content: [{ type: 'text', text: 'native chat' }] };
   prepareClaimedSources({ memory, botId: 'a', sessionId: 'session', messages: [plain], home: '/synthetic', clock: () => 42 });
