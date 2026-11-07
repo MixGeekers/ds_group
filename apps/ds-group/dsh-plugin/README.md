@@ -1,13 +1,13 @@
 # DSCord 的 DS-Bot 节点适配
 
-本模块在独立 DSH 宿主内装载 DS-Bot 0.2.7，并提供 DS-Group 的 Bot 注册与对话 HTTP 接口。
+本模块在独立 DSH 宿主内运行 DSCord 自有内核 `0.4.0`，基于 DS-Bot `0.3.1`，并提供 Bot 注册与对话 HTTP 接口。生命周期、部署和健康查询见[内核运行说明](../deploy/kernel-runtime.md)。
 
 ## 运行依赖
 
-- 固定上游为 `71d344bf193f3f18185f25de3d8e5c483046910a`。原始 npm 包保存在 `../vendor/ds-bot/`，`UPSTREAM.json`、`LICENSE` 和 `NOTICE` 记录来源及许可，上游源码保持未修改。
+- 固定上游为 DS-Bot `0.3.1` / `6559c9e7c4ef71c292e6ac50f690031133536fe0`。随包源码位于 `../vendor/ds-bot/`；`UPSTREAM.json` 记录 npm 来源、完整性及 DSCord 适配修改，`LICENSE` 和 `NOTICE` 保留许可与声明。
 - 发行节点使用 Linux amd64/arm64 与官方 npm DeepSeek Harness 0.2.2-rc.1 CLI。`index.mjs` 使用 Node `registerHooks` 将本模块及 vendored DS-Bot 的 SDK imports 解析到同一个宿主安装目录。
 - 通过 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 指定安装位置，启动器也会查找 PATH 中的 `dsh`。Linux 双架构纳入发行验证。本机开发环境已有 macOS 桌面版路径回退及历史 Session 重启证据，详见[发行验证](../发行验证.md)。
-- `runtime-dependencies.json` 与 `runtime-dependencies-lock.json` 固定 `deep-view@0.1.0`、`yaml@2.9.1`。启动器在数据目录内使用 `npm ci --ignore-scripts` 准备依赖，模块解析指向该私有依赖目录，源码树无需写入依赖链接。
+- `runtime-dependencies.json` 与随包 npm/pnpm 锁固定 MCP client `2.4.0`、deep-view `0.1.2`、imapflow `2.9.1`、mailparser `3.12.4`、nodemailer `10.2.1`、YAML `2.9.1` 和 zod `4.6.7`。启动器在数据目录按锁安装并核验运行依赖；第三方模块解析到该私有目录，DSH SDK 解析到实际宿主，用户无需手工复制依赖或向源码树写入链接。
 
 ## 启动和停止
 
