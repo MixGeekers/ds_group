@@ -91,6 +91,27 @@ test('an unavailable redaction target remains an explicit gap and a late origina
   assert.equal(memory.attentionView('a', { roomId: '!river:test' }).historyGaps.some(gap => gap.kind === 'unavailable-redaction-target'), false);
 }));
 
+test('redacted visible history is metadata rather than conflicting new bytes from the original author', async () => withMemory(async memory => {
+  const first = memory.ingest('a', input('original', '原始决定'));
+  const saved = await memory.remember('a', { text: '原始决定', predicate: 'venue' });
+  memory.observe('a', observedMemoryInput(matrix('redact', '', { type: 'm.room.redaction', redacts: '$original' })));
+  const withdrawn = memory.store.source(first.sourceRefs[0].id);
+  memory.ingest('a', { ...input('next', '继续讨论'), history: [{ ...input('original', '[message withdrawn]').event, withdrawn: true }] });
+  assert.equal(memory.store.source(first.sourceRefs[0].id).revision, withdrawn.revision);
+  assert.equal(memory.store.source(first.sourceRefs[0].id, 1).body, '原始决定');
+  assert.equal(memory.store.derivation(memory.store.get(saved.id)), 'source-withdrawn');
+  memory.ingest('b', { ...input('ask', '早先是什么？'), history: [{ ...input('unknown', '[message withdrawn]').event, withdrawn: true }] });
+  const placeholder = memory.store.sources().find(source => source.eventId === '$unknown');
+  assert.equal(placeholder.contentUnavailable, true);
+  assert.equal(placeholder.body, '');
+  assert.ok(memory.attentionView('b', { roomId: '!river:test' }).historyGaps.some(gap => gap.kind === 'withdrawn-content-unavailable'));
+  memory.observe('b', input('unknown', '迟到的已撤回原文'));
+  memory.observe('b', input('unknown', '迟到的已撤回原文'));
+  assert.equal(memory.store.source(placeholder.id).withdrawn, true);
+  assert.equal(memory.store.source(placeholder.id).originalContentRecovered, true);
+  assert.equal(memory.attentionView('b', { roomId: '!river:test' }).recentSources.some(source => source.body.includes('迟到的已撤回原文')), false);
+}));
+
 test('each Bot sees its own observed sources and an observed old revision cannot reveal a newer unseen body', async () => withMemory(async memory => {
   const context = memory.ingest('a', input('fact', '旧内容'));
   await memory.remember('a', { text: '旧内容', predicate: 'venue', subjectId: 'project:open-day' });
@@ -132,11 +153,11 @@ test('attention event focus follows the observed speaker without moving the nati
 
 test('a newer human correction ranks above a later readback of an older Bot draft without silently resolving conflict', async () => withMemory(async memory => {
   memory.ingest('a', input('draft', '旧文件：需要加购空白牌', { kind: 'bot', sender: '@bot:test', at: 1000 }));
-  const draft = await memory.remember('a', { text: '空白牌另购', subjectId: 'project:river', predicate: 'blank-cards', kind: 'inference', claimState: 'proposal' });
+  const draft = await memory.remember('a', { text: '空白牌采购清单：数量30、单价1，另购加购', subjectId: 'project:river', predicate: 'blank-cards', kind: 'inference', claimState: 'proposal' });
   memory.ingest('a', input('correct', '空白牌已含在30张里，不要额外采购', { at: 3000 }));
   const correction = await memory.remember('a', { text: '空白牌已包含在30张内，无需加购', subjectId: 'project:river', predicate: 'blank-cards', claimState: 'confirmed' });
   memory.observe('a', input('reread', '重新读取旧 Bot 文件：空白牌另购', { sender: '@bot:test', kind: 'bot', at: 4000 }));
-  const view = memory.attentionView('a', { roomId: '!river:test', projectIds: ['project:river'], query: '空白牌采购', budgetChars: 16000 });
+  const view = memory.attentionView('a', { roomId: '!river:test', projectIds: ['project:river'], query: '空白牌采购清单数量单价加购', budgetChars: 16000 });
   const relevant = view.currentClaims.filter(row => row.predicate === 'blank-cards');
   assert.deepEqual(relevant.map(row => row.id), [correction.id, draft.id]);
   assert.equal(relevant[0].authority, 'direct-human');
@@ -161,6 +182,20 @@ test('an unreviewed human change stays visible and a stable scoped preference su
   assert.equal(view.currentClaims.some(row => row.id === local.id), false);
   assert.ok(view.recentSources.some(source => source.eventId === '$change' && !source.reviewed));
   assert.equal(view.speakerFacts.some(row => row.saidBy === 'matrix:@lin:a.test'), false);
+}));
+
+test('a recent actual tool observation precedes a human’s older estimate without erasing the conflict', async () => withMemory(async memory => {
+  memory.ingest('a', input('estimate', '表格人数清单估计总数30，分组统计待核', { at: 1000 }));
+  const estimate = await memory.remember('a', { text: '表格人数清单估计总数30，分组统计待核', subjectId: 'task:registration', predicate: 'row-count' });
+  memory.observeTool('a', { sessionId: 's', callId: 'actual-count', name: 'bash', body: 'Actual downloaded CSV: 27 data rows; exit=0', timestamp: 4000 });
+  const actual = await memory.remember('a', { text: '实测27行', subjectId: 'task:registration', predicate: 'row-count', kind: 'observation' });
+  const view = memory.attentionView('a', { roomId: '!river:test', subjectIds: ['task:registration'], query: '表格人数清单估计总数分组统计待核', budgetChars: 16000 });
+  const relevant = view.currentClaims.filter(row => row.predicate === 'row-count');
+  assert.deepEqual(relevant.map(row => row.id), [actual.id, estimate.id]);
+  assert.equal(relevant[0].authority, 'tool-observation');
+  assert.equal(relevant[0].saidBy, 'tool:bash');
+  assert.deepEqual(relevant[0].conflicts, [estimate.id]);
+  assert.equal(relevant[0].resolution, 'unresolved');
 }));
 
 test('source and memory revisions invalidate dependent drafts, including multi-hop derived understanding', async () => withMemory(async memory => {
@@ -225,6 +260,19 @@ test('retrospective corrects one person through the existing versioned store and
     memory.forget('a', { id: current.id, scope: 'own' });
     return JSON.stringify({ changes: [{ op: 'forget', replaceId: current.id, sourceIds: [packet.sources[0].id] }] });
   }), /MEMORY_REVISION_CONFLICT/);
+}));
+
+test('a retrospective result keeps original evidence addressable without reinjecting its unbounded body', async () => withMemory(async memory => {
+  memory.observe('a', input('long-source', '原文'.repeat(18000)));
+  const result = await memory.retrospect('a', { kind: 'person', id: '@lin:a.test', query: '回顾' }, async packet => {
+    assert.equal(packet.sources[0].truncated, true);
+    return JSON.stringify({ changes: [{ op: 'add', text: '来源很长，内容尚未全部核对', subjectId: 'matrix:@lin:a.test', scope: 'own',
+      kind: 'inference', claimState: 'uncertain', sourceIds: [packet.sources[0].id] }] });
+  });
+  assert.ok(JSON.stringify(result).length <= 24000);
+  assert.equal(result.totalChanges, 1);
+  assert.equal(result.changes[0].sources, undefined);
+  assert.equal(memory.readSource('a', result.changes[0].sourceRefs[0]).body.length, 36000);
 }));
 
 test('person and project profiles distinguish equal names, unknown identities and another Bot’s private source', async () => withMemory(async memory => {

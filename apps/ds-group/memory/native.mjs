@@ -29,7 +29,7 @@ Direct statements are stated; quotes/relays are reported with saidBy identifying
 Default scope to the source room, own for native personal chat. Stable personal communication preferences stated as usual/general behavior belong in own unless the person limits them to a room or task; a one-time request or mood is not a permanent preference. Use team only when explicitly shared team-wide. Different room values can coexist.
 Human statements seen in room history keep their own author and event. Saving or reading a generated draft only proves the file operation; it does not confirm the draft's venue details, decisions or proposals. Classify unsupported derived claims as inference, and retain explicit unknowns/corrections instead of reviving an earlier draft's unsupported assertion.
 For explicit correction use replaceId of the old memory (same subject and scope). Do not rewrite an entry merely to polish its language. To repair subject metadata on an otherwise identical fact, keep the exact text and exact original sourceIds and set reclassify:true. A different speaker's conflicting statement is a new claim, not silent replacement. For deletion use forget and replaceId, citing the current correction in sourceIds. Every operation requires exact sourceIds from the current sources array, including forget; the old memory's evidence is not the source of its cancellation. Resolve dates only when stated, using source timestamp; validUntil is epoch milliseconds. Otherwise omit it.
-Preserve the user's language, one self-contained fact per entry. Do not duplicate an existing same fact with the same evidence. Never copy an entire source envelope or invent missing evidence.`;
+Preserve the user's language, one self-contained fact per entry. Do not duplicate an existing same fact with the same evidence. Never copy an entire source envelope or invent missing evidence. Do not infer unexpressed emotions, motives, private beliefs or psychological traits; retain the expressed perspective and its uncertainty.`;
 
 export function installNativeMemory(rt) {
   const { ctx, config, home } = rt;
@@ -264,7 +264,7 @@ export function installNativeMemory(rt) {
       if (!rt.botOf(botId)) throw new Error('MEMORY_BOT_NOT_FOUND');
       const receipt = memory.observe(botId, input, options);
       const enough = receipt.watermarks.pendingReviewCount >= (config.memoryObservationBatchSize || 8);
-      if (enough || !timers.has(botId)) schedule(botId, enough ? config.memoryReviewDelayMs ?? 2000 : config.memoryObservationReviewDelayMs ?? 60000);
+      if (receipt.watermarks.pendingReviewCount && (enough || !timers.has(botId))) schedule(botId, enough ? config.memoryReviewDelayMs ?? 2000 : config.memoryObservationReviewDelayMs ?? 60000);
       return receipt;
     },
     memoryAttentionView: (botId, options) => { if (!rt.botOf(botId)) throw new Error('MEMORY_BOT_NOT_FOUND'); return memory.attentionView(botId, options); },

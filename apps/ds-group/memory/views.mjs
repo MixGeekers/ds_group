@@ -82,6 +82,24 @@ const matchesProfile = (row, options, focus) => options.kind === 'person'
   ? focus.subjects.has(row.subjectId) || row.entityIds?.some(id => focus.subjects.has(id))
   : options.kind === 'project' ? focus.projects.has(row.subjectId) || row.projectIds?.some(id => focus.projects.has(id))
     || row.scope.startsWith('room:') && focus.projects.has(canonicalIdentity(row.scope.slice(5))) : true;
+function rankClaims(items, store) {
+  const groups = new Map();
+  for (const item of items) {
+    const key = item.row.predicate === 'note' ? item.row.id : canonical([item.row.scope, item.row.subjectId, item.row.predicate]);
+    const group = groups.get(key) || { score: item.score, index: item.index, items: [] };
+    group.score = Math.max(group.score, item.score); group.items.push(item); groups.set(key, group);
+  }
+  const evidenceRank = row => ['inference', 'legacy'].includes(row.kind) ? 0
+    : row.kind === 'reported' || ['proposal', 'uncertain'].includes(row.claimState) ? 1 : 2;
+  const evidenceTime = row => Math.max(row.validFrom || 0, ...row.sourceRefs.map(ref => store.source(ref.id, ref.revision)?.timestamp || 0));
+  // A wordier old inference can match more terms than its correction. Keep the
+  // attribute together, then order source-backed alternatives by evidence time.
+  // Tool observations and direct claims share a tier; humans do not override
+  // actual calculations, files or delivery receipts by being human. This is
+  // presentation priority, never automatic resolution of conflicting claims.
+  return [...groups.values()].sort((a,b) => b.score - a.score || a.index - b.index).flatMap(group => group.items.sort((a,b) =>
+    evidenceRank(b.row) - evidenceRank(a.row) || evidenceTime(b.row) - evidenceTime(a.row) || a.index - b.index));
+}
 function identity(store, id) {
   const contact = store.getContact(id);
   return { id, name: short(contact?.name || id, 256), kind: contact?.kind || (project(id) ? 'project' : 'unknown'),
@@ -123,9 +141,8 @@ export function assembleAttentionView(memory, botId, options = {}) {
   const { store } = memory, sources = knownSources(memory, botId);
   const allRows = store.list({ botId, history: true }), focus = focusOf(memory, botId, options, allRows, sources);
   const eligible = allRows.filter(row => (!focus.scopes || focus.scopes.includes(row.scope)) && matchesProfile(row, options, focus));
-  const ranked = eligible.map((row, index) => ({ row, index, score: scoreOf(row, focus, store) }))
-    .filter(item => item.score > 0 || options.allScopes && !focus.subjects.size && !focus.projects.size)
-    .sort((a,b) => b.score - a.score || b.row.validFrom - a.row.validFrom || a.index - b.index);
+  const ranked = rankClaims(eligible.map((row, index) => ({ row, index, score: scoreOf(row, focus, store) }))
+    .filter(item => item.score > 0 || options.allScopes && !focus.subjects.size && !focus.projects.size), store);
   const current = ranked.filter(item => store.derivation(item.row) === 'current').map(item => item.row);
   const claims = current.slice(0, 24).map(row => claimView(memory, row, current));
   const supporting = new Set(current.flatMap(row => row.sourceRefs.map(ref => ref.id)));
@@ -164,6 +181,9 @@ export function assembleAttentionView(memory, botId, options = {}) {
       : options.workView ? { workViewOmitted: 'runtime view exceeds memory context budget' } : {}),
   };
   const defaultGaps = [{ kind: 'coverage', text: 'Only observed events and this Bot\'s referenced evidence are available; no claim of complete room or member history.' }];
+  for (const source of sources.filter(source => source.contentUnavailable && store.source(source.id)?.contentUnavailable
+    && (!focus.roomId || source.roomId === focus.roomId)).slice(-4)) defaultGaps.push({ kind: 'withdrawn-content-unavailable',
+      roomId: source.roomId, eventId: source.eventId, sourceRef: { id: source.id, revision: source.revision } });
   for (const source of sources.filter(source => source.eventKind === 'redaction-notice' && !store.source(source.targetSourceId)
     && (!focus.roomId || source.roomId === focus.roomId)).slice(-4)) defaultGaps.push({ kind: 'unavailable-redaction-target',
       roomId: source.roomId, targetEventId: source.targetEventId, sourceRef: { id: source.id, revision: source.revision } });
@@ -205,9 +225,8 @@ export function memoryProfile(memory, botId, options = {}) {
 export function reviewPacket(memory, botId, options = {}) {
   const sources = knownSources(memory, botId), rows = memory.store.list({ botId, history: true });
   const focus = focusOf(memory, botId, { ...options, allScopes: options.allScopes ?? !options.roomId }, rows, sources);
-  const ranked = rows.filter(row => row.status === 'active' && (!focus.scopes || focus.scopes.includes(row.scope)) && matchesProfile(row, options, focus))
-    .map(row => ({ row, score: scoreOf(row, focus, memory.store) })).filter(item => item.score > 0)
-    .sort((a,b) => b.score - a.score || b.row.observedAt - a.row.observedAt);
+  const ranked = rankClaims(rows.filter(row => row.status === 'active' && (!focus.scopes || focus.scopes.includes(row.scope)) && matchesProfile(row, options, focus))
+    .map((row, index) => ({ row, index, score: scoreOf(row, focus, memory.store) })).filter(item => item.score > 0), memory.store);
   const selectedMemories = ranked.slice(0, limit(options.limitMemories, 24, 40)).map(({ row }) => row);
   const cited = new Set(selectedMemories.flatMap(row => row.sourceRefs.map(ref => ref.id)));
   const selectedSources = sources.filter(source => source.derivation === 'current' && (!focus.roomId || source.roomId === focus.roomId || cited.has(source.id)))

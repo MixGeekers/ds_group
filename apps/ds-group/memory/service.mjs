@@ -109,11 +109,28 @@ export class MemoryService {
         this.store.setMeta(key, observed.revision);
       } else observed = notice;
       this.store.setMeta(`pending-redaction:${targetId}`, { by: authorId, eventId: event.eventId, timestamp: notice.timestamp });
-    } else observed = this.store.observe({ id, body: event.body || '', authorId, authorKind: sender.kind || 'human', roomId,
-      transport, eventId: event.eventId, timestamp: source.timestamp ?? event.timestamp ?? this.store.clock(),
-      replyTo: source.replyTo || context.replyTo || null, relay: source.relay || null,
-      threadRootId: source.threadRootId || null, projectIds: source.projectIds || context.projectIds || [],
-      originRefs: source.originRefs || [], revision, withdrawn: Boolean(event.withdrawn) });
+    } else {
+      const head = this.store.source(id);
+      if (event.withdrawn || source.withdrawn) {
+        if (head && head.authorId !== authorId) throw new Error('SOURCE_AUTHOR_CONFLICT');
+        // Visible room history may contain a redaction overlay. The placeholder
+        // is transport metadata, never new bytes authored by the original person.
+        observed = head?.withdrawn ? head : this.store.observe({ ...(head || { id, authorId, authorKind: sender.kind || 'unknown', roomId,
+          transport, eventId: event.eventId, timestamp: source.timestamp ?? event.timestamp ?? this.store.clock(), contentUnavailable: true }),
+          body: '', revision: head ? head.revision + 1 : revision, withdrawn: true, withdrawalEvidence: 'redacted-history-overlay' });
+      } else if (head?.withdrawn && (head.contentUnavailable || head.originalContentRecovered)) {
+        if (head.authorId !== authorId) throw new Error('SOURCE_AUTHOR_CONFLICT');
+        if (head.originalContentRecovered) {
+          if (head.body !== (event.body || '')) throw new Error('SOURCE_CONTENT_CONFLICT');
+          observed = head;
+        } else observed = this.store.observe({ ...head, revision: head.revision + 1, body: event.body || '', authorKind: sender.kind || head.authorKind,
+          contentUnavailable: false, originalContentRecovered: true, withdrawn: true });
+      } else observed = this.store.observe({ id, body: event.body || '', authorId, authorKind: sender.kind || 'human', roomId,
+        transport, eventId: event.eventId, timestamp: source.timestamp ?? event.timestamp ?? this.store.clock(),
+        replyTo: source.replyTo || context.replyTo || null, relay: source.relay || null,
+        threadRootId: source.threadRootId || null, projectIds: source.projectIds || context.projectIds || [],
+        originRefs: source.originRefs || [], revision, withdrawn: false });
+    }
     if (!source.retractsEventId) {
       const pendingRedaction = this.store.getMeta(`pending-redaction:${observed.id}`), head = this.store.source(observed.id);
       if (pendingRedaction) observed = head.withdrawn ? head : this.store.observe({ ...head, body: '', revision: head.revision + 1,
@@ -270,7 +287,17 @@ export class MemoryService {
     if (!packet.sources.length) return { mode: 'no-evidence', packetVersion: packet.version, changes: [] };
     const changes = await prepareReviewProposal({ input: packet, generate });
     const rows = await this.applyReview(botId, packet, changes);
-    return { mode: 'source-checked-review', packetVersion: packet.version, changes: rows, profile: options?.kind && options.id ? this.profile(botId, options) : undefined };
+    // A review tool result must not re-inject every full source body that the
+    // bounded packet deliberately left out. Exact evidence stays addressable.
+    const result = { mode: 'source-checked-review', packetVersion: packet.version, totalChanges: rows.length, changes: [], changesOmitted: 0,
+      profile: options?.kind && options.id ? this.profile(botId, { ...options, budgetChars: 10000 }) : undefined };
+    for (const row of rows) {
+      result.changes.push({ id: row.id, revision: row.revision, text: row.text.slice(0, 600), truncated: row.text.length > 600,
+        scope: row.scope, subjectId: row.subjectId, predicate: row.predicate, kind: row.kind, claimState: row.claimState,
+        derivation: row.derivation, sourceRefs: row.sourceRefs.slice(0, 4), sourceCount: row.sourceRefs.length });
+      if (JSON.stringify(result).length > 24000) { result.changes.pop(); result.changesOmitted++; }
+    }
+    return result;
   }
   readSource(botId, { id, revision }) {
     const allowed = [...this.store.observations(botId),
