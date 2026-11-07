@@ -69,12 +69,19 @@ export function installNativeMemory(rt) {
     rt.carryUsageTag?.(options.messages, messages);
     return ctx.llm.stream({ ...options, messages });
   }, { prepend: true });
-  const store = memory.store, news = new Map(), timers = new Map(), reviewing = new Map();
+  const store = memory.store, news = new Map(), timers = new Map(), reviewing = new Map(), sideTasks = new Set();
   const reviewStop = new AbortController();
   let reviewChain = Promise.resolve();
   let disposed = false, closing;
   const ensureOpen = () => { if (disposed) throw Object.assign(new Error('Memory runtime is disposed'), { code: 'MEMORY_DISPOSED' }); };
-  const ensureReview = () => { reviewStop.signal.throwIfAborted(); ensureOpen(); };
+  const memorySignal = signal => signal ? AbortSignal.any([reviewStop.signal, signal]) : reviewStop.signal;
+  const sideTask = work => {
+    const task = Promise.resolve().then(() => { ensureOpen(); return work(); });
+    sideTasks.add(task);
+    const done = () => sideTasks.delete(task);
+    task.then(done, done);
+    return task;
+  };
   const caller = exec => { ensureOpen(); return rt.selfOf(exec.agent?.id); };
   const modelReference = async (bot, signal) => {
     const desired = rt.desiredModel(bot), value = signal ? await waitForReview(desired, signal) : await desired;
@@ -132,7 +139,12 @@ export function installNativeMemory(rt) {
   rt.teamTools.push(defineTool({ name: 'review_memory', description: 'On demand, review a bounded set of original evidence and current/old memories about a person, project or recurring error. Correct only source-backed understanding; never infer private psychology or task completion.',
     parameters: { kind: string('person or project'), id: string('Exact person/project ID'), query: string('Current question or failure to revisit'), roomId: string('Optional source room restriction') }, output,
     async execute(args, exec) { const id = caller(exec), bot = rt.botOf(id);
-      return stringify(await memory.retrospect(id, args, input => generateReviewWithBudget({ generate: maxTokens => botShot(bot, `${REVIEW}\nThis is a bounded retrospective, not a request to rewrite every memory. Look for incorrect certainty, obsolete derived drafts, relevant preferences and unresolved questions. Do not infer unexpressed psychological traits or shared knowledge. HistoricalEvidence is for comparison only and cannot be cited as a current source.`, stringify(input), { maxTokens, sessionId: exec.agent?.id }) })));
+      const signal = memorySignal(exec.signal);
+      return sideTask(async () => {
+        signal.throwIfAborted();
+        const result = await memory.retrospect(id, args, input => generateReviewWithBudget({ generate: maxTokens => botShot(bot, `${REVIEW}\nThis is a bounded retrospective, not a request to rewrite every memory. Look for incorrect certainty, obsolete derived drafts, relevant preferences and unresolved questions. Do not infer unexpressed psychological traits or shared knowledge. HistoricalEvidence is for comparison only and cannot be cited as a current source.`, stringify(input), { maxTokens, sessionId: exec.agent?.id, signal }) }), { signal });
+        signal.throwIfAborted(); ensureOpen(); return stringify(result);
+      });
     } }));
 
   async function oneShot(bot, system, text, tag = {}) {
@@ -160,20 +172,24 @@ export function installNativeMemory(rt) {
     const reply = assembled.blocks().filter(block => block.type === 'text').map(block => block.text).join('\n');
     if (!reply.trim()) throw new Error('MEMORY_MODEL_EMPTY'); return reply;
   }
-  async function botShot(bot, system, text, tag = {}) {
-    const delays = config.memoryRetryDelaysMs || [2000, 5000, 10000];
-    for (let attempt = 0; ; attempt++) {
-      ensureOpen(); tag.signal?.throwIfAborted();
-      try { return await oneShot(bot, system, text, tag); }
-      catch (error) {
-        if (disposed || tag.signal?.aborted) throw error;
-        memory.errors.push({ operation: 'model', botId: bot.id, attempt: attempt + 1, error: error.message, at: Date.now() });
-        if (attempt >= delays.length || !['RATE_LIMIT', 'TIMEOUT', 'NETWORK', 'SERVER_ERROR', 'OVERLOADED'].includes(error.code)) throw error;
-        await delay(delays[attempt], undefined, { signal: tag.signal });
+  function botShot(bot, system, text, tag = {}) {
+    tag = { ...tag, signal: memorySignal(tag.signal) };
+    return sideTask(async () => {
+      const delays = config.memoryRetryDelaysMs || [2000, 5000, 10000];
+      for (let attempt = 0; ; attempt++) {
+        ensureOpen(); tag.signal.throwIfAborted();
+        try { return await oneShot(bot, system, text, tag); }
+        catch (error) {
+          if (disposed || tag.signal.aborted) throw error;
+          memory.errors.push({ operation: 'model', botId: bot.id, attempt: attempt + 1, error: error.message, at: Date.now() });
+          if (attempt >= delays.length || !['RATE_LIMIT', 'TIMEOUT', 'NETWORK', 'SERVER_ERROR', 'OVERLOADED'].includes(error.code)) throw error;
+          await delay(delays[attempt], undefined, { signal: tag.signal });
+        }
       }
-    }
+    });
   }
-  async function review(botId) {
+  async function review(botId, signal = reviewStop.signal) {
+    const ensureReview = () => { signal.throwIfAborted(); ensureOpen(); };
     ensureReview();
     memory.enqueueReview(botId, []);
     const calibrated = store.getMeta(`review-batch-limit:${botId}`);
@@ -181,8 +197,8 @@ export function installNativeMemory(rt) {
     const pending = memory.reviewableRefs(botId).slice(0, batchLimit);
     if (!pending.length || disposed) return false;
     const bot = rt.botOf(botId); if (!bot) return false;
-    const agent = await waitForReview(rt.resolveAgent(rt.chatOf(botId)), reviewStop.signal);
-    ensureReview(); await waitForReview(agent.whenIdle(), reviewStop.signal); ensureReview();
+    const agent = await waitForReview(rt.resolveAgent(rt.chatOf(botId)), signal);
+    ensureReview(); await waitForReview(agent.whenIdle(), signal); ensureReview();
     const { refs, value: { sources, changes, known } } = await prepareReviewBatch({ refs: pending,
       onOutputLimit: ({ error, attempted, next }) => {
         ensureReview();
@@ -206,13 +222,13 @@ export function installNativeMemory(rt) {
           claimState: row.claimState || 'statement', facets: row.facets || [], entityIds: row.entityIds || [], projectIds: row.projectIds || [], basisRefs: row.basisRefs || [],
           derivation: store.derivation(row), saidBy: row.saidBy, sourceRefs: row.sourceRefs,
         }));
-        const reference = await modelReference(bot, reviewStop.signal);
+        const reference = await modelReference(bot, signal);
         ensureReview();
         const budgetKey = `review-output-budget:${reference}`;
         const changes = await prepareReviewProposal({ input: { botId, contacts: memory.contacts(botId), sources, existingMemories: known },
-          generate: input => refs.length > 1 ? botShot(bot, REVIEW, stringify(input), { signal: reviewStop.signal }) : generateReviewWithBudget({
+          generate: input => refs.length > 1 ? botShot(bot, REVIEW, stringify(input), { signal }) : generateReviewWithBudget({
             initialMaxTokens: store.getMeta(budgetKey),
-            generate: maxTokens => botShot(bot, REVIEW, stringify(input), { maxTokens, signal: reviewStop.signal }),
+            generate: maxTokens => botShot(bot, REVIEW, stringify(input), { maxTokens, signal }),
             onOutputLimit: ({ error, maxTokens, nextMaxTokens }) => {
               ensureReview();
               store.setMeta(budgetKey, nextMaxTokens);
@@ -225,7 +241,7 @@ export function installNativeMemory(rt) {
         return { sources, changes, known };
       } });
     ensureReview();
-    await memory.applyReview(botId, { sources, existingMemories: known }, changes, { signal: reviewStop.signal });
+    await memory.applyReview(botId, { sources, existingMemories: known }, changes, { signal });
     ensureReview();
     if (changes.length) news.set(botId, Date.now());
     // Advance only after all parsed changes are durable. A failed batch remains retryable.
@@ -234,19 +250,23 @@ export function installNativeMemory(rt) {
     store.log('review', { botId, sourceRefs: refs, changes: changes.length });
     return true;
   }
-  function flush(botId, { automatic = false } = {}) {
+  function flush(botId, { automatic = false, signal: callerSignal } = {}) {
     if (disposed) return Promise.reject(Object.assign(new Error('Memory runtime is disposed'), { code: 'MEMORY_DISPOSED' }));
     if (!rt.botOf(botId)) return Promise.reject(new Error('MEMORY_BOT_NOT_FOUND'));
     if (automatic && !automaticReviewAllowed(config, botId)) return Promise.resolve({ skipped: 'automatic-review-disabled' });
     clearTimeout(timers.get(botId)); timers.delete(botId);
-    if (reviewing.has(botId)) return reviewing.get(botId);
+    const signal = memorySignal(callerSignal);
+    if (signal.aborted) return Promise.reject(signal.reason);
+    if (reviewing.has(botId)) return callerSignal ? waitForReview(reviewing.get(botId), signal) : reviewing.get(botId);
     const work = reviewChain.catch(() => {}).then(async () => {
+      signal.throwIfAborted();
       while (!disposed && rt.botOf(botId) && (!automatic || automaticReviewAllowed(config, botId)) && (store.getMeta(`unreviewed:${botId}`) || []).length)
-        if (!await review(botId)) break;
+        if (!await review(botId, signal)) break;
     });
     reviewChain = work;
     reviewing.set(botId, work);
-    work.finally(() => reviewing.delete(botId)).catch(() => {}); return work;
+    work.finally(() => reviewing.delete(botId)).catch(() => {});
+    return callerSignal ? waitForReview(work, signal) : work;
   }
   function schedule(botId, delayMs = config.memoryReviewDelayMs ?? 2000) {
     if (!automaticReviewAllowed(config, botId) || disposed) return;
@@ -315,7 +335,12 @@ export function installNativeMemory(rt) {
     return RULES;
   } }), 'ds-bot: source-aware memory section');
 
-  const memoryEndpoint = createMemoryPanel(rt, memory, { flush, botShot });
+  const panelEndpoint = createMemoryPanel(rt, memory, { flush, botShot });
+  const memoryEndpoint = (endpoint, body, options = {}) => sideTask(async () => {
+    const signal = memorySignal(options.signal); signal.throwIfAborted();
+    const result = await panelEndpoint(endpoint, body, { signal });
+    signal.throwIfAborted(); ensureOpen(); return result;
+  });
   // Import legacy Markdown once, preserving exact source text and leaving the original files untouched.
   async function migrateLegacy(parseMemory) {
     if (!parseMemory) return;
@@ -345,7 +370,7 @@ export function installNativeMemory(rt) {
       store.setMeta(key, true);
     }
   }
-  Object.assign(rt, { knowledge: memory, memoryEnabled: true, memoryBackend: 'source-aware-v1', botShot,
+  Object.assign(rt, { knowledge: memory, memoryEnabled: true, memoryBackend: 'source-aware-v1', memoryLifecycleSignal: reviewStop.signal, botShot,
     memoryObserve: (botId, input, options) => {
       ensureOpen();
       if (!rt.botOf(botId)) throw new Error('MEMORY_BOT_NOT_FOUND');
@@ -368,12 +393,12 @@ export function installNativeMemory(rt) {
     memoryRelay: (botId, sessionId) => { ensureOpen(); const current = memory.current(botId, sessionId || rt.chatOf(botId)); return current ? { memoryOrigin: current } : {}; },
     memoryCarry: (botId, before, after) => { ensureOpen(); return memory.carry(botId, before, after); },
     memoryFlush: flush, memoryMigrate: migrateLegacy, memoryEndpoint, renewMemory: () => {},
-    archiveBotMemory: async () => {}, archiveGroupMemory: async () => {}, memoryNews: () => Object.fromEntries(news), memoryReviews: () => timers.size + reviewing.size });
+    archiveBotMemory: async () => {}, archiveGroupMemory: async () => {}, memoryNews: () => Object.fromEntries(news), memoryReviews: () => timers.size + reviewing.size + sideTasks.size });
   ctx.effect(() => () => {
     if (closing) return closing;
     disposed = true; for (const timer of timers.values()) clearTimeout(timer); timers.clear();
     reviewStop.abort(Object.assign(new Error('Memory review stopped for runtime disposal'), { code: 'MEMORY_REVIEW_STOPPED' }));
-    closing = Promise.allSettled([...reviewing.values()]).then(() => memory.close());
+    closing = Promise.allSettled([...reviewing.values(), ...sideTasks]).then(() => memory.close());
     return closing;
   }, 'ds-bot: source-aware memory lifecycle');
 }

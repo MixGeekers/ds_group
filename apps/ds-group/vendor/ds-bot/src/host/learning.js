@@ -1,3 +1,4 @@
+// Modified by DSCord: join canceled native memory model calls during shutdown.
 // Learning from work. After a long turn a Bot's chat is marked for review. When the
 // team has been idle for a while, and at most every few hours, one background pass
 // reads what was said since the last pass and asks whether it taught a skill worth
@@ -651,8 +652,9 @@ export function install(rt) {
     return () => {
       stopped = true
       clearInterval(timer)
-      // A new host may take over after disposal; finish only writes already queued.
-      return writing
+      // Native memory stops every outstanding model call during teardown. Join
+      // its consumer before another owner can reuse this learning state.
+      return rt.memoryLifecycleSignal === undefined ? writing : Promise.allSettled([running]).then(() => writing)
     }
   }, 'ds-bot: learning')
 

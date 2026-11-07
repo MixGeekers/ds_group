@@ -34,8 +34,10 @@ export function createMemoryPanel(rt, memory, { flush, botShot }) {
       summary: { text: rows.map(row => `- ${row.text}（${row.kind}，${row.memoryScope}；${row.saidBy}）`).join('\n\n'), at: Date.now() },
       fresh: true, summarizing: false, error: null, backend: memory.backend ? 'ombre' : 'local-exact', diagnostics: memory.errors.slice(-10) };
   }
-  return async function memoryEndpoint(endpoint, body) {
+  return async function memoryEndpoint(endpoint, body, { signal } = {}) {
+    signal?.throwIfAborted();
     await rt.load();
+    signal?.throwIfAborted();
     const panel = panelOf(body);
     if (endpoint === 'memory-profiles' || endpoint === 'memory-profile') {
       if (!panel.keeper) throw new Error('No Bot is left in this group chat');
@@ -72,9 +74,12 @@ export function createMemoryPanel(rt, memory, { flush, botShot }) {
       memory.ingest(id, { event: { eventId: `panel:${randomUUID()}`, roomId: panel.roomId, body: text },
         context: { source: { transport: 'native', roomId: panel.roomId,
           sender: { id: `user-${sha(rt.home).slice(0, 16)}`, name: 'Local user', kind: 'human' } } } });
-      await flush(id);
+      await flush(id, { signal });
+      signal?.throwIfAborted();
       const result = await memory.recall(id, { query: text, scope: panel.roomId ? `room:${panel.roomId}` : 'all' });
-      const reply = await botShot(panel.keeper, 'Answer the user’s memory-panel question briefly in their language using only the supplied current records. Distinguish original authors, room scope, reported claims and unresolved conflicts. State when information is missing.', JSON.stringify({ question: text, memories: result }));
+      signal?.throwIfAborted();
+      const reply = await botShot(panel.keeper, 'Answer the user’s memory-panel question briefly in their language using only the supplied current records. Distinguish original authors, room scope, reported claims and unresolved conflicts. State when information is missing.', JSON.stringify({ question: text, memories: result }), { signal });
+      signal?.throwIfAborted();
       return { reply, changes: changes(panel).filter(row => !before.has(row.changeId)).map(row => ({
         op: row.action === 'forget' ? 'remove' : row.replaces ? 'edit' : 'add', scope: scopeTag(store.get(row.id).scope), text: store.get(row.id).text, ok: true })), view: view(panel) };
     }

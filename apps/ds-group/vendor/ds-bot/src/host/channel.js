@@ -514,7 +514,7 @@ export function install(rt) {
         case 'memory-history':
         case 'memory-restore':
           await rt.load()
-          return ok(await rt.memoryEndpoint(endpoint, body))
+          return ok(await rt.memoryEndpoint(endpoint, body, { signal }))
         case 'learning-answer':
           await rt.load()
           return ok(await rt.learningEndpoint(endpoint, body))

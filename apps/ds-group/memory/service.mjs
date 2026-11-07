@@ -335,12 +335,15 @@ export class MemoryService {
     }
     return rows.map(row => this.describe(this.store.get(row.id)));
   }); }
-  async retrospect(botId, options, generate) {
+  async retrospect(botId, options, generate, { signal } = {}) {
+    signal?.throwIfAborted();
     if (typeof generate !== 'function') throw new Error('MEMORY_REVIEW_GENERATOR_REQUIRED');
     const packet = this.reviewPacket(botId, options);
     if (!packet.sources.length) return { mode: 'no-evidence', packetVersion: packet.version, changes: [] };
     const changes = await prepareReviewProposal({ input: packet, generate });
-    const rows = await this.applyReview(botId, packet, changes);
+    signal?.throwIfAborted();
+    const rows = await this.applyReview(botId, packet, changes, { signal });
+    signal?.throwIfAborted();
     // A review tool result must not re-inject every full source body that the
     // bounded packet deliberately left out. Exact evidence stays addressable.
     const result = { mode: 'source-checked-review', packetVersion: packet.version, totalChanges: rows.length, changes: [], changesOmitted: 0,

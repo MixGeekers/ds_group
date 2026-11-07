@@ -41,6 +41,24 @@ test('owned kernel starts with source-aware memory; reads do not create a Chief 
   }
 });
 
+test('the actual kernel memory route passes its request cancellation into the panel workflow', async t => {
+  const f = await boot(t), abort = new AbortController();
+  const entered = Promise.withResolvers(); let seen;
+  f.rt.memoryEndpoint = async (endpoint, body, { signal }) => {
+    assert.equal(endpoint, 'memory-ask'); assert.equal(body.text, 'Local question');
+    seen = signal; entered.resolve();
+    await new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
+  };
+  const request = new Request(`http://localhost${KERNEL_API}`, { method: 'POST', signal: abort.signal,
+    headers: { 'content-type': 'application/json' }, body: JSON.stringify({ endpoint: 'memory-ask', payload: { text: 'Local question' } }) });
+  const result = f.ctx.routes.get(KERNEL_API).fetch(request);
+  await entered.promise; assert.equal(seen, request.signal);
+  abort.abort(Object.assign(new Error('Canceled panel HTTP request'), { code: 'PANEL_REQUEST_CANCELED' }));
+  const value = await (await result).json(); assert.equal(value.ok, false); assert.equal(value.error.code, 'bot/refused');
+  assert.match(value.error.message, /Canceled panel HTTP request/);
+  assert.equal(f.ctx.modelCalls(), 0);
+});
+
 test('structured native inputs preserve equal-name accounts across rooms and inject background without waking a turn', async t => {
   const f = await boot(t, { state: seed() });
   for (const [requestId, id, roomId] of [['one', '@lin:a.test', '!north:test'], ['two', '@lin:b.test', '!south:test']]) {
