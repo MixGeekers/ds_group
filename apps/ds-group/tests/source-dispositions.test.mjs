@@ -5,6 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { NodeStore } from '../src/node-store.mjs';
 import { BotNode, deliveriesFor } from '../src/bot-node.mjs';
+import { observedMemoryInput } from '../src/message-context.mjs';
+import { NativeBridge } from '../dsh-connect/native-bridge.mjs';
+import { NativeConnections } from '../dsh-connect/native-connections.mjs';
+import { MemoryService } from '../memory/service.mjs';
 
 const roomId = '!project:dispositions.test';
 const alice = { id: '@alice:dispositions.test', name: 'Alice', kind: 'human' };
@@ -147,4 +151,37 @@ test('queue ownership survives restart and remains marked through real output un
   assert.deepEqual(after.store.sourceDisposition('$legacy-target'), { kind: 'pending-request' });
   assert.equal(after.store.item('$legacy-target').response.toolCalls, 2);
   assert.equal(after.store.item('$legacy-target').status, 'produced');
+});
+
+test('NodeStore reservations survive native connection conversion and block another queued request in actual memory views', async t => {
+  const f = fixture(t);
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'dscord-producer-consumer-'));
+  const memory = new MemoryService({ directory, clock: () => 10_000 });
+  const nativeId = 'native-one';
+  const native = { call: async (operation, payload) => {
+    assert.equal(operation, 'observe');
+    return memory.observe(payload.botId, payload.inputs, payload.options);
+  } };
+  const bridge = new NativeBridge({ ctx: {}, native, node: { directory, id: self.id, nativeBotId: nativeId } });
+  const connections = new NativeConnections({ ctx: {}, native });
+  f.node.observe = input => connections.observe({ botNode: f.node, bridge }, input);
+  try {
+    const current = message('$current-information', { body: '线材暂时放三号柜。' });
+    const later = message('$later-independent', { sender: bob.id, to: [self.id], body: '现在请独立生成新的交接稿。' });
+    const correction = message('$current-correction', { body: '当前交接时间刚核实为17:10。' });
+    memory.ingest(nativeId, observedMemoryInput(current, participants), { sessionId: 'active-turn' });
+    await f.node.ingestEvents([current, later, correction], 'real-sync-token');
+    await f.node.flushObservations();
+    const view = memory.contextSnapshot(nativeId, 'active-turn');
+    assert.equal(JSON.stringify(view).includes(later.content.body), false);
+    assert(view.pendingRequests.some(row => row.eventId === later.event_id));
+    assert(view.recentSources.some(row => row.eventId === correction.event_id));
+    assert.equal(f.store.item(later.event_id).status, 'queued');
+    assert.equal(memory.current(nativeId, 'active-turn').authorId, `matrix:${alice.id}`);
+    assert.equal(memory.store.sources().find(row => row.eventId === later.event_id).body, later.content.body);
+    memory.ingest(nativeId, observedMemoryInput(later, participants), { sessionId: 'active-turn' });
+    const admitted = memory.contextSnapshot(nativeId, 'active-turn');
+    assert(admitted.recentSources.some(row => row.eventId === later.event_id));
+    assert.equal(admitted.pendingRequests.some(row => row.eventId === later.event_id), false);
+  } finally { await memory.close(); await rm(directory, { recursive: true, force: true }); }
 });
