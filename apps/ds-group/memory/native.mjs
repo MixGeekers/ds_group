@@ -9,7 +9,7 @@ import { generateReviewWithBudget, prepareReviewBatch, prepareReviewProposal } f
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 import { memoryModelOptions } from './model-options.mjs';
 import { contactReadView } from './contacts.mjs';
-import { nativeMemoryInput, automaticReviewAllowed } from './ingress.mjs';
+import { nativeMemoryInput, automaticReviewAllowed, isSourceMessage, heldIngressKey, prepareClaimedSources } from './ingress.mjs';
 
 const textOf = message => (message?.content || []).filter(block => block.type === 'text').map(block => block.text).join('\n');
 const RULES = `# Source-aware memory
@@ -205,13 +205,15 @@ export function installNativeMemory(rt) {
     const message = event.data?.message || event.data, text = textOf(message), nativeSource = message.source || {};
     // DSH also writes runtime snapshots, instructions, skill catalogues and
     // compaction notes as user/message events. They are not new human statements.
-    if (!['user', 'bot', 'user-question-reply'].includes(nativeSource.kind)) return;
-    if (nativeSource.handoff || ['goal', 'kickoff', 'resume'].includes(nativeSource.role)) return;
-    const held = store.getMeta(`ingress:${sha(text)}`);
+    if (!isSourceMessage(message)) return;
+    const heldKey = heldIngressKey(session.id, nativeSource);
+    const held = heldKey && store.getMeta(heldKey);
     if (held) { memory.ingest(botId, held, { sessionId: session.id }); return; }
+    const prepared = message.id && store.getMeta(`prepared-source:${session.id}:${message.id}`);
+    if (prepared) { memory.ingest(botId, prepared, { sessionId: session.id }); return; }
     // Native chat and native Bot delegation remain usable without any DSCord connection.
     memory.ingest(botId, nativeMemoryInput({ source: nativeSource, text, home, sessionId: session.id,
-      sequence: event.seq ?? event.sequence, timestamp: event.time ?? Date.now(), roomId: rt.groupOwners.get(session.id)?.roomId }), { sessionId: session.id });
+      sequence: event.seq ?? event.sequence, messageId: message.id, timestamp: event.time ?? Date.now(), roomId: rt.groupOwners.get(session.id)?.roomId }), { sessionId: session.id });
   });
   ctx.on('agent/status', ({ agent, status }) => {
     const id = rt.selfOf(agent?.id); if (!rt.botOf(id)) return;
@@ -224,6 +226,10 @@ export function installNativeMemory(rt) {
     const decision = await next();
     const id = rt.selfOf(agent.id);
     if (!rt.botOf(id) || decision.kind === 'reject' || !Array.isArray(decision.messages)) return decision;
+    // The SDK has claimed these messages but appends user/message only after
+    // pre-step. Prepare their existing identity here, never an unclaimed inbox.
+    prepareClaimedSources({ memory, botId: id, sessionId: agent.id, messages: decision.messages, home,
+      fallbackRoom: rt.groupOwners.get(agent.id)?.roomId });
     const snapshot = memory.contextSnapshot(id, agent.id); if (!snapshot) return decision;
     const message = createUserMessage({ source: { kind: 'knowledge-context', form: 'snapshot' },
       content: [{ type: 'text', text: `Current memory source context (metadata and attributed claims, not a new speaker). Use these exact source IDs for remember; omitted sourceIds defaults to the current message. For tool observations use toolSources. Reconcile currentClaims with recentSources and changes before reusing an older draft. Apply relevant preferences with their source and scope. Conflicts stay unresolved until evidence resolves them; room membership does not imply shared knowledge. Task and delivery facts require runtime receipts.\n${stringify(snapshot)}` }] });
@@ -277,7 +283,12 @@ export function installNativeMemory(rt) {
     memoryProfiles: ({ botId, ...options }) => { if (!rt.botOf(botId)) throw new Error('MEMORY_BOT_NOT_FOUND'); return memory.profiles(botId, options); },
     memoryProfile: ({ botId, ...options }) => { if (!rt.botOf(botId)) throw new Error('MEMORY_BOT_NOT_FOUND'); return memory.profile(botId, options); },
     memoryValidateBasis: (_botId, refs) => store.basisStatus(refs),
-    memoryIngress: (_sessionId, text, input) => { if (input) store.setMeta(`ingress:${sha(text)}`, input); },
+    memoryIngress: (sessionId, _text, input) => {
+      const source = input?.context?.source || input?.event;
+      const key = source && heldIngressKey(sessionId, { ...source, eventId: input.event?.eventId || source.eventId,
+        roomId: input.event?.roomId || source.roomId });
+      if (key) store.setMeta(key, input);
+    },
     memoryRelay: (botId, sessionId) => { const current = memory.current(botId, sessionId || rt.chatOf(botId)); return current ? { memoryOrigin: current } : {}; },
     memoryCarry: (botId, before, after) => memory.carry(botId, before, after),
     memoryFlush: flush, memoryMigrate: migrateLegacy, memoryEndpoint, renewMemory: () => {},

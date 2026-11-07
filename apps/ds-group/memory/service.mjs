@@ -180,9 +180,20 @@ export class MemoryService {
     const latest = this.store.getMeta(`current:${botId}`);
     return !sessionId || !latest?.sessionId || latest.sessionId === sessionId ? latest : undefined;
   }
+  clearCurrent(botId, sessionId, reason) {
+    const current = { botId, sessionId, sourceStatus: 'unavailable', sourceReason: reason, sourceRefs: [], scope: 'own' };
+    this.setCurrent(botId, current);
+    return current;
+  }
   contextSnapshot(botId, sessionId, options = {}) {
     const current = this.current(botId, sessionId);
     if (!current) return undefined;
+    if (current.sourceStatus === 'unavailable') return { schemaVersion: 2, botId, sessionId,
+      self: { nativeBotId: botId }, sourceStatus: current.sourceStatus, authorId: null, roomId: null, sourceRefs: [],
+      currentClaims: [], preferences: [], projectFacts: [], recentSources: [], changes: [], people: [], toolSources: [], contextSources: [],
+      historyGaps: [{ kind: 'current-source-unavailable', reason: current.sourceReason }],
+      knowledgeBoundary: 'This claimed input has no stable source identity. Previous room, speaker and instructions are not the current context.',
+      watermarks: this.store.watermarks(botId), version: sha(canonical(current)) };
     return this.attentionView(botId, { ...options, sessionId, context: current });
   }
   attentionView(botId, options = {}) { return assembleAttentionView(this, botId, options); }
