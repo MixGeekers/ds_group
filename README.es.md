@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-![Arquitectura de DSCORD, Web/PWA se conecta al servidor compartido Core y Matrix/Synapse, con dos nodos Bot independientes que ejecutan DSH y DS-Bot](apps/ds-group/assets/readme/collaboration-hero.png)
+![Arquitectura de DSCORD, Web/PWA se conecta al servidor compartido Core y Matrix/Synapse, con nodos Bot independientes que ejecutan DSH y el núcleo DSCord](apps/ds-group/assets/readme/collaboration-hero.png)
 
 <p align="center"><strong>Un espacio para que personas y Bots trabajen juntos</strong></p>
 
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="Versión Alpha en npm"></a>
+  <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="Versión publicada en npm"></a>
   <a href="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="Estado de CI en main"></a>
   <a href="apps/ds-group/deploy/README.md"><img src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-0B1B52?style=flat-square" alt="Despliegue de servidores Linux amd64 y arm64"></a>
 </p>
@@ -74,13 +74,13 @@ Selecciona tu Bot en un grupo, adjunta un archivo y empieza con una petición co
 
 ## Primeros pasos
 
-> DSCord está en fase Alpha. Para usar el registro de cuentas, los Bots personales y la conexión gráfica de DSH, instala la versión actual desde el código fuente siguiendo los pasos de abajo. La versión publicada en npm, `0.2.0-alpha.1`, conecta los Bots mediante CLI. Consulta la [guía de instalación](apps/ds-group/deploy/npm.md).
+Esta guía corresponde a **DSCord 0.4.0-alpha.1**. Usa la misma versión para Core, el cliente web y los nodos Bot. Consulta la página de la versión para obtener el archivo o la versión npm publicados; las instrucciones antiguas no describen las funciones actuales. Véase [instalación y actualización](apps/ds-group/deploy/npm.md).
 
-Si ya tienes la dirección de un servidor, pasa a [Conectar tu Bot](#connect-bot). También puedes darle a DSH las [instrucciones de configuración en chino](README.md#dsh-setup) para que te ayude con la instalación.
+Si ya tienes un servidor, pasa a [Conectar tu Bot](#connect-bot). Las direcciones, puertos y rutas siguientes son ejemplos sustituibles. `localhost` siempre se refiere al equipo que realiza la petición.
 
 ### Desplegar un servidor
 
-Prepara un servidor Linux amd64 o arm64 con Git, Docker Engine y Compose v2.
+Usa Linux amd64 o arm64 con Docker Engine y Compose v2. Estos comandos compilan desde el código fuente; para una versión publicada, usa su archivo fuente o etiqueta correspondiente.
 
 ```sh
 git clone https://github.com/MixGeekers/dscord.git
@@ -88,27 +88,28 @@ cd dscord/apps/ds-group
 cp deploy/.env.example deploy/.env
 ```
 
-Antes del primer inicio, edita `deploy/.env` con tu propio `DS_GROUP_SERVER_NAME` y las direcciones públicas. Para una prueba local puedes conservar los valores predeterminados. El acceso externo y HTTPS se explican en la [guía del servidor](apps/ds-group/deploy/README.md).
+Antes del primer inicio, configura en `deploy/.env` el dominio de identidad Matrix (`DS_GROUP_SERVER_NAME`) y las direcciones públicas. Conserva el dominio después de crear las cuentas. Los valores predeterminados sirven para una prueba local; consulta la [guía del servidor](apps/ds-group/deploy/README.md) para HTTPS público.
 
 ```sh
 docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
 ```
 
-Abre [localhost:18100](http://localhost:18100) en el propio servidor o la dirección pública configurada desde otro dispositivo. Registra una cuenta y crea tu primer Bot en “My Bots”.
+Abre [localhost:18100](http://localhost:18100) en el servidor o tu dirección pública y registra una cuenta. Los Bots se crean en sus propios nodos y después se añaden al servidor. “My Bots” gestiona los Bots que ya pertenecen a tu cuenta.
 
 <a id="connect-bot"></a>
 
 ### Conectar tu Bot
 
-Los Bots se ejecutan a través de DeepSeek Harness (DSH). Primero, regístrate o inicia sesión en la web del servidor y crea o selecciona un Bot en “My Bots”.
+1. Prepara un DSH compatible. La base SDK fijada es `@deepseek-ai/dsh@0.2.2-rc.1`; el código y la CLI declaran Node `>=24.19.0 <25`. Son las versiones admitidas por [package.json](apps/ds-group/package.json) y el [contrato del host](apps/ds-group/dsh-connect/KERNEL.md), no una garantía para otros hosts.
+2. Obtén o compila el `.tgz` correspondiente a 0.4.0-alpha.1 según la [guía de instalación](apps/ds-group/deploy/npm.md#安装). Instala y activa `dscord` desde `Plugins → Add plugin` en DSH. Configura tu propio modelo de trabajo y sus credenciales.
+3. Abre **DSCord** en DSH e inicia sesión en tu servidor. En “Bots on this node”, crea explícitamente un Bot, elige un modelo configurado y describe su función, o selecciona un Bot existente.
+4. Pulsa “Add to server”. En la web podrás escribirle, consultar su configuración o invitarlo a un grupo. Para añadir un Bot existente desde la web, su nodo debe estar conectado con la misma cuenta.
 
-1. Instala Node `>=24.19.0 <25` y DSH `0.2.1-rc.5` en el equipo del Bot y prepara en DSH el modelo que quieres usar. Consulta los [ajustes del modelo](apps/ds-group/deploy/README.md#configuration).
-2. Sigue los [pasos de compilación](apps/ds-group/deploy/npm.md#安装) para generar un archivo `.tgz`. Instálalo desde `Plugins → Add plugin` en DSH y activa `dscord`.
-3. Abre **DSCord** en la barra lateral de DSH, introduce la dirección del servidor, inicia sesión, elige un modelo de DSH para tu Bot, guarda la selección y conéctalo.
+No se exige un proveedor ni modelo concreto para el trabajo del Bot. Elige uno compatible con DSH y con las herramientas necesarias. La participación natural utiliza un servicio de decisión opcional separado; responder solo a menciones no lo requiere. Véase [modelos y participación](apps/ds-group/模型配置与迁移.md).
 
-Ya puedes escribirle por privado o invitarlo a un grupo. Su equipo debe poder acceder a las direcciones de Core y Matrix del servidor.
+El equipo del Bot debe acceder a las direcciones públicas de Core y Matrix. Para adoptar un equipo `ds-bot` existente, detén primero el plugin anterior. DSCord conserva el directorio original; no fusiona historiales separados. Un nodo detenido o desconectado no puede ejecutar tareas desde la web.
 
-Para instalar la versión Alpha publicada en npm, ejecuta `npm install --global dscord@alpha` y conecta los Bots mediante CLI. Los pasos completos están en la [guía de npm](apps/ds-group/deploy/npm.md).
+Para una configuración asistida, usa las [instrucciones para DSH en chino](README.md#dsh-setup) con tu propio servidor, cuenta, rutas y modelos.
 
 <a id="architecture"></a>
 
@@ -120,7 +121,7 @@ El servidor compartido gestiona miembros y mensajes. Los Bots se ejecutan en sus
 | --- | --- |
 | **Web / PWA** | Chat, archivos, notificaciones, cuentas y gestión de Bots. |
 | **DSCord Core + Matrix / Synapse** | Miembros, salas, mensajes, adjuntos y conexiones de nodos. |
-| **DSH + DS-Bot** | Conversaciones, herramientas, colaboración y entrega de resultados de cada Bot. |
+| **DSH + núcleo DSCord** | Conversaciones, herramientas, colaboración y entrega de resultados de cada Bot. |
 
 Cada Bot procesa sus tareas en orden; distintos Bots pueden trabajar en paralelo. Encontrarás más detalles en el [diseño del sistema](架构与设计/DS-Group首个框架与实施路线.md).
 
@@ -137,7 +138,7 @@ Las guías detalladas están disponibles en chino simplificado.
 | Configurar el almacenamiento de adjuntos | [Guía de almacenamiento](apps/ds-group/deploy/storage/README.md) |
 | Conocer las funciones y los límites actuales | [Guía de la aplicación](apps/ds-group/README.md) |
 | Trabajar en la interfaz | [Diseño del frontend](apps/ds-group/前端架构与设计规范.md) |
-| Seguir el desarrollo | [Registro de implementación](apps/ds-group/实施记录.md) · [Registro de versiones](apps/ds-group/发行验证.md) |
+| Configurar modelos y participación | [Modelos y participación](apps/ds-group/模型配置与迁移.md) |
 | Usar el logotipo y los recursos gráficos | [Marca y recursos](apps/ds-group/assets/目录.md) |
 
 ### Contribuir

@@ -6,7 +6,7 @@
 
 ## 安装程序与节点数据
 
-在 Linux 服务器安装 Node.js 24.19.0 与 npm。将发行包解压后的 `ds-group/` 内容放到 `/opt/ds-group`，然后执行以下命令。官方 DSH 安装在独立前缀中，当前适配版本为 `0.2.2-rc.1`。下方 `your-bot-account` 替换为 Bot 完整 ID 中 `@` 与 `:` 之间的账号部分，并在同一终端继续操作。服务用户已经存在时复用该用户。
+在 Linux 服务器安装包声明范围内的 Node.js 24.x 与 npm。将发行包解压后的 `ds-group/` 内容放到 `/opt/ds-group`，然后执行以下命令。官方 DSH 安装在独立前缀中，当前适配版本为 `0.2.2-rc.1`。下方 `your-bot-account` 替换为 Bot 完整 ID 中 `@` 与 `:` 之间的账号部分，并在同一终端继续操作。服务用户已经存在时复用该用户。
 
 ```sh
 BOT_ACCOUNT='your-bot-account'
@@ -51,7 +51,7 @@ sudo systemctl status "ds-group-dsh@$BOT_ACCOUNT.service" "ds-group-bot@$BOT_ACC
 sudo journalctl -u "ds-group-dsh@$BOT_ACCOUNT.service" -u "ds-group-bot@$BOT_ACCOUNT.service" -f
 ```
 
-首次启动会安装固定 DS-Bot 运行依赖。接入进程在 DSH 就绪前可能退出，systemd 每 5 秒重试。DSH 单独重启时，接入进程保持运行并恢复与桥接端口通信。
+首次启动会安装锁定的 DSCord 内核运行依赖。接入进程在 DSH 就绪前可能退出，systemd 每 5 秒重试。DSH 单独重启时，接入进程保持运行并恢复与桥接端口通信。
 
 ```sh
 sudo systemctl restart "ds-group-dsh@$BOT_ACCOUNT.service"
@@ -61,6 +61,6 @@ sudo systemctl stop "ds-group-bot@$BOT_ACCOUNT.service" "ds-group-dsh@$BOT_ACCOU
 
 程序升级前先停止同机所有 Bot 的这两个服务，保留 `/var/lib/ds-group-*` 与 `/etc/ds-group/`，更新 `/opt/ds-group` 的发行文件并执行 `npm ci`，然后启动对应实例。对 DSH 升级应先运行发行包的 `scripts/runtime-smoke.mjs` 验证 Session 生命周期，再切换固定运行版本。
 
-## 验证范围
+## 运行边界
 
-已有[发行验证](../../发行验证.md)记录了 Linux ARM64 原生容器、Linux x64 模拟容器和 macOS ARM64 的真实 DSH 插件加载、Session 创建、重启恢复与有序停止，模型调用为 0。systemd 单元的静态检查与目标 Linux 主机上的开机、日志、重启验收分别记录；本说明中的参数替换不代表已完成用户机器的运行验收。
+模板服务只适用于独立 CLI 节点。已有原生绑定的 Bot 从所属 DSH 连接，不将同一身份复制到此模板。systemd 启动成功只说明进程运行；还须检查 Core/Matrix 可达、节点身份及实际模型配置。[内核与数据](../kernel-runtime.md)

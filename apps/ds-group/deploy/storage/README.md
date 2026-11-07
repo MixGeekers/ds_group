@@ -30,9 +30,9 @@ docker compose --env-file /absolute/path/server.env \
 
 `scripts/server-init.mjs` 接受 `DS_GROUP_MEDIA_BACKEND=local|s3`，S3 参数与上表相同。省略后端时复用私有 `media-storage.json` 中已保存的选择，新部署默认 local。返回摘要只包含后端类型。
 
-从 local 开启 S3 后，既有附件继续保存在本地，新上传写入两处。当前切片保留已使用 S3 的 bucket、endpoint 和 prefix，调整目标或回到纯本地需要显式迁移。凭据和 region 可更新。缓存回收、历史附件转存与远端删除由后续迁移/保留策略处理。
+从 local 开启 S3 后，既有附件继续保存在本地，新上传写入两处。初始化保留已使用 S3 的 bucket、endpoint 和 prefix，调整目标或回到纯本地需要显式迁移。凭据和 region 可更新。缓存回收、历史附件转存与远端删除由后续迁移/保留策略处理。
 
-管理员备份应同时覆盖 Core/Synapse 数据卷与远端桶对象，恢复时保留两者的对应关系。rclone、Drive 与 OneDrive 的真实云授权分别验收。
+管理员备份应同时覆盖 Core/Synapse 数据卷与远端桶对象，恢复时保留两者的对应关系。外部 rclone remote 或云盘还需要各自的账号授权和保留策略。
 
 ## 已有 rclone remote
 
@@ -52,18 +52,10 @@ docker compose --env-file /absolute/path/server.env \
   -f deploy/storage/compose.rclone.yaml up --build -d
 ```
 
-该模板复用管理员已配置的 remote。当前限定协议验证使用本地目录 remote，Drive/OneDrive 的 OAuth、配额和真实写入行为仍需对应账号验收。rclone 1.75.2 将 serve s3 标为 Experimental。
+该模板复用管理员已配置的 remote。Drive/OneDrive 等 remote 的 OAuth、配额、读写及恢复行为依赖对应账号和服务，模板不自动完成这些配置。rclone 1.75.2 将 serve s3 标为 Experimental。
 
 ## 服务端索引范围
 
 Core 的 `media.sqlite` 保存本应用上传附件的稳定 ID、文件名、类型、大小、SHA-256、状态和 Matrix URI。房间及消息中的附件引用由 Matrix 保存。切换文件字节后端后，这些记录继续支持既有消息和下载入口。
 
-云盘中已有文件的发现、全盘扫描、外部变化同步和导入需要独立的持久文件索引。本轮提供后端接法与附件链路，后续再实现这些索引作业。
-
-## 隔离协议验证
-
-```sh
-node scripts/storage-smoke.mjs
-```
-
-该脚本使用 rclone 1.75.2 的本地目录 remote 提供真实 S3 协议服务，验证正常附件入口、远端字节、移除本地缓存后的读取、重启和 Range。使用 `.local/storage-smoke/` 私有数据和 22300、22400、22408 三个回环端口，结束时清理本轮容器与网络。结果说明以脚本输出证据为准。
+云盘中已有文件的发现、全盘扫描、外部变化同步和导入需要独立的持久文件索引。这些索引作业不是当前附件后端的功能。

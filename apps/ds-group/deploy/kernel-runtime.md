@@ -1,34 +1,34 @@
-# DSCord 内核运行与检查
+# DSCord 0.4.0-alpha.1 内核运行
 
-DSCord 的 Bot 运行时为 `dscord-kernel`，当前内核版本 `0.4.0`、管理 API 版本 `1`，基于 DS-Bot `0.3.1`。发行宿主固定为官方 `@deepseek-ai/dsh@0.2.2-rc.1`，使用 Node `>=24.19.0 <25`。Linux amd64 和 arm64 是服务器发行目标。
+本发行包的版本为 `0.4.0-alpha.1`；其 Bot 内核标识为 `dscord-kernel`，内核版本字段为 `0.4.0`，管理 API 版本为 `1`，基于 DS-Bot `0.3.1`。Node 支持范围见 [package.json](../package.json)，固定 DSH SDK 基线为 `0.2.2-rc.1`，接口依据见[宿主契约](../dsh-connect/KERNEL.md)。业务模型由部署者在 DSH 中选择。
 
-## 聊天服务器入口
+## 服务器和 Bot 节点
 
-在源码的 `apps/ds-group/` 或解压后的发行包根目录执行。首次部署先编辑 `deploy/.env` 中的身份域和公开地址，详细参数见[服务器部署](README.md)。
+聊天服务器按 [Compose 指南](README.md)部署。`/healthz` 只检查 Core 进程，`/readyz` 还检查 Matrix 连通性；两者不证明 Bot 业务模型或工具任务成功。
 
-```sh
-cp deploy/.env.example deploy/.env
-docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
-curl --fail http://127.0.0.1:18100/readyz
-```
+在 DSH 安装并启用同版本包，登录服务器后，在“此节点的 Bot”显式创建或选择 Bot，并加入服务器。[图形安装](npm.md#在-dsh-中连接)
 
-`/healthz` 检查 Core 进程；`/readyz` 同时检查 Matrix。默认浏览器入口为 `http://localhost:18100`。公开 HTTPS 部署使用[HTTPS overlay](README.md#https-和手机通知)。Docker 数据卷与 DSH Bot 数据目录各自持久保存。
+每个实际 Bot home 只能有一个内核。已有 `ds-bot` 团队先停用旧插件，再重载 DSCord；冲突时返回 `DSCORD_KERNEL_CONFLICT`，不会退回旧内核继续处理。网页关闭或断开服务器只停止相应传输，DSH 停止则内核也停止。
 
-## Bot 宿主与数据归属
+## 数据和采用
 
-在 DSH 中安装同版本 DSCord 包后，由 DSCord 持有 Bot 内核生命周期，管理 API 为 `/api/dscord/kernel`。每个实际 Bot home 只能有一个运行内核；另一个 DSCord 实例或仍活动的旧 `ds-bot` 插件会得到 `DSCORD_KERNEL_CONFLICT`。升级已有 DSH 时先停用旧 `ds-bot` 插件，再重载 DSCord。
+图形节点默认采用实际 DSH home 下的 `bot/`，连接元数据在 `dscord/<profile>/`。独立节点使用自己的数据根、home 和桥接端口；[独立节点指南](README.md#cli-节点导出)与[systemd 模板](systemd/README.md)使用的路径均为可调整示例。
 
-原 Bot home 在原位置接管，保留 Bot 和原生 Session 身份。首次接管会在该目录的 `migrations/dscord-0.4.0/` 保存状态快照与接管记录，生命周期写入 `dscord-kernel.json`。程序不会要求用户复制 Session 到第二套运行目录。启动、停止和重新启动分别更新生命周期；健康查询不自动创建 Bot。
+采用已有团队时保留 Bot 与 Session 身份，保存 `migrations/dscord-0.4.0/` 快照，并以 `dscord-kernel.json` 记录当前生命周期。程序不要求复制 Session 到第二套 home，也不会自动合并两套团队或历史。
 
-独立远端节点使用[节点导入与启动](README.md#cli-节点导出)或[systemd 单元](systemd/README.md)。不同 Bot 使用各自的 home、配置目录和桥接端口；同一个 Bot 的 DSH 与 Matrix 适配进程共享自己的节点配置。不要让两个服务同时运行同一份节点配置。
+已经绑定原生 Bot 的导出文件含 `nativeBinding`，必须从所属 DSH 连接。独立 CLI 会在启动前返回 `DSCORD_NATIVE_BOT_HOST_REQUIRED`；导出文件不是在别处复制同一 Bot 身份的方法。
 
-已经绑定原生 Bot 的导出文件含 `nativeBinding`，只能从所属 DSH 的 DSCord 连接。独立 CLI 会在创建 home、依赖或子进程前返回 `DSCORD_NATIVE_BOT_HOST_REQUIRED`，避免把原身份复制到另一套内核。明确创建全新独立成员且没有已有绑定的节点仍可使用独立启动入口。
+采用时保留的未知旧请求需要先核对 `migration-work`，再显式恢复。对已经发生但没有回执的外部操作，未知状态不能当成重新执行的许可。
 
-固定运行依赖包括 MCP client `2.4.0`、deep-view `0.1.2`、imapflow `2.9.1`、mailparser `3.12.4`、nodemailer `10.2.1`、YAML `2.9.1` 和 zod `4.6.7`。启动器按随包的 npm/pnpm 锁安装私有依赖并核验版本和入口，随后将 vendored 代码的依赖解析到该目录，DSH SDK 则解析到实际宿主。用户无需手工复制依赖目录。zod 从已有传递依赖提升为直接冻结依赖的核对见[依赖收尾记录](evidence/zod-direct-dependency.json)。
+## 依赖与宿主位置
 
-## 健康查询
+运行库按 [runtime-dependencies.json](../dsh-plugin/runtime-dependencies.json) 及随包锁安装到私有目录；SDK 解析到实际 DSH。启动器在目标机器准备所需依赖。
 
-在已经登录 DSH 的同源页面中，可调用以下只读接口。`state` 同样不会自动建立首个 Bot；创建由用户操作或明确的 `create-bot` 请求触发。
+启动器可从 PATH 查找 `dsh`，也可使用部署者提供的 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME`。后者是实际 SDK 包根或 npm 安装前缀，不是任意 DSH 数据 home。来源 profile 与模型的配置见[模型指南](../模型配置与迁移.md)。
+
+## 健康与版本查询
+
+在已经登录 DSH 的同源页面中执行：
 
 ```js
 const response = await fetch('/api/dscord/kernel', {
@@ -36,34 +36,17 @@ const response = await fetch('/api/dscord/kernel', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ endpoint: 'kernel-info', payload: {} }),
 });
-const { ok, value } = await response.json();
-console.log(ok, value.runtime);
+const result = await response.json();
+if (!result.ok) throw new Error(result.error?.message || 'Kernel unavailable');
+console.log(result.value.runtime);
 ```
 
-正常运行时 `runtime` 包含 `id: "dscord-kernel"`、`version: "0.4.0"`、`upstreamVersion: "0.3.1"`、`apiVersion: 1`、`status: "running"`、当前 `instanceId` 与实际 `home`。重启后 `instanceId` 更新，原 home 和身份保留。
+正常返回包含内核、上游和 API 版本，运行状态、当前实例身份与实际 home。`state` 也是纯读，不自动创建首个 Bot。模型目录由显式模型操作刷新，可用状态和配置状态应分别核对。
 
-## 隔离的零模型检查
+## 升级与备份
 
-下列命令在发行包根目录安装独立测试宿主，然后运行真实 DSH 检查。脚本创建合成 home 和本地拒绝所有请求的 provider，不读取用户 DSH 配置或真实凭据，也不使用业务模型。
+先停止节点正在执行的工作，备份 Core/Synapse/治理数据，以及各 Bot home、连接目录和可选记忆后端。安装相同发行版本后恢复同一数据路径，确认原 Bot ID、Session、连接状态与工作回执再继续使用。
 
-```sh
-npm install --prefix .local/dsh-install --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1
-export DS_GROUP_DSH_RUNTIME="$PWD/.local/dsh-install"
-npm run test:kernel-host
-node scripts/kernel-runtime-smoke.mjs
-node scripts/runtime-smoke.mjs
-```
+停止等待内核和后台记忆整理收尾，避免两个实例争用同一库。不要仅因心跳暂时过期就夺取仍存活进程的锁。数据库格式较新或损坏时应检查备份与版本，不手改成可启动状态。
 
-`test:kernel-host` 使用固定宿主自带的真实 Session 服务和 SDK 编译内存工具，验证 basis reference 的必填字段、整数修订号、额外字段限制、联系人知识隔离及 stream 账目顺序，并运行内核与合成 CLI 契约检查。`kernel-runtime-smoke` 检查 owner API、初始纯读空状态、同 home 重复运行拒绝，再明确创建一个不问候的 Bot，实际编译全部 65 个唯一工具并核对重启后的 Bot/Session 身份。`runtime-smoke` 检查独立节点的模型配置及中断请求不重放。两个运行报告分别写入 `.local/kernel-runtime-smoke.json` 和 `.local/runtime-smoke.json`。成功后清理合成 home；失败时保留私有诊断目录并在报告中指明路径。
-
-`npm run runtime:native-check` 与 `npm run runtime:work-check` 进一步用本地脚本 provider 验证完整原生工具、自动记忆回顾和实际文件工作；`npm run runtime:memory-snapshot-check` 验证当前快照、冷恢复、原生自动/手动压缩及 part 转移。它们分别记录本地脚本响应次数，远端业务模型调用为 0。
-
-CI 保留十项正式门禁：四组 Linux/Node、两组 Docker/Compose、两组独立 DSH、一组浏览器和一个汇总门禁。DSH 检查从经过 SHA-256 校验并提取的发行源码执行。容器和同机独立宿主证据不代表物理跨机器的网络与故障环境已经验收。
-
-固定源码的结果分别见 [b3add9b 发行验证](kernel-validation.md)与 [9898c62 增量验证](kernel-validation-9898.md)；后者保留快照升级后发现的多步文件任务重复账目失败，不能以较早通过结果替代。
-
-统一修补组合的双架构 SDK、实际账目、快照与新 npm 包结果见[运行时发行增量复验](kernel-validation-increment.md)。
-
-最终固定 `e284b21` 的可部署候选包、后台回顾停机复验和十项正式 CI 全绿记录见[最终候选验证](kernel-validation-e284.md)。
-
-当前 `79ae498` 候选增加来源过滤和可靠请求视图投影，其新包、双架构增强快照及固定 CI 全绿结果见[79ae498 候选复验](kernel-validation-79ae.md)。
+源码开发者可按包内测试脚本运行隔离检查。它们创建合成 home 和测试 provider，不能代替用户自己的网络、模型和连接器验证。
