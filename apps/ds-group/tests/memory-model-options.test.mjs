@@ -11,3 +11,10 @@ test('memory review retains low when advertised and does not invent a fallback e
     assert.equal(options.reasoningEffort,efforts.some(row=>row.id==='low')?'low':undefined);
   }
 });
+test('memory model metadata receives the same cancellation signal as background review', async () => {
+  const controller = new AbortController();
+  const options = await memoryModelOptions({ resolveModelInfo: async (provider, model, signal) => {
+    assert.equal(signal, controller.signal); return {};
+  } }, 'local-lifecycle/model', controller.signal);
+  assert.deepEqual(options, { provider: 'local-lifecycle', model: 'model' });
+});

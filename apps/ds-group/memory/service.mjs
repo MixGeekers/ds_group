@@ -295,9 +295,11 @@ export class MemoryService {
     return this.describe(saved);
   }
   remember(botId, args, context = this.current(botId)) { return this.serial(botId, () => this.persistPrepared(this.prepareMemory(botId, args, context))); }
-  applyReview(botId, packet, proposal) { return this.serial(botId, async () => {
+  applyReview(botId, packet, proposal, { signal } = {}) { return this.serial(botId, async () => {
+    signal?.throwIfAborted();
     const changes = validateReviewProposal({ changes: proposal }, packet.sources, packet.existingMemories);
     const verify = () => {
+      signal?.throwIfAborted();
       for (const ref of changes.flatMap(change => change.sourceRefs)) {
         if (this.store.source(ref.id)?.revision !== ref.revision) throw new Error('MEMORY_REVIEW_SOURCE_STALE');
         if (!this.sourceUse(botId, ref).allowed) throw new Error('MEMORY_SOURCE_PENDING_REQUEST');

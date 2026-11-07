@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { validateJsonSchemaValue, ToolArgsError } from '@deepseek-ai/dsh-tools';
 import { installNativeMemory } from '../memory/native.mjs';
+import './memory-review-lifecycle.host.mjs';
 
 // Use the actual pinned DSH defineTool compiler, not a local JSON Schema mock.
 test('native memory installs with DSH value schemas and enforces every basis reference field', async () => {
