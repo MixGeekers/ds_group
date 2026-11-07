@@ -14,7 +14,7 @@ async function fixture(t) {
   const files = {
     'package.json': JSON.stringify({ version: '0.1.0', license: 'MIT', engines: { node: '>=24.19.0 <25' }, dependencies: {} }),
     LICENSE: 'MIT fixture license', 'README.md': '# User guide',
-    'package-lock.json': '{}', 'src/core.mjs': 'export const value = "你好";',
+    'package-lock.json': '{"version":"0.1.0","packages":{"":{"version":"0.1.0"}}}', 'src/core.mjs': 'export const value = "你好";',
     'web/index.html': '<!doctype html>', Dockerfile: 'FROM node:24',
     'web/src/client-config.ts': 'export {};', 'web/client-config.json': '{}', 'dsh-connect/index.mjs': 'export {};',
     'ui/controls.tsx': 'export {};', 'ui/overlays.tsx': 'export {};', 'ui/tailwind.css': '@source "./";', 'web/licenses/ui-foundation.txt': 'MIT',

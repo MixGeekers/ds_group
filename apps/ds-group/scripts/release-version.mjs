@@ -13,3 +13,10 @@ export function releaseVersion(version) {
   const npmTag = prerelease ? (['alpha', 'beta', 'rc'].includes(channel) ? channel : 'next') : 'latest';
   return { version, prerelease, npmTag };
 }
+
+export function assertReleaseVersions(pkg, lock, requested = pkg.version) {
+  releaseVersion(requested);
+  if (requested !== pkg.version || lock.version !== pkg.version || lock.packages?.['']?.version !== pkg.version) {
+    throw new Error('Source, lock and npm release versions must match');
+  }
+}

@@ -6,7 +6,7 @@ import { gzipSync } from 'node:zlib';
 import { packageRoot } from '../src/paths.mjs';
 import { verifyRuntimeDependencyManifests } from './runtime-dependencies.mjs';
 import { sourceRootFiles, sourceDirectories, excludedReleasePath, includedSourceFile, projectLicense, PUBLIC_SOURCE_POLICY } from './release-content.mjs';
-import { releaseVersion } from './release-version.mjs';
+import { assertReleaseVersions } from './release-version.mjs';
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 
@@ -77,7 +77,8 @@ export async function buildRelease({ root = packageRoot, output = path.join(root
   const packageFile = source.find(file => file.path === 'package.json');
   if (!packageFile) throw new Error('Release source needs package.json');
   const pkg = JSON.parse(packageFile.bytes.toString('utf8'));
-  releaseVersion(pkg.version);
+  const lock = source.find(file => file.path === 'package-lock.json');
+  assertReleaseVersions(pkg, JSON.parse(lock?.bytes.toString('utf8') || '{}'));
   await projectLicense(root, pkg);
   const required = ['package-lock.json', 'src/core.mjs', 'src/identity.mjs', 'src/web-mode.mjs', 'src/admin.mjs',
     'scripts/central-init.mjs', 'scripts/admin.mjs', 'bin/dscord.mjs', 'web/index.html', 'web/src/client-config.ts', 'web/client-config.json', 'admin/index.html', 'admin/vite.config.ts',

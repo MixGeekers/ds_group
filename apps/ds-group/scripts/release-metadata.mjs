@@ -2,7 +2,7 @@ import { appendFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { packageRoot } from '../src/paths.mjs';
-import { releaseVersion } from './release-version.mjs';
+import { assertReleaseVersions, releaseVersion } from './release-version.mjs';
 import { projectLicense } from './release-content.mjs';
 
 export function releaseMetadata({ version, tag, repository }) {
@@ -23,7 +23,7 @@ export function releaseMetadata({ version, tag, repository }) {
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const pkg = JSON.parse(await readFile(path.join(packageRoot, 'package.json'), 'utf8'));
   const lock = JSON.parse(await readFile(path.join(packageRoot, 'package-lock.json'), 'utf8'));
-  if (lock.version !== pkg.version || lock.packages?.['']?.version !== pkg.version) throw new Error('Package and lock versions differ');
+  assertReleaseVersions(pkg, lock);
   await projectLicense(packageRoot, pkg);
   if (process.env.GITHUB_REF_TYPE !== 'tag') throw new Error('Publishing requires a version tag');
   const metadata = releaseMetadata({ version: pkg.version, tag: process.env.GITHUB_REF_NAME, repository: process.env.GITHUB_REPOSITORY });

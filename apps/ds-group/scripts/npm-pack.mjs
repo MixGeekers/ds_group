@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 import { packageRoot } from '../src/paths.mjs';
 import { verifyRuntimeDependencyManifests } from './runtime-dependencies.mjs';
 import { excludedReleasePath, includedNpmFile, projectLicense } from './release-content.mjs';
-import { releaseVersion } from './release-version.mjs';
+import { assertReleaseVersions, releaseVersion } from './release-version.mjs';
 
 const execute = promisify(execFile);
 const runtimeFiles = [
@@ -37,7 +37,7 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
   const source = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   version ||= source.version;
   const { npmTag } = releaseVersion(version);
-  if (version !== source.version) throw new Error('npm and source package versions must match');
+  assertReleaseVersions(source, JSON.parse(await readFile(path.join(root, 'package-lock.json'), 'utf8')), version);
   const legalFiles = await projectLicense(root, source);
   await verifyRuntimeDependencyManifests(root);
   for (const filename of ['dist/web/index.html', 'dist/web/sw.js', 'dist/web/client-config.json', 'dist/web/licenses/lucide.txt', 'dist/web/licenses/ui-foundation.txt', 'dist/admin/index.html', 'dist/admin/licenses/ui-foundation.txt', 'deploy/synapse/dscord_guard.py',

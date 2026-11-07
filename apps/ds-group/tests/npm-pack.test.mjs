@@ -13,6 +13,7 @@ async function fixture(t) {
   const files = {
     'package.json': JSON.stringify({ name: 'ds-group', version: '0.2.0', private: true, license: 'MIT',
       engines: { node: '>=24.19.0 <25' }, dependencies: {} }),
+    'package-lock.json': JSON.stringify({ version: '0.2.0', packages: { '': { version: '0.2.0' } } }),
     LICENSE: 'MIT fixture license',
     'bin/dscord.mjs': '#!/usr/bin/env node\nconsole.log("fixture");',
     'dsh-connect/index.mjs': 'export {};', 'dsh-connect/client.js': '// DSH client', 'cordis.patch.yml': '[]',
@@ -81,6 +82,8 @@ test('npm prereleases retain the source version and alpha channel; unlicensed pa
   const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   pkg.version = '0.4.0-alpha.1';
   await writeFile(path.join(root, 'package.json'), JSON.stringify(pkg));
+  await assert.rejects(packNpm({ root }), /versions must match/);
+  await writeFile(path.join(root, 'package-lock.json'), JSON.stringify({ version: pkg.version, packages: { '': { version: pkg.version } } }));
   const result = await packNpm({ root });
   const { stdout } = await promisify(execFile)('tar', ['-xOf', result.archive, 'package/package.json']);
   assert.equal(JSON.parse(stdout).publishConfig.tag, 'alpha');

@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 import { packageRoot } from '../src/paths.mjs';
 import { includedSourceFile, PUBLIC_SOURCE_POLICY } from './release-content.mjs';
-import { releaseVersion } from './release-version.mjs';
+import { assertReleaseVersions, releaseVersion } from './release-version.mjs';
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const stringAt = (header, offset, length) => header.subarray(offset, offset + length).toString('utf8').replace(/\0.*$/s, '');
@@ -68,6 +68,7 @@ export async function verifyRelease({ archive, extract, requirePublicContent = f
   const pkg = JSON.parse(entries.get(`${prefix}package.json`)?.toString('utf8') || '{}');
   if (pkg.version !== manifest.version) throw new Error('Release package and manifest versions differ');
   if (manifest.contentPolicy === PUBLIC_SOURCE_POLICY) {
+    assertReleaseVersions(pkg, JSON.parse(entries.get(`${prefix}package-lock.json`)?.toString('utf8') || '{}'));
     if (!pkg.license || pkg.license === 'UNLICENSED') throw new Error('Public release lacks the project license declaration');
     if (![...seen].some(name => /^(?:LICENSE|LICENCE)(?:\.(?:md|txt))?$/i.test(name))) throw new Error('Public release lacks its project LICENSE');
     for (const filename of ['vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE', 'service/ombre/LICENSE']) {
