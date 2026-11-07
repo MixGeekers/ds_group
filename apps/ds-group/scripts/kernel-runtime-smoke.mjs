@@ -65,8 +65,13 @@ async function api(endpoint, payload = {}, route = '/api/dscord/kernel') {
 
 async function start() {
   cookie = undefined;
+  const reserve = createServer();
+  reserve.listen(0, '127.0.0.1');
+  await once(reserve, 'listening');
+  const port = reserve.address().port;
+  await new Promise(resolve => reserve.close(resolve));
   log = await open(path.join(directory, 'host.log'), 'w', 0o600);
-  child = spawn(installation.cli, ['web', '--host', '127.0.0.1', '--port', '0', '--no-open'], {
+  child = spawn(installation.cli, ['web', '--host', '127.0.0.1', '--port', String(port), '--no-open'], {
     cwd: directory, detached: true, stdio: ['ignore', log.fd, log.fd], env,
   });
   exited = new Promise(resolve => child.once('close', (code, signal) => resolve({ code, signal })));
@@ -108,8 +113,9 @@ function kernelInfo(value) {
 }
 
 try {
-  for (const filename of ['package.json', 'vendor/ds-bot/UPSTREAM.json', 'dsh-connect/index.mjs', 'dsh-connect/native-team.mjs',
-    'dsh-connect/kernel-runtime.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime-dependencies.json', 'scripts/kernel-runtime-smoke.mjs']) {
+  for (const filename of ['package.json', 'vendor/ds-bot/UPSTREAM.json', 'vendor/ds-bot/index.js', 'vendor/ds-bot/src/host/channel.js',
+    'dsh-connect/index.mjs', 'dsh-connect/native-team.mjs', 'dsh-connect/native-bots.mjs', 'dsh-connect/native-connections.mjs',
+    'dsh-connect/kernel-runtime.mjs', 'memory/native.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime-dependencies.json', 'scripts/kernel-runtime-smoke.mjs']) {
     report.sourceHashes[filename] = hash(await readFile(path.join(packageRoot, filename)));
   }
   const version = await promisify(execFile)(installation.cli, ['--version'], { env, timeout: 30_000 });
