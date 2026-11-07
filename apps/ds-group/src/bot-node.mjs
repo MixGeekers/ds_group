@@ -303,12 +303,13 @@ export class BotNode {
           const blocked = attentionConflict({ botId: this.participant.id, eventIds: batch.eventIds }, anchor,
             this.store.messagesAfter(batch.roomId, batch.watermark.sequence), this.participants);
           if (blocked) outcome = blocked;
-          else if (trailingBotTurns(messages) >= config.maxBotTurns) outcome = 'bot_turn_limit';
+          else if (trailingBotTurns(messages.filter(message => (message.source.threadRootId || null) === batch.threadRootId)) >= config.maxBotTurns) outcome = 'bot_turn_limit';
           else {
             const peers = this.participants.filter(person => !room.members?.length || room.members.includes(person.id));
             const delay = participationDelay({ botId: this.participant.id, eventId: batch.eventIds[0], participants: peers,
               recentMessages: messages, coordinationMs: config.coordinationMs });
             evidence = { kind: 'natural', botId: this.participant.id, decisionId: id, eventIds: batch.eventIds,
+              sourceEventIds: messages.filter(message => !message.withdrawn).map(message => message.eventId),
               watermark: batch.watermark, expiresAt: batch.expiresAt,
               notBefore: Math.max(Date.now() + delay, (this.lastAttentionSpokeAt || 0) + config.cooldownMs),
               context: { ...context, attention: { decisionId: id, watermark: batch.watermark, eventIds: batch.eventIds,
@@ -341,12 +342,12 @@ export class BotNode {
   attentionSuppression(item) {
     const evidence = item?.attention;
     if (evidence?.kind !== 'natural' || evidence.deliveryAttempted) return undefined;
+    if (this.store.roomContext(item.event.room_id).membership === 'leave') return 'room_left';
+    if (this.store.withdrawnAttentionSource(evidence)) return 'source_withdrawn';
     // Once actual work has produced an effect, its result keeps the task route.
     if (item.response?.delegated || item.response?.toolCalls > 0 || item.response?.artifacts?.length) return undefined;
     if (this.attention.mode !== 'natural') return 'mode_changed';
     if (!this.decisionProvider || this.decisionProvider.configured === false) return 'provider_unavailable';
-    if (this.store.roomContext(item.event.room_id).membership === 'leave') return 'room_left';
-    if (this.store.withdrawnAttentionSource(evidence)) return 'source_withdrawn';
     if (Date.now() >= evidence.expiresAt) return 'expired';
     return attentionConflict(evidence, item.event,
       this.store.messagesAfter(item.event.room_id, evidence.watermark.sequence), this.participants);
@@ -691,6 +692,7 @@ export class BotNode {
 
   parentCancelled(item) {
     if (this.store.cancelledEvent(item.event_id)) return true;
+    if (item.attention?.kind === 'natural' && this.store.withdrawnAttentionSource(item.attention)) return true;
     const meta = metadataOf(item.event);
     return ['task.result', 'task.failure'].includes(meta.kind) && meta.originEventId && this.store.task(meta.originEventId)?.status === 'cancelled';
   }

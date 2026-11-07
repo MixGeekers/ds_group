@@ -81,6 +81,12 @@ export class NodeStore {
         message_sequence INTEGER NOT NULL,
         event_json TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS message_redactions (
+        event_id TEXT NOT NULL,
+        redaction_event_id TEXT NOT NULL,
+        room_id TEXT NOT NULL,
+        PRIMARY KEY(event_id,room_id)
+      );
       CREATE INDEX IF NOT EXISTS attention_due ON attention_events(status,available_at);
       CREATE TABLE IF NOT EXISTS attention_decisions (
         id TEXT PRIMARY KEY,
@@ -102,6 +108,9 @@ export class NodeStore {
       this.db.exec('ALTER TABLE inbox ADD COLUMN attention_json TEXT');
     }
     this.db.exec('INSERT OR IGNORE INTO observation_events(event_id,room_id,message_sequence,event_json) SELECT event_id,room_id,sequence,event_json FROM messages ORDER BY sequence');
+    this.db.exec(`INSERT OR IGNORE INTO message_redactions(event_id,redaction_event_id,room_id)
+      SELECT COALESCE(json_extract(event_json,'$.redacts'),json_extract(event_json,'$.content.redacts')),event_id,room_id
+      FROM observation_events WHERE json_extract(event_json,'$.type')='m.room.redaction'`);
     if (!this.db.prepare('PRAGMA table_info(outbox)').all().some(column => column.name === 'routing_frozen')) {
       this.transaction(() => this.db.exec('ALTER TABLE outbox ADD COLUMN routing_frozen INTEGER NOT NULL DEFAULT 0; UPDATE outbox SET routing_frozen=1'));
     }
@@ -201,25 +210,51 @@ export class NodeStore {
   message(eventId) {
     if (typeof eventId !== 'string') return undefined;
     const row = this.db.prepare('SELECT event_json FROM messages WHERE event_id=?').get(eventId);
-    return row ? JSON.parse(row.event_json) : undefined;
+    return row ? this.visibleMessage(JSON.parse(row.event_json)) : undefined;
+  }
+
+  messageRedacted(eventId, roomId) {
+    if (typeof eventId !== 'string') return false;
+    const row = roomId ? this.db.prepare('SELECT 1 FROM message_redactions WHERE event_id=? AND room_id=?').get(eventId, roomId)
+      : this.db.prepare('SELECT 1 FROM message_redactions JOIN messages USING(event_id,room_id) WHERE event_id=?').get(eventId);
+    return Boolean(row);
+  }
+
+  visibleMessage(event) {
+    if (!this.messageRedacted(event.event_id, event.room_id)) return event;
+    return { event_id: event.event_id, type: event.type, room_id: event.room_id, sender: event.sender,
+      ...(event.origin_server_ts ? { origin_server_ts: event.origin_server_ts } : {}),
+      content: { msgtype: 'm.text', body: '[message withdrawn]',
+        ...(event.content?.['m.relates_to'] ? { 'm.relates_to': event.content['m.relates_to'] } : {}) },
+      unsigned: { redacted: true } };
   }
 
   messageBatch(event) {
     const batchId = event.content?.['org.ds_group']?.fileBatch?.id;
-    if (!batchId) return [event];
+    if (!batchId) return [this.visibleMessage(event)];
     return this.db.prepare('SELECT event_json FROM messages WHERE room_id=? AND sender_id=? AND json_extract(event_json,?)=? ORDER BY sequence')
-      .all(event.room_id, event.sender, '$.content."org.ds_group".fileBatch.id', batchId).map(row => JSON.parse(row.event_json));
+      .all(event.room_id, event.sender, '$.content."org.ds_group".fileBatch.id', batchId).map(row => this.visibleMessage(JSON.parse(row.event_json)));
   }
 
   ingest(events, cursor, onAccepted, { route, now = Date.now() } = {}) {
     return this.transaction(() => {
       let accepted = 0;
       for (const event of events) {
+        const redacted = event.type === 'm.room.message' && event.unsigned?.redacted_because;
+        if (redacted?.type === 'm.room.redaction' && typeof redacted.event_id === 'string'
+          && typeof event.event_id === 'string' && typeof event.room_id === 'string' && typeof redacted.sender === 'string') {
+          const redaction = { ...redacted, redacts: event.event_id, room_id: event.room_id };
+          this.db.prepare('INSERT OR IGNORE INTO observation_events(event_id,room_id,message_sequence,event_json) VALUES (?,?,?,?)')
+            .run(redaction.event_id, event.room_id, this.messageWatermark(event.room_id).sequence, JSON.stringify(redaction));
+          this.db.prepare('INSERT OR IGNORE INTO message_redactions VALUES (?,?,?)').run(event.event_id, redaction.event_id, event.room_id);
+        }
         if (event.type === 'm.room.redaction' && typeof event.event_id === 'string'
           && typeof event.room_id === 'string' && typeof event.sender === 'string'
           && typeof (event.redacts || event.content?.redacts) === 'string') {
           this.db.prepare('INSERT OR IGNORE INTO observation_events(event_id,room_id,message_sequence,event_json) VALUES (?,?,?,?)')
             .run(event.event_id, event.room_id, this.messageWatermark(event.room_id).sequence, JSON.stringify(event));
+          this.db.prepare('INSERT OR IGNORE INTO message_redactions VALUES (?,?,?)')
+            .run(event.redacts || event.content.redacts, event.event_id, event.room_id);
           continue;
         }
         if (event.type !== 'm.room.message' || typeof event.event_id !== 'string'
@@ -313,6 +348,7 @@ export class NodeStore {
 
   finalResult(eventId) {
     const item = this.item(eventId);
+    if (item && this.messageRedacted(eventId, item.event.room_id)) return undefined;
     if (!item?.response?.delegated) return item;
     const row = this.db.prepare(`SELECT inbox.event_id FROM inbox JOIN messages USING(event_id)
       WHERE inbox.status='completed' AND json_extract(event_json,?)=?
@@ -402,7 +438,7 @@ export class NodeStore {
     return this.db.prepare(`SELECT event_json FROM messages WHERE room_id =
       (SELECT room_id FROM messages WHERE event_id=?) AND sequence <
       (SELECT sequence FROM messages WHERE event_id=?) ORDER BY sequence DESC LIMIT ?`)
-      .all(eventId, eventId, limit).reverse().map(row => JSON.parse(row.event_json));
+      .all(eventId, eventId, limit).reverse().map(row => this.visibleMessage(JSON.parse(row.event_json)));
   }
 
   begin(eventId, request) {
@@ -531,7 +567,7 @@ export class NodeStore {
 
   messagesThrough(roomId, sequence, limit = 40) {
     return this.db.prepare('SELECT event_json FROM messages WHERE room_id=? AND sequence<=? ORDER BY sequence DESC LIMIT ?')
-      .all(roomId, sequence, limit).reverse().map(row => JSON.parse(row.event_json));
+      .all(roomId, sequence, limit).reverse().map(row => this.visibleMessage(JSON.parse(row.event_json)));
   }
 
   messagesAfter(roomId, sequence) {
@@ -549,12 +585,7 @@ export class NodeStore {
 
   withdrawnAttentionSource(evidence) {
     if (!evidence?.eventIds?.length) return false;
-    const rows = this.db.prepare('SELECT event_json FROM observation_events WHERE room_id=? AND message_sequence>=?')
-      .all(evidence.watermark.roomId, evidence.watermark.sequence);
-    return rows.some(row => {
-      const event = JSON.parse(row.event_json);
-      return event.type === 'm.room.redaction' && evidence.eventIds.includes(event.redacts || event.content?.redacts);
-    });
+    return [...evidence.eventIds, ...(evidence.sourceEventIds || [])].some(eventId => this.messageRedacted(eventId, evidence.watermark.roomId));
   }
 
   acknowledgeObservation(after, sequence) {
@@ -584,10 +615,16 @@ export class NodeStore {
 
   localCancellation(requestId) {
     const row = this.db.prepare("SELECT local_task_controls.* FROM local_task_controls JOIN inbox USING(event_id) WHERE json_extract(request_json,'$.requestId')=?").get(requestId);
-    return row ? { cancelRequested: true, reason: row.reason, sourceEventId: row.source_event_id } : undefined;
+    if (row) return { cancelRequested: true, reason: row.reason, sourceEventId: row.source_event_id };
+    const item = this.requestItem(requestId);
+    return item && (this.messageRedacted(item.event_id, item.event.room_id)
+      || item.attention?.kind === 'natural' && this.withdrawnAttentionSource(item.attention))
+      ? { cancelRequested: true, reason: 'source_withdrawn' } : undefined;
   }
 
-  cancelledEvent(eventId) { return Boolean(this.db.prepare('SELECT 1 FROM local_task_controls WHERE event_id=?').get(eventId)); }
+  cancelledEvent(eventId) {
+    return Boolean(this.db.prepare('SELECT 1 FROM local_task_controls WHERE event_id=?').get(eventId)) || this.messageRedacted(eventId);
+  }
 
   activeTaskView(roomId) {
     return this.db.prepare(`SELECT inbox.event_id,inbox.status,request_json,payload_json FROM inbox JOIN messages USING(event_id)
@@ -602,6 +639,8 @@ export class NodeStore {
   }
 
   nextAttentionBatch({ now = Date.now(), batchMs = 350, maxAgeMs = 30_000, limit = 40 } = {}) {
+    this.db.prepare(`UPDATE attention_events SET status='observed',reason='source_withdrawn' WHERE status IN ('queued','waiting')
+      AND event_id IN (SELECT message_redactions.event_id FROM message_redactions JOIN messages USING(event_id) WHERE message_redactions.room_id=messages.room_id)`).run();
     this.db.prepare(`UPDATE attention_events SET status='expired',reason='expired' WHERE status IN ('queued','waiting') AND
       (COALESCE(expires_at,received_at+?)<=? OR event_id IN (SELECT event_id FROM messages WHERE
         json_type(event_json,'$.origin_server_ts') IN ('integer','real') AND json_extract(event_json,'$.origin_server_ts')<?))`)

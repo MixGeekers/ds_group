@@ -30,6 +30,7 @@ export function attentionMessage(event, participants) {
     senderName: participants.find(person => person.id === event.sender)?.name || event.sender,
     senderKind: participants.find(person => person.id === event.sender)?.kind || 'unknown',
     body: event.content?.['m.new_content']?.body ?? event.content?.body ?? '',
+    ...(event.unsigned?.redacted || event.unsigned?.redacted_because ? { withdrawn: true } : {}),
     source: messageSource(event, participants), to: Array.isArray(meta.to) ? meta.to : [],
     attachments: eventAttachments(event),
     ...(meta.kind ? { kind: meta.kind } : {}), ...(meta.taskId ? { taskId: meta.taskId } : {}),
@@ -40,11 +41,14 @@ export function attentionMessage(event, participants) {
 export function reliableAttentionRoute(event, { botId, store, participants = [] }) {
   if (event.sender === botId) return undefined;
   const meta = metadata(event);
+  const isHuman = participants.some(person => person.id === event.sender && person.kind === 'human');
+  const isBot = participants.some(person => person.id === event.sender && person.kind === 'bot');
   const targeted = Array.isArray(meta.to) && meta.to.includes(botId);
-  const mentioned = event.content?.['m.mentions']?.user_ids?.includes(botId);
+  const replyNotification = isBot && meta.kind === 'reply' && meta.mentions?.replyUserId === botId
+    && !meta.mentions.users?.includes(botId);
+  const mentioned = !replyNotification && event.content?.['m.mentions']?.user_ids?.includes(botId);
   // An explicit recipient for another member wins over an incidental reply quote.
   if (!targeted && !mentioned && (meta.to?.length || event.content?.['m.mentions']?.user_ids?.length)) return undefined;
-  const isHuman = participants.some(person => person.id === event.sender && person.kind === 'human');
   const replacementId = event.content?.['m.relates_to']?.rel_type === 'm.replace' ? event.content['m.relates_to'].event_id : undefined;
   const replaced = replacementId && store.item(replacementId);
   if (isHuman && replaced?.event.sender === event.sender && replaced.event.room_id === event.room_id
@@ -66,8 +70,8 @@ export function reliableAttentionRoute(event, { botId, store, participants = [] 
   if (reference) {
     const source = store.message(reference);
     const request = store.item(reference) || store.sourceForSentEvent(reference);
-    if (source?.room_id === event.room_id && source.sender === botId
-      || isHuman && request?.event.room_id === event.room_id && request.event.sender === event.sender) {
+    if (isHuman && (source?.room_id === event.room_id && source.sender === botId
+      || request?.event.room_id === event.room_id && request.event.sender === event.sender)) {
       return { kind: 'reliable', reason: 'reply_to_conversation', sourceEventId: request?.event_id || reference };
     }
   }

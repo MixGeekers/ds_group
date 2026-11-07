@@ -414,3 +414,90 @@ test('an overloaded batch keeps recent conversation instead of replying to the o
   assert.equal(f.store.next().event_id, '$overload-7');
   assert.equal(await f.node.processAttentionOnce(), false);
 });
+
+test('withdrawn source bodies and files are absent from all future decision and native history views', async t => {
+  const f = fixture(t);
+  const original = message('$private-history', 'withdrawn-secret-marker');
+  original.content['org.ds_group'].attachments = [{ id: 'private-file', name: 'private.txt', mimeType: 'text/plain', size: 1, sha256: 'a'.repeat(64), contentUri: 'mxc://test/private' }];
+  await f.node.ingestEvents([original, { event_id: '$remove-history', type: 'm.room.redaction', room_id: roomId,
+    sender: alice.id, content: { redacts: '$private-history' } }, message('$new-topic', '继续讨论周末的计划吧。')]);
+  await f.node.processAttentionOnce();
+  assert.deepEqual(f.decisions[0].eventIds, ['$new-topic']);
+  assert.equal(JSON.stringify(f.decisions[0]).includes('withdrawn-secret-marker'), false);
+  assert.equal(JSON.stringify(f.decisions[0]).includes('private-file'), false);
+  assert.equal(f.store.message('$private-history').content.body, '[message withdrawn]');
+  await f.node.processOne();
+  assert.equal(JSON.stringify(f.turns[0]).includes('withdrawn-secret-marker'), false);
+  assert.equal(JSON.stringify(f.turns[0]).includes('private-file'), false);
+  const audit = f.store.db.prepare('SELECT event_json FROM messages WHERE event_id=?').get('$private-history');
+  assert.equal(JSON.parse(audit.event_json).content.body, 'withdrawn-secret-marker');
+});
+
+test('Matrix stripped replay redacts a previously saved source even without a separate timeline redaction', async t => {
+  const f = fixture(t);
+  await f.node.ingestEvents([message('$stripped-source', 'no-longer-visible')]);
+  await f.node.ingestEvents([{ type: 'm.room.message', event_id: '$stripped-source', room_id: roomId, sender: alice.id, content: {},
+    unsigned: { redacted_because: { type: 'm.room.redaction', event_id: '$server-redaction', sender: alice.id, content: {} } } }]);
+  await f.node.flushObservations();
+  assert.equal(f.store.message('$stripped-source').content.body, '[message withdrawn]');
+  assert.equal(f.observed.at(-1).events.at(-1).redacts, '$stripped-source');
+  assert.equal(await f.node.processAttentionOnce(), false);
+});
+
+test('withdrawing a loaded historical source cancels its in-flight use while preserving the actual work receipt', async t => {
+  let finish;
+  const f = fixture(t, { turn: () => new Promise(resolve => { finish = resolve; }) });
+  await f.node.ingestEvents([message('$old-fact', 'old-sensitive-fact'), message('$use-fact', '结合刚才的消息帮我看下。')]);
+  await f.node.processAttentionOnce();
+  const running = f.node.processOne();
+  while (!finish) await new Promise(resolve => setTimeout(resolve, 0));
+  await f.node.ingestEvents([{ event_id: '$old-fact-redaction', type: 'm.room.redaction', room_id: roomId,
+    sender: alice.id, redacts: '$old-fact', content: {} }]);
+  const requestId = f.store.item('$use-fact').request.requestId;
+  assert.equal((await f.node.control(requestId)).cancelRequested, true);
+  finish({ status: 'completed', text: '{"text":"旧材料的结果"}', toolCalls: 1, sessionId: 'same-native-session' });
+  await running;
+  assert.equal(f.store.item('$use-fact').status, 'cancelled');
+  assert.equal(f.store.item('$use-fact').response.toolCalls, 1);
+  assert.equal(f.store.pendingDelivery(), undefined);
+});
+
+test('a redaction in another room cannot hide this room source with a claimed target ID', async t => {
+  const f = fixture(t);
+  await f.node.ingestEvents([message('$room-bound', '本群可见内容。')]);
+  await f.node.ingestEvents([{ event_id: '$foreign-redaction', type: 'm.room.redaction', room_id: '!other:test', sender: bob.id,
+    redacts: '$room-bound', content: {} }]);
+  assert.equal(f.store.message('$room-bound').content.body, '本群可见内容。');
+  assert.equal(f.store.cancelledEvent('$room-bound'), false);
+  await f.node.processAttentionOnce();
+  assert.deepEqual(f.decisions[0].eventIds, ['$room-bound']);
+});
+
+test('Bot reply notifications do not bypass natural decisions, but explicit Bot mentions and work chains still route reliably', async t => {
+  const f = fixture(t, { decide: async () => ({ action: 'LISTEN' }) });
+  await f.node.ingestEvents([message('$own-bot-line', '我也喜欢海边。', { sender: self.id })]);
+  const reply = message('$courtesy', '谢谢你。', { sender: peer.id, kind: 'reply', replyTo: '$own-bot-line' });
+  reply.content['org.ds_group'].mentions = { users: [], replyUserId: self.id };
+  reply.content['m.mentions'] = { user_ids: [self.id] };
+  await f.node.ingestEvents([reply]);
+  assert.equal(f.store.item('$courtesy'), undefined);
+  await f.node.processAttentionOnce();
+  assert.equal(f.decisions.length, 1);
+  assert.equal(f.turns.length, 0);
+  const explicit = message('$explicit-peer', '识雨，你看过这本书吗？', { sender: peer.id, kind: 'reply', replyTo: '$own-bot-line' });
+  explicit.content['org.ds_group'].mentions = { users: [self.id], replyUserId: self.id };
+  explicit.content['m.mentions'] = { user_ids: [self.id] };
+  await f.node.ingestEvents([explicit, message('$real-result', '这是核对后的结果。', { sender: peer.id, to: [self.id], kind: 'task.result' })]);
+  assert.equal(f.store.item('$explicit-peer').attention.reason, 'matrix_mention');
+  assert.equal(f.store.item('$real-result').attention.reason, 'targeted');
+});
+
+test('Bot turn limits in another thread do not silence the current human conversation', async t => {
+  const f = fixture(t);
+  await f.node.ingestEvents([message('$thread-question', '你们周末想去哪里？', { thread: '$thread-a' }),
+    message('$other-thread-one', '谢谢。', { sender: peer.id, thread: '$thread-b' }),
+    message('$other-thread-two', '再见。', { sender: peer.id, thread: '$thread-b' })]);
+  await f.node.processAttentionOnce();
+  assert.equal(f.decisions[0].threadRootId, '$thread-a');
+  assert.equal(f.store.next().event_id, '$thread-question');
+});
