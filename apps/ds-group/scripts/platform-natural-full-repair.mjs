@@ -90,7 +90,8 @@ export function publicRepairPlan(context) {
 
 export async function repairSourceManifest(harness) {
   const files = {};
-  for (const name of ['src/message-context.mjs', 'memory/native.mjs', 'memory/snapshot-context.mjs', 'dsh-connect/native-bridge.mjs',
+  for (const name of ['src/message-context.mjs', 'src/native-request.mjs', 'memory/native.mjs', 'memory/source-query.mjs', 'memory/snapshot-context.mjs',
+    'vendor/ds-bot/src/host/parts.js', 'dsh-connect/native-bridge.mjs',
     'scripts/memory-visible-host-plugin.mjs', 'scripts/platform-natural-full-repair.mjs']) files[name] = hash(await readFile(path.join(packageDirectory, name)));
   const git = await execute('git', ['rev-parse', 'HEAD'], { cwd: packageDirectory, encoding: 'utf8' });
   return { gitHead: git.stdout.trim(), files, ...(harness ? { harness: { path: harness, sha256: hash(await readFile(harness)) } } : {}) };
