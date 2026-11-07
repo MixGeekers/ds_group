@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-07T05:57:24.533Z",
+  "maintenancePolicy": {
+    "version": 2,
+    "id": "native-checkpoint-durable-observations",
+    "forcedMemoryReview": false,
+    "checkpoint": {
+      "settleMemory": false
+    },
+    "restart": {
+      "verifyObservedSources": true,
+      "verifyPendingReview": true
+    },
+    "final": {
+      "recordPendingReview": true,
+      "forcedMemoryReview": false
+    },
+    "meaning": "Persisted observation and pending review are distinct from completed model review"
+  },
+  "tests": {
+    "passed": 49,
+    "failed": 0,
+    "newModelCalls": 0,
+    "actualNativeCheckpointCalls": 0,
+    "checkpointAcknowledgements": "scripted fixture only; real native acceptance remains pending",
+    "actualSqlitePersistence": true,
+    "runnerResumeFrom": 64,
+    "twoCompactionBoundaries": [
+      32,
+      64
+    ],
+    "twoRestartBoundaries": [
+      36,
+      72
+    ],
+    "forcedFlushCallsAfterResume": 0,
+    "previousAttemptAndDefinitionUnchanged": true
+  },
+  "integration": {
+    "commit": "5b047cfe6aa10fe957619afbb1995d1da7e9e8bb",
+    "sourceFileHashes": {
+      "memory/contacts.mjs": "065bb2526f7439664c5a089009d8b73698a8e7846738b2b24aec8a67a4eeee1f",
+      "memory/ingress.mjs": "d4dff11905d6dcb941ff6d12427b1e027b86e14bde06814d21a1c82af43e7bbe",
+      "memory/model-options.mjs": "f62b53a2428585d47355d76e324f5f1c585456246e368a49688adbe7b32feac1",
+      "memory/native.mjs": "83f2d265197a570cb84f10f77eea53cc65e9b98b4c7378acf04afca41b929417",
+      "memory/observation-policy.mjs": "abb9415d90cebc73f09ee4e1ed842e85457d7e5d8dbf85aed2489a1831e09c07",
+      "memory/ombre.mjs": "f5aadcb2e70609a4ae8b94a5a0db3f832d460a1b829b934c62bec54b7bffc882",
+      "memory/panel.mjs": "652d24548e3735e8c27332d4b99a4a2fa629c211d3dbe3d1c2012a1f7e61011b",
+      "memory/review.mjs": "af118a53a2127326043334290b0fdf395bd506a4526a150f48bfb53676706957",
+      "memory/service.mjs": "0e41a498ed3dbb4ffe469a2b6e9427aed4fd4a1c9c35b6d7aa307d3e4cab0648",
+      "memory/snapshot-context.mjs": "9300dd9a3d6a7706665347674d55809bfcae9c60c711a0c885a1ec48271a0856",
+      "memory/source-query.mjs": "2eb8347a87a592f049160fe2d7028e02dad7c9b4f4c196e67f643562288d76a5",
+      "memory/store.mjs": "0dc355e1dc6b0c8b8cff37ffabcd2a364d5e26eea19597d09fd63aa645248d5e",
+      "memory/views.mjs": "911c1c58325d91fb86418b5395e19a56da17c7eee1b16511c73e57879f51d18a"
+    },
+    "testProductImport": "Temporary ignored resolution hook imports current integration memory/ into isolated validation scripts; no product file copied or modified",
+    "sourceHashesUnchangedAcrossTests": true,
+    "executedCommand": "node --import ./.local/natural-memory-product-import.mjs --test tests/platform-natural-memory.test.mjs tests/platform-natural-validation.test.mjs tests/platform-natural-maintenance.test.mjs tests/memory-host-http.test.mjs"
+  },
+  "frozenDefinitionHash": "4131ac33fc2f0b24be4bac18e91b9fe8728f9e08ab1bf5361dc1d44b12098c02",
+  "readOnlyActualDatabaseSnapshot": {
+    "sidecarSha256": "874f4e198cde9f4385e47288f5eae14eaea14eb98e377238e278b6a429d80576",
+    "sourceStatus": "failed",
+    "observedRows": 64,
+    "attempts": 2,
+    "at": "2026-11-07T05:52:49.913Z",
+    "openedReadOnly": true,
+    "bots": [
+      {
+        "id": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+        "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+        "observedSources": 175,
+        "watermarks": {
+          "receivedThrough": 175,
+          "reviewedThrough": 175,
+          "settledThrough": 175,
+          "reviewedCount": 175,
+          "invalidatedCount": 0,
+          "contextThrough": 173,
+          "pendingReviewCount": 0
+        },
+        "sourceIntegrityPassed": true,
+        "pendingCountMatchesWatermark": true
+      },
+      {
+        "id": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+        "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+        "observedSources": 155,
+        "watermarks": {
+          "receivedThrough": 155,
+          "reviewedThrough": 155,
+          "settledThrough": 155,
+          "reviewedCount": 155,
+          "invalidatedCount": 0,
+          "contextThrough": 154,
+          "pendingReviewCount": 0
+        },
+        "sourceIntegrityPassed": true,
+        "pendingCountMatchesWatermark": true
+      },
+      {
+        "id": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1",
+        "sessionId": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1",
+        "observedSources": 96,
+        "watermarks": {
+          "receivedThrough": 96,
+          "reviewedThrough": 53,
+          "settledThrough": 53,
+          "reviewedCount": 53,
+          "invalidatedCount": 0,
+          "contextThrough": 94,
+          "pendingReviewCount": 43
+        },
+        "sourceIntegrityPassed": true,
+        "pendingCountMatchesWatermark": true
+      }
+    ],
+    "newModelCalls": 0,
+    "originalDataMutations": 0
+  },
+  "limits": [
+    "Scripted checkpoint acknowledgements are not real native/model compaction proof",
+    "This patch does not turn previous failures into passes or change frozen story/oracles",
+    "Persisted pending observations are not completed model review"
+  ],
+  "publication": {
+    "docSha256": "2f61946804352be2848681b5ee24cfd6fbc4a947f82495c97d7e833c37554e98",
+    "syntheticConfigFilesScanned": 11,
+    "privateTokenCandidates": 19,
+    "dshAuthUrlCandidates": 3,
+    "literalPrivateTokenMatches": 0,
+    "dshAuthUrlMatches": 0,
+    "credentialPatternMatches": 0,
+    "secretValuesCopied": false
+  }
+}

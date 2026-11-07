@@ -7,6 +7,7 @@ import { startNativeTeam } from '../dsh-connect/native-team.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
 import { NativeConnections } from '../dsh-connect/native-connections.mjs';
 import {MODEL,testModelSelection} from './memory-test-model.mjs';
+import { compactMemoryHost, persistedNaturalMemoryEvidence } from './platform-natural-memory.mjs';
 export const inject = ['llm','tools','systemPrompt','sessionController','sessions','sessionTitle','workspaceRegistry','connection'];
 export async function apply(ctx, config) {
   let scenario;
@@ -76,7 +77,8 @@ export async function apply(ctx, config) {
       else if (action === 'connection-state') value = [...connections.connections.values()].map(entry => ({ id: entry.node.id, state: entry.botNode.state, lastError: entry.botNode.lastError || entry.lastError, snapshot: entry.botNode.store.snapshot() }));
       else if (action === 'flush') { for (const bot of (await native.state()).bots) await rt.memoryFlush(bot.id); value = true; }
       else if (action === 'memory') value = { entries: rt.knowledge.store.list({ history: true }), sources: rt.knowledge.store.sources(), contacts: rt.knowledge.store.contacts(), errors: rt.knowledge.errors, usage: rt.knowledge.backend?.usage };
-      else if (action === 'compact') { const bot = (await native.state()).bots[input.index || 0]; await rt.memoryFlush(bot.id); value = { compacted: await rt.checkpointBot(bot.id), bot: await native.bot(bot.id) }; }
+      else if (action === 'memory-observations') value = persistedNaturalMemoryEvidence(rt.knowledge.store, (await native.state()).bots);
+      else if (action === 'compact') value = await compactMemoryHost(rt, native, input);
       else if (action === 'recover-context') { const bot = (await native.state()).bots[input.index || 0]; await rt.memoryFlush(bot.id); value = { recovery: await rt.recoverContextBot(bot.id), bot: await native.bot(bot.id) }; }
       else throw new Error('Unknown visible-test action');
       await writes; return Response.json({ ok: true, value });

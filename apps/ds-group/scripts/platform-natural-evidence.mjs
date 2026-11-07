@@ -45,6 +45,7 @@ export async function exportNaturalEvidence(directory, destination, { reviewFile
     planned: report.planned, posted: report.rows.length, evaluated: report.rows.filter(row => row.completedAt).length,
     bots: report.bots, people: report.people, rooms: report.rooms, membershipEvidence: report.membershipEvidence, topology: report.topology, memoryObservation: report.memoryObservation,
     attempts: report.attempts.map(attempt => ({ startedAt: attempt.startedAt, finishedAt: attempt.finishedAt, resumedAfter: attempt.resumedAfter, model: attempt.model,
+      maintenancePolicy: attempt.maintenancePolicy,
       startCommit: attempt.source?.commit, endCommit: attempt.sourceEnd?.commit,
       sourceHashesAtStart: attempt.source?.hashes, sourceHashesAtEnd: attempt.sourceEnd?.hashes })),
     rows: report.rows.map(row => ({ id: row.id, number: row.number, room: row.room, businessAt: row.businessAt,
@@ -58,7 +59,8 @@ export async function exportNaturalEvidence(directory, destination, { reviewFile
       publishedRows: allBotMessageReview.length, excludedNonMessages: originalMessageReviews.length - allBotMessageReview.length },
     ...(independentReview ? { independentReview } : {}), maintenance: report.maintenance,
     accounting: report.accounting, finalEvidence: report.final ? { eventCount: report.final.eventCount, kernelSnapshots: report.final.kernelSnapshots,
-      decisionExportErrors: report.final.decisionExportErrors, memoryUsage: report.final.memoryUsage, memoryObservation: report.final.memoryObservation } : undefined,
+      decisionExportErrors: report.final.decisionExportErrors, memoryUsage: report.final.memoryUsage, memoryObservation: report.final.memoryObservation,
+      memoryPersistence: report.final.memoryPersistence } : undefined,
     artifacts, criteria: definition.globalCriteria, error: safeError(report.error?.message),
     limits: ['Synthetic roles and accelerated story dates; not a real three-day observation', 'One physical host; no physical cross-machine result',
       'completed-awaiting-review is not acceptance; social/source-priority reviews must be finished separately', 'Provider billed total and complete embedding cost remain unknown unless separately reconciled'] };

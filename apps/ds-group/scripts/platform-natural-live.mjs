@@ -12,6 +12,7 @@ import { MODEL, ORIGINAL_TEST_MODEL } from './memory-test-model.mjs';
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 import { readNaturalDecisions } from './platform-natural-accounting.mjs';
 import { KERNEL_API } from '../dsh-connect/kernel-runtime.mjs';
+import { naturalMaintenancePolicy, verifyNaturalMemoryPersistence } from './platform-natural-memory.mjs';
 
 const sha = value => createHash('sha256').update(value).digest('hex');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -21,6 +22,7 @@ const terminalStatuses = new Set(['completed', 'cancelled', 'failed', 'unknown']
 export const nativeRequestId = (botId, eventId) => `matrix-${sha(`${botId}\0${eventId}`)}`;
 
 export class NaturalLiveAdapter {
+  maintenancePolicy = naturalMaintenancePolicy;
   constructor({ environment, directory, corpus, corpusHash, resume = false, timeoutMs = 720000, paceMs = 700, configureHost }) {
     Object.assign(this, { environment, directory, corpus, corpusHash, resume, timeoutMs, paceMs, configureHost });
     this.rooms = {}; this.bots = []; this.ledger = []; this.seen = new Set(); this.kernel = []; this.requests = new Map(); this.hostDirectory = path.join(directory, 'host');
@@ -101,6 +103,7 @@ export class NaturalLiveAdapter {
     }
     await this.host.api('connect');
     await this.capture();
+    await this.memoryEvidence('attempt-start');
     return { model: MODEL, bots: this.bots.map(({ id, nativeBotId, sessionId, name }) => ({ id, nativeBotId, sessionId, name })),
       people: Object.fromEntries(Object.entries(this.people).map(([key, person]) => [key, { id: person.id, name: person.name }])),
       rooms: Object.fromEntries(Object.entries(this.rooms).map(([key, room]) => [key, { roomId: room.roomId, kind: room.definition.kind || 'group', historyVisibility: room.definition.historyVisibility }])),
@@ -271,22 +274,36 @@ export class NaturalLiveAdapter {
     }
     return files;
   }
-  async flush() { return this.host.api('flush'); }
+  async memoryEvidence(phase) {
+    const snapshot = await this.host.api('memory-observations');
+    await appendFile(path.join(this.directory, 'memory-maintenance-evidence.jsonl'), JSON.stringify({ phase, policy: this.maintenancePolicy, snapshot }) + '\n', { mode: 0o600 });
+    return snapshot;
+  }
+  async verifyMemoryEvidence(phase, before, after) {
+    const verification = verifyNaturalMemoryPersistence(before, after);
+    await appendFile(path.join(this.directory, 'memory-maintenance-evidence.jsonl'), JSON.stringify({ phase, verification }) + '\n', { mode: 0o600 });
+    assert.ok(verification.passed, `Persisted source/pending-review check failed during ${phase}; inspect memory-maintenance-evidence.jsonl`);
+    return { before, after, verification };
+  }
   async nativeState() { return this.host.api('state'); }
   async compact(index) {
-    await this.flush();
-    const before = await this.nativeState(), result = await this.host.api('compact', { index }), after = await this.nativeState();
-    return { ...result, before: before.bots.map(({ id, sessionId }) => ({ id, sessionId })), after: after.bots.map(({ id, sessionId }) => ({ id, sessionId })) };
+    const memoryBefore = await this.memoryEvidence('before-native-compaction');
+    const before = await this.nativeState(), result = await this.host.api('compact', { index, settleMemory: false }), after = await this.nativeState();
+    const memoryAfter = await this.memoryEvidence('after-native-compaction');
+    return { ...result, before: before.bots.map(({ id, sessionId }) => ({ id, sessionId })), after: after.bots.map(({ id, sessionId }) => ({ id, sessionId })),
+      maintenancePolicy: this.maintenancePolicy, checkpointOptions: { settleMemory: false },
+      memoryPersistence: await this.verifyMemoryEvidence('native-compaction', memoryBefore, memoryAfter) };
   }
   async restart() {
-    await this.flush(); const before = await this.nativeState();
-    const memory = await this.host.api('memory');
+    const memoryBefore = await this.memoryEvidence('before-native-restart'), before = await this.nativeState();
     await this.host.api('disconnect'); await this.host.stop(); await this.host.start();
     await this.host.api('init'); const after = await this.nativeState(); await this.host.api('connect'); await this.saveHostState();
     const old = before.bots.map(bot => ({ id: bot.id, sessionId: bot.sessionId }));
     const next = after.bots.map(bot => ({ id: bot.id, sessionId: bot.sessionId }));
+    const memoryAfter = await this.memoryEvidence('after-native-restart');
     return { identitiesBefore: old, identitiesAfter: next, identitiesPreserved: old.map(bot => bot.id).join('\0') === next.map(bot => bot.id).join('\0'),
-      sessionsPreserved: old.map(bot => bot.sessionId).join('\0') === next.map(bot => bot.sessionId).join('\0'), memoryUsageBefore: memory.usage };
+      sessionsPreserved: old.map(bot => bot.sessionId).join('\0') === next.map(bot => bot.sessionId).join('\0'),
+      maintenancePolicy: this.maintenancePolicy, memoryPersistence: await this.verifyMemoryEvidence('native-restart', memoryBefore, memoryAfter) };
   }
   async protocolEvents() {
     try { return (await readFile(path.join(this.hostDirectory, 'events.jsonl'), 'utf8')).split('\n').filter(Boolean).map(JSON.parse); }
@@ -294,13 +311,14 @@ export class NaturalLiveAdapter {
   }
   async finalize() {
     await this.capture();
+    const memoryPersistence = await this.memoryEvidence('final-observation');
     const receipts = await this.host.api('receipts'), connectionState = await this.host.api('connection-state'), memory = await this.host.api('memory');
     await writeFile(path.join(this.directory, 'native-final.json'), JSON.stringify({ receipts, connectionState, memory }, null, 2), { mode: 0o600 });
     let calls = [];
     try { calls = (await readFile(path.join(this.hostDirectory, 'calls.jsonl'), 'utf8')).split('\n').filter(Boolean).map(JSON.parse); } catch (error) { if (error.code !== 'ENOENT') throw error; }
     const { decisions, records, errors: decisionExportErrors } = await readNaturalDecisions(this.bots.map((bot, index) => ({ ...bot, directory: path.join(this.hostDirectory, `node-${index}`) })));
     await writeFile(path.join(this.directory, 'decision-evidence.json'), JSON.stringify({ source: 'read-only node attention_decisions tables', records }, null, 2), { mode: 0o600 });
-    return { calls, decisions, decisionExportErrors, receipts, memoryUsage: memory.usage,
+    return { calls, decisions, decisionExportErrors, receipts, memoryUsage: memory.usage, memoryPersistence,
       memoryObservation: await this.observeMemoryBackend(), eventCount: this.ledger.length, kernelSnapshots: this.kernel.length };
   }
   async close() {

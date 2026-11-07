@@ -92,7 +92,8 @@ export async function runNaturalScenario({ definition, adapter, directory, resum
     profile: corpus.profile, scenario: corpus.scenario, startedAt: new Date().toISOString(), evidenceLevel: adapter.evidenceLevel || 'real-local-services-and-provider',
     businessTimeZone: corpus.businessTimeZone, businessStart: corpus.steps[0].businessAt, businessEnd: corpus.steps.at(-1).businessAt,
     planned: publicCorpusSummary(corpus), rows: [], failures: [], reviews: [], maintenance: [], attempts: [], bots: [] };
-  report.attempts.push({ startedAt: new Date().toISOString(), resumedAfter: report.rows.length, source: await manifest() });
+  report.attempts.push({ startedAt: new Date().toISOString(), resumedAfter: report.rows.length, source: await manifest(),
+    ...(adapter.maintenancePolicy ? { maintenancePolicy: adapter.maintenancePolicy } : {}) });
   const save = async () => { report.updatedAt = new Date().toISOString(); await saveJson(reportFile, report); await saveJson(path.join(directory, 'progress.json'), {
     status: report.status, posted: report.rows.length, evaluated: report.rows.filter(row => row.completedAt).length, planned: corpus.steps.length,
     current: report.current, failures: report.failures.length, pendingReviews: report.reviews.filter(row => row.status === 'pending').length, at: report.updatedAt }); };
@@ -157,7 +158,7 @@ export async function runNaturalScenario({ definition, adapter, directory, resum
       await maintain(index + 1); await onProgress({ id: step.id, posted: report.rows.length, failures: report.failures.length, pendingReviews: report.reviews.length });
     }
     if (report.rows.length === corpus.steps.length && report.rows.every(row => row.completedAt)) {
-      await adapter.flush(); await adapter.capture();
+      await adapter.capture();
       report.allDeliveredArtifacts = await adapter.downloads(adapter.ledger.filter(event => report.bots.some(bot => bot.id === event.sender)), { id: 'all-bot-deliveries' });
       report.allBotMessageReview = adapter.ledger.filter(event => report.bots.some(bot => bot.id === event.sender)).map(event => ({
         eventId: event.event_id, room: event.roomKey, botId: event.sender, body: event.content?.body || '',
