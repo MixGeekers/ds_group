@@ -93,9 +93,15 @@ export class MemoryService {
       this.store.contact({ id: roomIdentity, name: context.room?.name || this.store.getContact(roomIdentity)?.name || roomId, kind: 'group',
         observedAt: source.timestamp ?? event.timestamp ?? this.store.clock() });
     }
-    const id = sourceId(transport, roomId, source.replacesEventId || event.eventId);
-    const edited = source.replacesEventId ? this.store.getMeta(`edit:${id}:${event.eventId}`) : undefined;
-    const revision = edited || (source.replacesEventId ? (this.store.source(id)?.revision || 0) + 1 : event.revision || 1);
+    const editTargetId = source.replacesEventId && sourceId(transport, roomId, source.replacesEventId);
+    const editTarget = editTargetId && this.store.source(editTargetId);
+    const unappliedEdit = source.replacesEventId && (!editTarget ? 'target-unavailable' : editTarget.authorId !== authorId ? 'author-mismatch' : null);
+    // A relation alone cannot establish the missing event's author or overwrite
+    // somebody else's source. Retain the edit as its own attributed evidence.
+    const appliesEdit = source.replacesEventId && !unappliedEdit;
+    const id = sourceId(transport, roomId, appliesEdit ? source.replacesEventId : event.eventId);
+    const edited = appliesEdit ? this.store.getMeta(`edit:${id}:${event.eventId}`) : undefined;
+    const revision = edited || (appliesEdit ? (this.store.source(id)?.revision || 0) + 1 : event.revision || 1);
     let observed, notice;
     if (source.retractsEventId) {
       const targetId = sourceId(transport, roomId, source.retractsEventId), old = this.store.source(targetId);
@@ -129,6 +135,7 @@ export class MemoryService {
         transport, eventId: event.eventId, timestamp: source.timestamp ?? event.timestamp ?? this.store.clock(),
         replyTo: source.replyTo || context.replyTo || null, relay: source.relay || null,
         threadRootId: source.threadRootId || null, projectIds: source.projectIds || context.projectIds || [],
+        ...(unappliedEdit ? { eventKind: 'unverified-edit', editTargetId, targetEventId: source.replacesEventId, editVerification: unappliedEdit } : {}),
         originRefs: source.originRefs || [], revision, withdrawn: false });
     }
     if (!source.retractsEventId) {
@@ -136,7 +143,7 @@ export class MemoryService {
       if (pendingRedaction) observed = head.withdrawn ? head : this.store.observe({ ...head, body: '', revision: head.revision + 1,
         withdrawn: true, retractedBy: pendingRedaction.by, retractionEventId: pendingRedaction.eventId });
     }
-    if (source.replacesEventId) this.store.setMeta(`edit:${id}:${event.eventId}`, revision);
+    if (appliesEdit) this.store.setMeta(`edit:${id}:${event.eventId}`, revision);
     const sourceRefs = [...new Map([notice, observed].filter(Boolean).map(item => [`${item.id}:${item.revision}`, { id: item.id, revision: item.revision }])).values()];
     this.store.observeFor(botId, sourceRefs);
     const scope = roomId ? `room:${roomId}` : 'own';

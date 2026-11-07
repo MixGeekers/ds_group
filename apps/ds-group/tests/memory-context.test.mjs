@@ -77,6 +77,29 @@ test('raw Matrix edits and known redactions preserve provenance and invalidate o
   assert.ok(memory.attentionView('a', { roomId: '!river:test' }).changes.some(change => change.derivation === 'source-withdrawn'));
 }));
 
+test('an edit before its original retains its own identity and cannot poison later original ingress', async () => withMemory(async memory => {
+  const edit = observedMemoryInput(matrix('edit-first', '周日开放', { content: { body: '周日开放', 'm.relates_to': { rel_type: 'm.replace', event_id: '$original-late' } } }));
+  memory.observe('a', edit);
+  assert.ok(memory.attentionView('a', { roomId: '!river:test' }).historyGaps.some(gap => gap.kind === 'unverified-edit-relation' && gap.reason === 'target-unavailable'));
+  memory.observe('a', observedMemoryInput(matrix('original-late', '周六开放')));
+  const original = memory.store.sources().find(source => source.eventId === '$original-late');
+  assert.equal(original.body, '周六开放');
+  memory.observe('a', edit);
+  assert.equal(memory.store.source(original.id).body, '周日开放');
+  assert.equal(memory.store.source(original.id).revision, 2);
+  assert.equal(memory.attentionView('a', { roomId: '!river:test' }).historyGaps.some(gap => gap.kind === 'unverified-edit-relation'), false);
+}));
+
+test('an edit from a different author is retained as a relation without changing the target source', async () => withMemory(async memory => {
+  const original = memory.ingest('a', input('owned', '本人通常中文'));
+  const edit = observedMemoryInput(matrix('foreign-edit', '别人把偏好改成英文', { sender: '@other:test', content: { body: '别人把偏好改成英文', 'm.relates_to': { rel_type: 'm.replace', event_id: '$owned' } } }));
+  memory.observe('a', edit);
+  assert.equal(memory.store.source(original.sourceRefs[0].id).body, '本人通常中文');
+  const view = memory.attentionView('a', { roomId: '!river:test' });
+  assert.ok(view.historyGaps.some(gap => gap.kind === 'unverified-edit-relation' && gap.reason === 'author-mismatch'));
+  assert.ok(view.recentSources.some(source => source.eventId === '$foreign-edit' && source.authorId === 'matrix:@other:test'));
+}));
+
 test('an unavailable redaction target remains an explicit gap and a late original cannot revive it', async () => withMemory(async memory => {
   const redaction = matrix('redaction', '', { type: 'm.room.redaction', redacts: '$late' });
   const receipt = memory.observe('a', observedMemoryInput(redaction), { streamId: 'matrix', cursor: 1 });

@@ -37,7 +37,9 @@ export function knownSources(memory, botId) {
 
 const sourceSummary = source => source && ({ id: source.id, revision: source.revision, authorId: source.authorId,
   authorKind: source.authorKind || 'unknown', eventId: source.eventId || null, roomId: source.roomId || null,
-  timestamp: source.timestamp ?? null, digest: source.digest, ...(source.relay ? { relay: source.relay } : {}) });
+  timestamp: source.timestamp ?? null, digest: source.digest, ...(source.relay ? { relay: source.relay } : {}),
+  ...(source.eventKind === 'unverified-edit' ? { eventKind: source.eventKind, editTargetId: source.editTargetId,
+    targetEventId: source.targetEventId, editVerification: source.editVerification } : {}) });
 function authority(store, row) {
   const sources = row.sourceRefs.map(ref => store.source(ref.id, ref.revision)).filter(Boolean);
   if (row.kind === 'inference' || row.kind === 'legacy' || row.kind === 'reported') return row.kind;
@@ -156,7 +158,8 @@ export function assembleAttentionView(memory, botId, options = {}) {
   const recentSources = raw.map(source => ({ ...sourceSummary(source), sequence: source.sequence, reviewed: source.reviewed,
     body: short(source.body, 800), truncated: source.body.length > 800,
     ...(source.eventKind === 'redaction-notice' ? { targetEventId: source.targetEventId, targetSourceId: source.targetSourceId } : {}),
-    role: source.eventKind === 'redaction-notice' ? 'source-retraction-notice' : 'original-evidence-not-an-extracted-fact' }));
+    role: source.eventKind === 'redaction-notice' ? 'source-retraction-notice' : source.eventKind === 'unverified-edit'
+      ? 'unverified-edit-relation-not-target-authority' : 'original-evidence-not-an-extracted-fact' }));
   const changes = ranked.filter(item => !['current', 'pending'].includes(store.derivation(item.row))).slice(0, 12).map(({ row }) => ({
     ...claimView(memory, row, current), text: short(row.text, 400), truncated: row.text.length > 400,
     supersededBy: row.supersededBy || null, requiresReview: true, basis: store.basisStatus(row),
@@ -181,6 +184,13 @@ export function assembleAttentionView(memory, botId, options = {}) {
       : options.workView ? { workViewOmitted: 'runtime view exceeds memory context budget' } : {}),
   };
   const defaultGaps = [{ kind: 'coverage', text: 'Only observed events and this Bot\'s referenced evidence are available; no claim of complete room or member history.' }];
+  for (const source of sources.filter(source => source.eventKind === 'unverified-edit'
+    && !store.getMeta(`edit:${source.editTargetId}:${source.eventId}`) && (!focus.roomId || source.roomId === focus.roomId)).slice(-4)) {
+    const target = store.source(source.editTargetId);
+    defaultGaps.push({ kind: 'unverified-edit-relation', roomId: source.roomId, targetEventId: source.targetEventId,
+      reason: !target ? 'target-unavailable' : target.authorId !== source.authorId ? 'author-mismatch' : 'awaiting-verified-replay',
+      sourceRef: { id: source.id, revision: source.revision } });
+  }
   for (const source of sources.filter(source => source.contentUnavailable && store.source(source.id)?.contentUnavailable
     && (!focus.roomId || source.roomId === focus.roomId)).slice(-4)) defaultGaps.push({ kind: 'withdrawn-content-unavailable',
       roomId: source.roomId, eventId: source.eventId, sourceRef: { id: source.id, revision: source.revision } });
