@@ -72,3 +72,48 @@ test('a node cannot acknowledge a participation revision it did not apply', asyn
   await assert.rejects(client.applyAttention({ mode: 'natural', revision: 1 }), { code: 'ATTENTION_NOT_APPLIED' });
   assert.equal(client.appliedAttention, null);
 });
+
+test('a stalled native memory read stops with its management lease and ignores its late result', async t => {
+  const { client, identity } = await fixture(t);
+  let finish;
+  let observedSignal;
+  const pending = new Promise(resolve => { finish = resolve; });
+  client.operations.memoryProfiles = (_args, { signal }) => { observedSignal = signal; return pending; };
+  const receipt = await client.execute({ ...identity, commandId: 'read', leaseId: 'read-lease', operation: 'memory-profiles',
+    args: { kind: 'person' }, expiresAt: Date.now() + 100 });
+  assert.equal(receipt.status, 'failed');
+  assert.equal(receipt.error.code, 'KERNEL_LEASE_EXPIRED');
+  assert.equal(observedSignal.aborted, true);
+  finish({ kind: 'person', items: [], more: false });
+  await Promise.resolve();
+  assert.equal(client.pendingResults.size, 0);
+  assert.deepEqual(await client.applyAttention({ mode: 'natural', revision: 1 }), { mode: 'natural', revision: 1 });
+});
+
+test('disconnect does not wait for a stalled native memory operation or publish its late response', async t => {
+  const identity = { botId: '@bot:home.test', nodeId: 'bot', runtimeId: 'run-1' };
+  let enter;
+  let finish;
+  let readSignal;
+  const entered = new Promise(resolve => { enter = resolve; });
+  const memory = new Promise(resolve => { finish = resolve; });
+  let postedResults = 0;
+  const client = new KernelNodeClient({ coreUrl: 'https://core.invalid', nodeSecret: 'synthetic-node-secret', ...identity,
+    operations: { memoryProfiles: async (_args, { signal }) => { readSignal = signal; enter(); return memory; } },
+    fetchImpl: async url => {
+      if (url.pathname.endsWith('/result')) { postedResults++; return Response.json({ recorded: true }); }
+      return Response.json({ commands: [{ ...identity, commandId: 'read', leaseId: 'read-lease', operation: 'memory-profiles',
+        args: { kind: 'person' }, expiresAt: Date.now() + 10000 }] });
+    } });
+  t.after(() => client.stop());
+  client.start();
+  await entered;
+  let deadline;
+  try {
+    await Promise.race([client.stop(), new Promise((_resolve, reject) => { deadline = setTimeout(() => reject(new Error('Management shutdown waited for the native memory read')), 1000); })]);
+  } finally { clearTimeout(deadline); finish({ kind: 'person', items: [], more: false }); }
+  assert.equal(readSignal.aborted, true);
+  await Promise.resolve();
+  assert.equal(postedResults, 0);
+  assert.equal(client.pendingResults.size, 0);
+});

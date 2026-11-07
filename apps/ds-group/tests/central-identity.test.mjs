@@ -14,7 +14,7 @@ import { MatrixClient } from '../src/matrix-client.mjs';
 const listen = server => new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(`http://127.0.0.1:${server.address().port}`)));
 const stop = server => new Promise(resolve => server.close(resolve));
 
-async function fixture(t) {
+async function fixture(t, { extraParticipants = [] } = {}) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'dscord-identity-'));
   const calls = [];
   const matrix = http.createServer((req, res) => {
@@ -22,11 +22,13 @@ async function fixture(t) {
     req.resume();
     res.setHeader('Content-Type', 'application/json');
     if (req.headers.authorization === 'Bearer alice-client' || req.headers.authorization === 'Bearer alice-service') return res.end(JSON.stringify({ user_id: '@alice:home.test' }));
+    const extra = extraParticipants.find(person => req.headers.authorization === `Bearer ${person.accessToken}`);
+    if (extra) return res.end(JSON.stringify({ user_id: extra.id }));
     res.writeHead(401); res.end(JSON.stringify({ errcode: 'M_UNKNOWN_TOKEN', error: 'Expired or revoked' }));
   });
   const matrixUrl = await listen(matrix);
   const setup = { serverName: 'home.test', homeserverUrl: matrixUrl, publicHomeserverUrl: matrixUrl,
-    roomId: null, participants: [{ id: '@alice:home.test', kind: 'human', localpart: 'alice', name: 'Alice', accessToken: 'alice-service' }] };
+    roomId: null, participants: [{ id: '@alice:home.test', kind: 'human', localpart: 'alice', name: 'Alice', accessToken: 'alice-service' }, ...extraParticipants] };
   const config = { nodeSecret: 'private-node-secret', demoLogin: false, identity: { mode: 'central', coreUrl: 'https://core.test', matrixUrl, clientOrigins: ['https://client.test'] } };
   const core = await createCore({ dataRoot: root, setup, config, enablePush: false });
   const base = await listen(core.server);
@@ -69,6 +71,32 @@ test('explicit client origins permit preflight and authenticated calls; unknown 
   assert.equal(me.status, 200);
   assert.equal(me.headers.get('access-control-allow-origin'), 'https://client.test');
   assert.equal((await me.json()).identity.matrixUserId, '@alice:home.test');
+});
+
+test('a separate allowed client can PATCH owned Bot participation while owner and origin checks still apply', async t => {
+  const botId = '@owned:home.test';
+  const f = await fixture(t, { extraParticipants: [
+    { id: botId, localpart: 'owned', kind: 'bot', name: 'Owned', ownerId: '@alice:home.test' },
+    { id: '@bob:home.test', localpart: 'bob', kind: 'human', name: 'Bob', accessToken: 'bob-client' },
+  ] });
+  const route = `/api/bots/${encodeURIComponent(botId)}/attention`;
+  const preflight = origin => fetch(f.base + route, { method: 'OPTIONS', headers: { Origin: origin,
+    'Access-Control-Request-Method': 'PATCH', 'Access-Control-Request-Headers': 'content-type, authorization' } });
+  const allowed = await preflight('https://client.test');
+  assert.equal(allowed.status, 204);
+  assert.match(allowed.headers.get('access-control-allow-methods'), /(?:^|, )PATCH(?:,|$)/);
+  assert.equal(allowed.headers.get('access-control-allow-origin'), 'https://client.test');
+  assert.equal((await preflight('https://evil.test')).status, 403);
+  assert.equal(f.calls.length, 0, 'Browser preflights do not authenticate or mutate settings');
+  const patch = (token, mode) => fetch(f.base + route, { method: 'PATCH', headers: { Origin: 'https://client.test',
+    Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ mode }) });
+  const saved = await patch('alice-client', 'natural');
+  assert.equal(saved.status, 200);
+  assert.equal((await saved.json()).mode, 'natural');
+  const denied = await patch('bob-client', 'mention');
+  assert.equal(denied.status, 403);
+  assert.equal((await denied.json()).code, 'BOT_OWNER_REQUIRED');
+  assert.equal(f.core.kernelControl.desired(botId).mode, 'natural');
 });
 
 test('the shared Core guard rejects disabled and expired accounts before every protected route', async t => {

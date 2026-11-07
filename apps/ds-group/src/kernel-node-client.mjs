@@ -60,6 +60,7 @@ export class KernelNodeClient {
   async execute(command) {
     const receipt = { commandId: command.commandId, leaseId: command.leaseId };
     try {
+      if (this.controller.signal.aborted) throw Object.assign(new Error('Kernel management was stopped'), { code: 'KERNEL_QUERY_CANCELLED' });
       if (command.botId !== this.botId || command.nodeId !== this.nodeId || command.runtimeId !== this.runtimeId
         || typeof command.commandId !== 'string' || typeof command.leaseId !== 'string'
         || !Number.isFinite(command.expiresAt) || command.expiresAt <= Date.now()) {
@@ -74,7 +75,7 @@ export class KernelNodeClient {
           'memory-profile': this.operations.memoryProfile,
         }[command.operation];
         if (!operation) throw Object.assign(new Error('Unsupported kernel operation'), { code: 'KERNEL_CONTROL_UNAVAILABLE' });
-        result = await operation(command.args || {});
+        result = await this.readOperation(operation, command.args || {}, command.expiresAt);
       }
       return { ...receipt, status: 'completed', result };
     } catch (error) {
@@ -82,6 +83,32 @@ export class KernelNodeClient {
         code: typeof error.code === 'string' ? error.code : 'KERNEL_NODE_ERROR',
         message: 'The node could not complete this kernel operation',
       } };
+    }
+  }
+
+  async readOperation(operation, args, expiresAt) {
+    // Native host reads may remain pending when the host disconnects. They do
+    // not hold up management shutdown or live participation settings after the
+    // command lease expires. Late results from abandoned reads are ignored.
+    const lease = new AbortController();
+    const timer = setTimeout(() => lease.abort(), Math.max(1, Math.min(300000, expiresAt - Date.now())));
+    const signal = AbortSignal.any([this.controller.signal, lease.signal]);
+    let aborted;
+    try {
+      return await new Promise((resolve, reject) => {
+        aborted = () => reject(Object.assign(new Error('Kernel memory read was cancelled or expired'), {
+          code: this.controller.signal.aborted ? 'KERNEL_QUERY_CANCELLED' : 'KERNEL_LEASE_EXPIRED',
+        }));
+        signal.addEventListener('abort', aborted, { once: true });
+        if (signal.aborted) { aborted(); return; }
+        Promise.resolve().then(() => {
+          signal.throwIfAborted();
+          return operation(args, { signal });
+        }).then(resolve, reject);
+      });
+    } finally {
+      clearTimeout(timer);
+      if (aborted) signal.removeEventListener('abort', aborted);
     }
   }
 
@@ -103,10 +130,11 @@ export class KernelNodeClient {
     for (const command of response.commands || []) {
       if (this.controller.signal.aborted) break;
       const receipt = await this.execute(command);
+      if (this.controller.signal.aborted) break;
       this.pendingResults.set(command.commandId, receipt);
       await this.flushResults();
     }
-    if (response.desiredAttention) await this.applyAttention(response.desiredAttention);
+    if (!this.controller.signal.aborted && response.desiredAttention) await this.applyAttention(response.desiredAttention);
     this.lastError = null;
   }
 
