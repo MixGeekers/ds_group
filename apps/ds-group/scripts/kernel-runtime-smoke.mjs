@@ -119,7 +119,7 @@ function kernelInfo(value) {
 try {
   for (const filename of ['package.json', 'vendor/ds-bot/UPSTREAM.json', 'vendor/ds-bot/index.js', 'vendor/ds-bot/src/host/channel.js',
     'dsh-connect/index.mjs', 'dsh-connect/native-team.mjs', 'dsh-connect/native-bots.mjs', 'dsh-connect/native-connections.mjs',
-    'dsh-connect/kernel-runtime.mjs', 'memory/native.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime-dependencies.json', 'scripts/kernel-runtime-smoke.mjs']) {
+    'dsh-connect/kernel-runtime.mjs', 'memory/native.mjs', 'memory/snapshot-context.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime-dependencies.json', 'scripts/kernel-runtime-smoke.mjs']) {
     report.sourceHashes[filename] = hash(await readFile(path.join(packageRoot, filename)));
   }
   const version = await promisify(execFile)(installation.cli, ['--version'], { env, timeout: 30_000 });
@@ -177,9 +177,11 @@ export async function apply(ctx) {
   const member = createdState.bots.find(bot => bot.id === created.id);
   assert.ok(member?.sessionId, 'Explicit Bot creation must create an actual native Session');
   const tools = await api('tool-schemas', { sessionId: member.sessionId }, '/api/dscord-kernel-ci');
-  const requiredTools = ['read', 'write', 'bash', 'remember', 'recall', 'forget', 'contacts', 'memory_source', 'review_memory'];
+  const requiredTools = ['read', 'write', 'bash', 'remember', 'recall', 'forget', 'contacts', 'memory_source', 'raw_source_query', 'review_memory'];
+  assert.equal(new Set(tools).size, tools.length, 'Native tool schema names must be unique');
+  assert.equal(tools.length, 65, 'The pinned 0.4.0 kernel must expose all 65 native tool schemas');
   for (const name of requiredTools) assert.ok(tools.includes(name), `Native Session did not register ${name}`);
-  report.nativeMember = { botId: member.id, sessionId: member.sessionId, toolCount: tools.length, requiredTools };
+  report.nativeMember = { botId: member.id, sessionId: member.sessionId, toolCount: tools.length, requiredTools, toolNames: [...tools].sort() };
   report.checks.push('explicitNativeMemberAndRealMemoryToolSchemasWithoutGeneration');
   const lifecycle = await stop();
   assert.equal(lifecycle.instanceId, first.instanceId);

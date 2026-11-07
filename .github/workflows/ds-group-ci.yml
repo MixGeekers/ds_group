@@ -188,6 +188,12 @@ jobs:
           DS_GROUP_DSH_CLI: ${{ github.workspace }}/apps/ds-group/.local/dsh-install/node_modules/.bin/dsh
           DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
           DSCORD_NATIVE_NODE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/runtime-native-host.json
+      - name: Current memory replaces superseded snapshots across restart and native compaction
+        run: node .local/release-unpacked/tests/memory-snapshot.runtime.mjs
+        env:
+          DS_GROUP_DSH_CLI: ${{ github.workspace }}/apps/ds-group/.local/dsh-install/node_modules/.bin/dsh
+          DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
+          DSCORD_SNAPSHOT_REPORT: ${{ github.workspace }}/apps/ds-group/.local/memory-snapshot-host.json
       - name: Native tools, artifacts and cancellation with a local scripted provider
         run: node .local/release-unpacked/scripts/runtime-work-smoke.mjs
         env:
@@ -211,6 +217,7 @@ jobs:
             apps/ds-group/.local/kernel-runtime-smoke.json
             apps/ds-group/.local/runtime-smoke.json
             apps/ds-group/.local/runtime-native-host.json
+            apps/ds-group/.local/memory-snapshot-host.json
             apps/ds-group/.local/runtime-work-smoke.json
             apps/ds-group/.local/cross-server-runtime-smoke.json
           include-hidden-files: true
