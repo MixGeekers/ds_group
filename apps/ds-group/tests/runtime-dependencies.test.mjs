@@ -4,7 +4,8 @@ import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { prepareRuntimeDependencies, runtimeDependencyInstaller } from '../scripts/runtime-dependencies.mjs';
+import { parse as parseYaml } from 'yaml';
+import { prepareRuntimeDependencies, runtimeDependencyInstaller, verifyRuntimeDependencyManifests } from '../scripts/runtime-dependencies.mjs';
 
 const plugin = fileURLToPath(new URL('../dsh-plugin', import.meta.url));
 
@@ -15,10 +16,11 @@ async function fixture(t) {
 }
 
 async function installedFixture(directory) {
-  for (const [name, version, exports] of [['deep-view', '0.1.0', { './core': './index.js' }], ['yaml', '2.9.1', './index.js']]) {
+  const { dependencies } = JSON.parse(await readFile(path.join(plugin, 'runtime-dependencies.json'), 'utf8'));
+  for (const [name, version] of Object.entries(dependencies)) {
     const target = path.join(directory, 'node_modules', name);
     await mkdir(target, { recursive: true });
-    await writeFile(path.join(target, 'package.json'), JSON.stringify({ name, version, exports }));
+    await writeFile(path.join(target, 'package.json'), JSON.stringify({ name, version, exports: name === 'deep-view' ? { './core': './index.js' } : './index.js' }));
     await writeFile(path.join(target, 'index.js'), 'module.exports = {};');
   }
 }
@@ -72,15 +74,44 @@ test('a failed dependency install remains retryable and cannot mark stale module
   assert.match(await readFile(path.join(directory, '.runtime-lock.sha256'), 'utf8'), /^[a-f0-9]{64}$/);
 });
 
+test('a missing new dependency entrypoint is repaired even when its installed version matches', async t => {
+  const directory = await fixture(t);
+  let runs = 0;
+  const options = { directory, plugin, runtime: directory, run: async () => { runs++; await installedFixture(directory); } };
+  await prepareRuntimeDependencies(options);
+  await rm(path.join(directory, 'node_modules', '@modelcontextprotocol', 'client', 'index.js'));
+  await prepareRuntimeDependencies(options);
+  assert.equal(runs, 2);
+});
+
+test('release validation rejects missing npm or private runtime dependencies before packing', async t => {
+  const root = await fixture(t);
+  const dependencies = { imapflow: '2.9.1' };
+  await mkdir(path.join(root, 'vendor/ds-bot'), { recursive: true });
+  await mkdir(path.join(root, 'dsh-plugin'), { recursive: true });
+  await writeFile(path.join(root, 'vendor/ds-bot/package.json'), JSON.stringify({ dependencies }));
+  await writeFile(path.join(root, 'package.json'), JSON.stringify({ dependencies }));
+  await writeFile(path.join(root, 'dsh-plugin/runtime-dependencies.json'), JSON.stringify({ dependencies }));
+  await writeFile(path.join(root, 'dsh-plugin/runtime-dependencies-lock.json'), JSON.stringify({ packages: { '': { dependencies }, 'node_modules/imapflow': { version: '2.9.1' } } }));
+  await writeFile(path.join(root, 'dsh-plugin/runtime-dependencies-pnpm-lock.yaml'), 'lockfileVersion: 9.0');
+  assert.deepEqual(await verifyRuntimeDependencyManifests(root), dependencies);
+  await writeFile(path.join(root, 'package.json'), JSON.stringify({ dependencies: {} }));
+  await assert.rejects(verifyRuntimeDependencyManifests(root), /npm runtime dependency.*imapflow/);
+  await writeFile(path.join(root, 'dsh-plugin/runtime-dependencies.json'), JSON.stringify({ dependencies: {} }));
+  await assert.rejects(verifyRuntimeDependencyManifests(root), /vendored DS-Bot.*imapflow/);
+});
+
 test('npm and pnpm runtime locks retain the same package versions and archive integrity', async () => {
   const npm = JSON.parse(await readFile(path.join(plugin, 'runtime-dependencies-lock.json'), 'utf8'));
-  const pnpm = await readFile(path.join(plugin, 'runtime-dependencies-pnpm-lock.yaml'), 'utf8');
-  assert.match(pnpm, /autoInstallPeers: false/);
+  const pnpm = parseYaml(await readFile(path.join(plugin, 'runtime-dependencies-pnpm-lock.yaml'), 'utf8'));
+  assert.equal(pnpm.settings.autoInstallPeers, false);
+  const packages = new Set();
   for (const [location, value] of Object.entries(npm.packages)) {
     if (!location) continue;
-    const name = location.replace('node_modules/', '');
-    assert.ok(pnpm.includes(`${name}@${value.version}:`));
-    assert.ok(pnpm.includes(`integrity: ${value.integrity}`));
+    const name = location.split('node_modules/').at(-1);
+    const key = `${name}@${value.version}`;
+    packages.add(key);
+    assert.equal(pnpm.packages[key]?.resolution?.integrity, value.integrity, key);
   }
-  assert.equal((pnpm.match(/resolution:/g) || []).length, Object.keys(npm.packages).length - 1);
+  assert.equal(Object.keys(pnpm.packages).length, packages.size);
 });

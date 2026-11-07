@@ -8,6 +8,28 @@ import { promisify } from 'node:util';
 
 const execute = promisify(execFile);
 
+export async function verifyRuntimeDependencyManifests(root) {
+  const [source, vendor, manifest, lock] = await Promise.all([
+    readFile(path.join(root, 'package.json'), 'utf8').then(JSON.parse),
+    readFile(path.join(root, 'vendor', 'ds-bot', 'package.json'), 'utf8').then(JSON.parse),
+    readFile(path.join(root, 'dsh-plugin', 'runtime-dependencies.json'), 'utf8').then(JSON.parse),
+    readFile(path.join(root, 'dsh-plugin', 'runtime-dependencies-lock.json'), 'utf8').then(JSON.parse),
+    readFile(path.join(root, 'dsh-plugin', 'runtime-dependencies-pnpm-lock.yaml'), 'utf8'),
+  ]);
+  const expected = manifest.dependencies || {};
+  for (const [name, version] of Object.entries(vendor.dependencies || {})) {
+    if (expected[name] !== version) throw new Error(`Runtime dependency does not match vendored DS-Bot: ${name}@${version}`);
+  }
+  if (JSON.stringify(Object.entries(expected).sort()) !== JSON.stringify(Object.entries(lock.packages?.['']?.dependencies || {}).sort())) {
+    throw new Error('Runtime dependency manifest does not match its npm lock');
+  }
+  for (const [name, version] of Object.entries(expected)) {
+    if (source.dependencies?.[name] !== version) throw new Error(`npm runtime dependency is missing or has a different version: ${name}@${version}`);
+    if (lock.packages?.[`node_modules/${name}`]?.version !== version) throw new Error(`Runtime lock is missing ${name}@${version}`);
+  }
+  return expected;
+}
+
 export async function runtimeDependencyInstaller(runtime) {
   const dependencies = path.resolve(runtime, '..', '..', 'runtime', 'primary-runtime', 'dependencies');
   const node = path.join(dependencies, 'node', 'bin', 'node');
@@ -33,11 +55,10 @@ export async function prepareRuntimeDependencies({ directory, plugin, runtime, r
   const required = createRequire(path.join(directory, 'package.json'));
   const expected = JSON.parse(manifest).dependencies;
   async function verify() {
-    required.resolve('deep-view/core');
-    required.resolve('yaml');
     for (const [name, version] of Object.entries(expected)) {
       const installed = JSON.parse(await readFile(path.join(directory, 'node_modules', name, 'package.json'), 'utf8'));
       if (installed.version !== version) throw new Error(`Unexpected runtime dependency version for ${name}`);
+      required.resolve(name === 'deep-view' ? 'deep-view/core' : name);
     }
   }
   let ready = false;
