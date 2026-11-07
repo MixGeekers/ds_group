@@ -753,6 +753,53 @@ export class NodeStore {
     });
   }
 
+  /** Stable work facts for one conversation. Unstarted natural proposals are
+   * excluded so enqueuing a proposal cannot invalidate its own decision. */
+  attentionWorkView(roomId, threadRootId = null, { excludeEventId } = {}) {
+    const rows = this.db.prepare(`SELECT inbox.*,messages.event_json FROM inbox JOIN messages USING(event_id)
+      WHERE room_id=? AND COALESCE(CASE WHEN json_extract(event_json,'$.content."m.relates_to".rel_type')='m.thread'
+        THEN json_extract(event_json,'$.content."m.relates_to".event_id') END,'')=?
+      AND (COALESCE(json_extract(attention_json,'$.kind'),'')<>'natural' OR (status<>'queued' AND request_json IS NOT NULL))
+      ORDER BY sequence DESC LIMIT 40`).all(roomId, threadRootId || '');
+    const tasks = [], recentReceipts = [], fingerprints = [];
+    const files = value => Array.isArray(value) ? value.filter(file => file && typeof file === 'object') : [];
+    const publicFile = file => ({ ...(file.id ? { id: file.id } : {}), name: file.name || '',
+      ...(file.sha256 ? { sha256: file.sha256 } : {}), ...(Number.isSafeInteger(file.size) ? { size: file.size } : {}) });
+    for (const row of rows) {
+      if (row.event_id === excludeEventId) continue;
+      const attention = row.attention_json ? JSON.parse(row.attention_json) : null;
+      if (attention?.kind === 'natural' && (row.status === 'queued' || !row.request_json)) continue;
+      const request = row.request_json ? JSON.parse(row.request_json) : {};
+      const response = row.response_json ? JSON.parse(row.response_json) : null;
+      const task = this.task(row.event_id) || {};
+      const deliveries = this.db.prepare('SELECT * FROM outbox WHERE source_event_id=? ORDER BY ordinal').all(row.event_id)
+        .map(delivery => ({ status: delivery.status, roomId: delivery.room_id, eventId: delivery.sent_event_id,
+          transactionId: delivery.transaction_id,
+          artifacts: files(JSON.parse(delivery.options_json).attachments).map(publicFile) }));
+      const artifacts = [...new Map([...files(response?.artifacts), ...files(response?.publishedArtifacts),
+        ...files(response?.deliveredArtifacts), ...files(task.artifacts)].map(publicFile)
+        .map(file => [`${file.name}\0${file.sha256 || file.id || ''}`, file])).values()];
+      const status = task.status || row.status;
+      const receipt = { eventId: row.event_id, requestId: request.requestId || task.requestId || null,
+        status, processingStatus: row.status, generationStatus: response?.status || row.status, stage: task.stage || null,
+        toolCalls: response?.toolCalls || task.toolCalls || 0, delegated: Boolean(response?.delegated), artifacts, deliveries,
+        cancelled: this.cancelledEvent(row.event_id) };
+      fingerprints.push({ ...receipt, resultHash: typeof response?.text === 'string' ? createHash('sha256').update(response.text).digest('hex') : null });
+      if (['queued', 'running', 'produced', 'generated', 'unknown'].includes(row.status) || task.status === 'running') {
+        tasks.push({ eventId: row.event_id, requestId: receipt.requestId, status, stage: task.stage || null,
+          summary: task.summary || '', cancelled: receipt.cancelled });
+      }
+      if (response || deliveries.length || row.request_json && ['failed', 'cancelled'].includes(row.status)) {
+        let text = response?.text || '';
+        try { text = JSON.parse(text).text || text; } catch { /* Plain replies are valid receipts. */ }
+        recentReceipts.push({ ...receipt, summary: String(text || task.summary || '').slice(0, 1600),
+          completedAt: response?.finishedAt || task.updatedAt || null });
+      }
+    }
+    return { stateVersion: createHash('sha256').update(JSON.stringify([roomId, threadRootId, fingerprints])).digest('hex'),
+      tasks, recentReceipts: recentReceipts.slice(0, 10) };
+  }
+
   nextAttentionBatch({ now = Date.now(), batchMs = 350, maxAgeMs = 30_000, limit = 40 } = {}) {
     this.db.prepare(`UPDATE attention_events SET status='observed',reason='source_withdrawn' WHERE status IN ('queued','waiting')
       AND event_id IN (SELECT message_redactions.event_id FROM message_redactions JOIN messages USING(event_id) WHERE message_redactions.room_id=messages.room_id)`).run();
@@ -773,7 +820,7 @@ export class NodeStore {
     }
     return { roomId: first.room_id, threadRootId: first.thread_key || null, eventIds: rows.map(row => row.event_id),
       events: rows.map(row => JSON.parse(row.event_json)), watermark: this.messageWatermark(first.room_id),
-      reason: rows.find(row => row.status === 'waiting')?.reason || 'room_messages',
+      reason: rows.find(row => row.status === 'waiting')?.reason || rows.find(row => row.reason)?.reason || 'room_messages',
       expiresAt: Math.min(...rows.map(row => row.expires_at ?? row.received_at + maxAgeMs)) };
   }
 
@@ -800,9 +847,27 @@ export class NodeStore {
         .run(state, now + waitMs, now + waitTtlMs, result.action === 'WAIT' ? 'wait_timer' : outcome || result.action, id);
       if (evidence) {
         const eventId = input.currentMessages.at(-1).eventId;
-        this.db.prepare("INSERT OR IGNORE INTO inbox(event_id,status,attention_json) VALUES (?,'queued',?)")
+        this.db.prepare(`INSERT INTO inbox(event_id,status,attention_json) VALUES (?,'queued',?)
+          ON CONFLICT(event_id) DO UPDATE SET status='queued',attention_json=excluded.attention_json,
+            request_json=NULL,response_json=NULL,error=NULL,session_id=NULL
+          WHERE inbox.status='cancelled' AND inbox.request_json IS NULL
+            AND json_extract(inbox.attention_json,'$.kind')='natural'
+            AND json_extract(inbox.attention_json,'$.recheckPending')=1`)
           .run(eventId, JSON.stringify(evidence));
       }
+    });
+  }
+
+  recheckQueuedAttention(eventId, reason = 'work_state_changed', now = Date.now()) {
+    return this.transaction(() => {
+      const item = this.item(eventId);
+      if (item?.status !== 'queued' || item.request_json || item.attention?.kind !== 'natural') return false;
+      this.db.prepare("UPDATE inbox SET status='cancelled',error=?,attention_json=? WHERE event_id=? AND status='queued'")
+        .run(`Participation needs reevaluation: ${reason}`, JSON.stringify({ ...item.attention, recheckPending: true }), eventId);
+      this.db.prepare('UPDATE attention_decisions SET outcome=? WHERE id=?').run(reason, item.attention.decisionId);
+      this.db.prepare(`UPDATE attention_events SET status='queued',available_at=?,reason=?,decision_id=NULL
+        WHERE decision_id=? AND status='speaking'`).run(now, reason, item.attention.decisionId);
+      return true;
     });
   }
 

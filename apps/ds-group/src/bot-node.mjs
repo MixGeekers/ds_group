@@ -282,7 +282,8 @@ export class BotNode {
         threadRoot: sameRoom(this.store.message(batch.threadRootId)), threadRootRoom: this.store.roomContextForEvent(batch.threadRootId) });
       const self = { id: this.participant.id, name: this.senderName(this.participant.id, room), role: this.roleOf(),
         interests: this.participant.interests || [], instructions: this.participant.instructions || '' };
-      const workView = { runtime: { nodeState: this.state, nativeState: 'unknown' }, tasks: this.store.activeTaskView(batch.roomId) };
+      const workView = { runtime: { nodeState: this.state, nativeState: 'unknown' },
+        ...this.store.attentionWorkView(batch.roomId, batch.threadRootId) };
       const input = { version: 1, policyVersion: ATTENTION_POLICY_VERSION, self, context,
         roomId: batch.roomId, threadRootId: batch.threadRootId, watermark: batch.watermark, eventIds: batch.eventIds,
         trigger: { reason: batch.reason, expiresAt: batch.expiresAt },
@@ -326,6 +327,7 @@ export class BotNode {
               recentMessages: messages, coordinationMs: config.coordinationMs });
             evidence = { kind: 'natural', botId: this.participant.id, decisionId: id, eventIds: batch.eventIds,
               sourceEventIds: messages.filter(message => !message.withdrawn).map(message => message.eventId),
+              workStateVersion: workView.stateVersion,
               watermark: batch.watermark, expiresAt: batch.expiresAt,
               notBefore: Math.max(Date.now() + delay, (this.lastAttentionSpokeAt || 0) + config.cooldownMs),
               context: { ...context, attention: { decisionId: id, watermark: batch.watermark, eventIds: batch.eventIds,
@@ -1001,6 +1003,13 @@ export class BotNode {
     if (suppressed) { this.suppressAttention(item, suppressed); return true; }
     if (this.store.cancelledEvent(item.event_id)) {
       this.store.failed(item.event_id, 'Task superseded by a reliable control message', 'cancelled');
+      return true;
+    }
+    if (item.attention?.kind === 'natural' && item.attention.workStateVersion
+      && item.attention.workStateVersion !== this.store.attentionWorkView(item.event.room_id, threadOf(item.event), {
+        excludeEventId: item.event_id,
+      }).stateVersion) {
+      this.store.recheckQueuedAttention(item.event_id);
       return true;
     }
     if (this.roster && !this.work) await this.ensureParticipants([item.event]);
