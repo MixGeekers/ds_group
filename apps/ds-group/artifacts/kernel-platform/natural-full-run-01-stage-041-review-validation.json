@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-07T05:24:01.771Z",
+  "sourceCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+  "originalReportSha256": "f486a004ac77a27e69226fc3e18863c1e2a28b0787617d0686830a161027c696",
+  "privateReviewSidecarSha256": "d2456751847c35802a93b9fcadda62f8dd8b409eb74d613bf136cc622d145554",
+  "reviewEvidence": {
+    "scope": "full041 stage only; run stopped after64 of96",
+    "selectedActualPublicBotMessages": 5,
+    "publicAttachmentsDownloadedAndByteVerified": 2,
+    "oldToolReadMatchesPriorDeliveredCsv": true,
+    "sourceInputFiles": 8,
+    "sourceInputHashesStillMatch": true,
+    "workChangedRedecisions": 1,
+    "originalFrozenNativeToolCheckPassed": false,
+    "semanticPublicExchange": "closed-in-observed-prefix",
+    "wholeRunAccepted": false
+  },
+  "checks": {
+    "command": "node --test tests/memory-host-http.test.mjs tests/platform-natural-maintenance.test.mjs tests/platform-natural-validation.test.mjs",
+    "passed": 40,
+    "failed": 0,
+    "newModelCallsDuringReview": 0,
+    "originalRunMutations": 0
+  },
+  "publication": {
+    "publicHashes": {
+      "artifacts/kernel-platform/natural-full-run-01-stage-041-reviewed.json": "04533d9687b0789a12ee697cb34570663507d2e072efafcf98ce07e45779bc67",
+      "artifacts/kernel-platform/natural-full-run-01-stage-041-review.md": "900d0538dce356ca7dc2c9abbd37e385465e8d54272d3cda953f9fd3d8ab6065"
+    },
+    "privateTokenScan": {
+      "syntheticConfigFiles": 11,
+      "hostLogFiles": 2,
+      "secretCandidates": 19,
+      "dshAuthUrlCandidates": 2,
+      "literalSecretMatches": 0,
+      "dshAuthUrlMatches": 0,
+      "credentialPatternMatches": 0,
+      "secretValuesCopied": false
+    }
+  }
+}

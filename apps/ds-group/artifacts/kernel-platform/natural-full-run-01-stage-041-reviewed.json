@@ -1,0 +1,3083 @@
+{
+  "schemaVersion": 1,
+  "run": "platform-natural-full-run-01",
+  "generatedAt": "2026-11-07T05:18:37.049Z",
+  "evidenceLevel": "real-local-services-and-provider",
+  "status": "failed",
+  "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+  "reportSha256": "f486a004ac77a27e69226fc3e18863c1e2a28b0787617d0686830a161027c696",
+  "definitionHash": "4131ac33fc2f0b24be4bac18e91b9fe8728f9e08ab1bf5361dc1d44b12098c02",
+  "corpusHash": "02d4e5afdaa197446fa0b10f06465f7a1a91f3d9129bb6c453e627a817b8033a",
+  "oracleHash": "e5d70b2fc0ca5305fb76211c46f5f36fb76ab7d3b446d16cd6e842960aff1c82",
+  "fixtureHash": "3dd53d96cf6fd5d440286df3ccb9f28639651b475f3899cbba46a60471a50023",
+  "startedAt": "2026-11-07T04:41:40.600Z",
+  "finishedAt": "2026-11-07T05:07:24.008Z",
+  "wallElapsedMs": 1543408,
+  "businessTime": {
+    "start": "2026-11-16T00:30:00.000Z",
+    "end": "2026-11-18T09:33:00.000Z",
+    "zone": "Asia/Shanghai",
+    "synthetic": true
+  },
+  "planned": {
+    "id": "platform-natural-full-01",
+    "profile": "full",
+    "scenario": "梧桐工作室搬家：三个普通工作日",
+    "participants": 4,
+    "bots": 3,
+    "messages": 96,
+    "humanConversation": 62,
+    "directedMessages": 34,
+    "optionalSocialReplies": 6,
+    "businessStart": "2026-11-16T00:30:00.000Z",
+    "businessEnd": "2026-11-18T09:33:00.000Z",
+    "businessTimeZone": "Asia/Shanghai",
+    "maintenance": {
+      "compactions": [
+        {
+          "after": 32,
+          "bot": 0
+        },
+        {
+          "after": 64,
+          "bot": 1
+        }
+      ],
+      "restarts": [
+        36,
+        72
+      ]
+    },
+    "rooms": [
+      {
+        "key": "work",
+        "kind": "group"
+      },
+      {
+        "key": "life",
+        "kind": "group"
+      },
+      {
+        "key": "project",
+        "kind": "group"
+      },
+      {
+        "key": "private-a",
+        "kind": "direct"
+      },
+      {
+        "key": "private-b",
+        "kind": "direct"
+      }
+    ]
+  },
+  "posted": 64,
+  "evaluated": 64,
+  "bots": [
+    {
+      "id": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+      "nativeBotId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "name": "识雨"
+    },
+    {
+      "id": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+      "nativeBotId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+      "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+      "name": "知秋"
+    },
+    {
+      "id": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "nativeBotId": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1",
+      "sessionId": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1",
+      "name": "听澜"
+    }
+  ],
+  "people": {
+    "a": {
+      "id": "@zhou_ops:natural-full.local",
+      "name": "周宁"
+    },
+    "b": {
+      "id": "@zhou_dev:natural-full.local",
+      "name": "周宁"
+    },
+    "c": {
+      "id": "@shen_yao:natural-full.local",
+      "name": "沈遥"
+    },
+    "d": {
+      "id": "@he_chuan:natural-full.local",
+      "name": "贺川"
+    }
+  },
+  "rooms": {
+    "work": {
+      "roomId": "!xdKelVojc_xhVyZK6jRGW94YfBftWm5ba5Q-iyyWL50",
+      "kind": "group"
+    },
+    "life": {
+      "roomId": "!IeBUxgekedGQfmbHWOMBo9PKSftMs1hpcoqUCkL2_7M",
+      "kind": "group"
+    },
+    "project": {
+      "roomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+      "kind": "group",
+      "historyVisibility": "joined"
+    },
+    "private-a": {
+      "roomId": "!zXK7EZyZ6rb1subh6vafeQobvKEBLjNVYC4OVN08Maw",
+      "kind": "direct"
+    },
+    "private-b": {
+      "roomId": "!VP5xS0M2KV4tPNuYKss0zC0yizJQ94grHuTX00orjeg",
+      "kind": "direct"
+    }
+  },
+  "membershipEvidence": [
+    {
+      "key": "work",
+      "roomId": "!xdKelVojc_xhVyZK6jRGW94YfBftWm5ba5Q-iyyWL50",
+      "joinedIds": [
+        "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+        "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+        "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+        "@he_chuan:natural-full.local",
+        "@shen_yao:natural-full.local",
+        "@zhou_dev:natural-full.local",
+        "@zhou_ops:natural-full.local"
+      ],
+      "historyVisibility": "shared",
+      "at": "2026-11-07T04:41:45.269Z"
+    },
+    {
+      "key": "life",
+      "roomId": "!IeBUxgekedGQfmbHWOMBo9PKSftMs1hpcoqUCkL2_7M",
+      "joinedIds": [
+        "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+        "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+        "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+        "@he_chuan:natural-full.local",
+        "@shen_yao:natural-full.local",
+        "@zhou_dev:natural-full.local",
+        "@zhou_ops:natural-full.local"
+      ],
+      "historyVisibility": "shared",
+      "at": "2026-11-07T04:41:45.276Z"
+    },
+    {
+      "key": "project",
+      "roomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+      "joinedIds": [
+        "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+        "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+        "@shen_yao:natural-full.local",
+        "@zhou_dev:natural-full.local",
+        "@zhou_ops:natural-full.local"
+      ],
+      "historyVisibility": "joined",
+      "at": "2026-11-07T04:41:45.282Z"
+    },
+    {
+      "key": "private-a",
+      "roomId": "!zXK7EZyZ6rb1subh6vafeQobvKEBLjNVYC4OVN08Maw",
+      "joinedIds": [
+        "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+        "@zhou_ops:natural-full.local"
+      ],
+      "historyVisibility": "shared",
+      "at": "2026-11-07T04:41:45.288Z"
+    },
+    {
+      "key": "private-b",
+      "roomId": "!VP5xS0M2KV4tPNuYKss0zC0yizJQ94grHuTX00orjeg",
+      "joinedIds": [
+        "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+        "@zhou_dev:natural-full.local"
+      ],
+      "historyVisibility": "shared",
+      "at": "2026-11-07T04:41:45.295Z"
+    }
+  ],
+  "topology": "real Synapse/Core/Matrix/NativeConnections/DSH; native source-aware-v1; observed local-exact SQLite/exact/lexical memory; one physical host",
+  "memoryObservation": {
+    "enabled": true,
+    "nativeBackend": "source-aware-v1",
+    "backend": "local-exact",
+    "observedAt": "2026-11-07T04:41:43.599Z"
+  },
+  "attempts": [
+    {
+      "startedAt": "2026-11-07T04:41:40.600Z",
+      "finishedAt": "2026-11-07T05:07:23.925Z",
+      "resumedAfter": 0,
+      "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+      "startCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "endCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceHashesAtStart": {
+        "dsh-connect/KERNEL.md": "20f7ad2d6e55ccfbb388d955653ea2709362ca5aa32ecb762779bf1f8539768a",
+        "dsh-connect/client.js": "ff6687d15cb4d27be3569124742d7ad636af9ce247563c6e53124a2a098e9cf8",
+        "dsh-connect/controller.mjs": "dea6323cbab4b0265e64278de81707ccc86b6001e85d2c6470b55cabe21f42dd",
+        "dsh-connect/decision-settings.mjs": "25b7f78cac4ec3eb0a27e0a51fc9f4ef832e051987265d26276cb06e311ebe47",
+        "dsh-connect/index.mjs": "215325eed12dd492169f40ba8a77fe7b0ec553a468f0b6afabbaa206aaa60fbe",
+        "dsh-connect/kernel-runtime.mjs": "271108002935c72dc5ee23458454f7611bec56bfc562bf3147d1bd89051844dc",
+        "dsh-connect/models.mjs": "f1d94136996eb653ed264859f18171c12897adbbdf7d394dd264ccf44e619dc6",
+        "dsh-connect/native-bots.mjs": "97302d3e079d10974415449d1ee6ad04ea25ec5aad0dd72f9b220985edc4c925",
+        "dsh-connect/native-bridge.mjs": "ebe06beff6f3729c12cf6231419439e339dd01f878507a6d298aadf53d3e0bb5",
+        "dsh-connect/native-connections.mjs": "5e14dd5f3b9b97d7269f46d11b72487e222d35e0692552018c0d035d09436e38",
+        "dsh-connect/native-team.mjs": "1d0374a23861dd8b26d196cd7b6f0686797e86db0e0f1b7837b639d73748bd35",
+        "dsh-connect/processes.mjs": "888192ca883f55bff4738ec8c790faf666694873baed792dcc9faefeeed6f970",
+        "dsh-plugin/README.md": "621b2357b6280468da4cf81863708719911eb6bff6a65f74aea87f929cfd6760",
+        "dsh-plugin/index.mjs": "881afa4f656b46e8cfa75eb2e221a3cf9e05bc20f30591a8511140eb5c30c7ed",
+        "dsh-plugin/model-profile.mjs": "41e089adcd751a9f61fb38ee885f77c520e539a7730daaf81dc61eb8b3b0e728",
+        "dsh-plugin/package.json": "12f80a94725b2c77c10a99b5b1c9707da2b1d72f7bccd40525a95ef552737b56",
+        "dsh-plugin/runtime-dependencies-lock.json": "ba98e438735b9311c88ba48b3ae224e2cf6e51cc3b152c7a021c97591687f684",
+        "dsh-plugin/runtime-dependencies-pnpm-lock.yaml": "6e72f1b785a3e58c2523d8fced08c2f1515fdaf13889a36ddb6d3455066d6b01",
+        "dsh-plugin/runtime-dependencies.json": "a72a7c7d232a357947c1c6c2fcebe3ca761891605d8bbcb6807056f677aa1fee",
+        "dsh-plugin/runtime-rules.mjs": "1657aa77114ca3a6268bad0e6d071e7bdfae045580a8b9b7ea58358c4211588b",
+        "dsh-plugin/runtime.mjs": "d99669f3e21e45e148c8c3e08fef9e2a73b85c3028fec839388290d5cb5f85ac",
+        "dsh-plugin/scoped-work.mjs": "b1b8447b3bafbb1921e16ef86881ccf3963b1bbabd71f304a68e882944b864ef",
+        "dsh-plugin/work-files.mjs": "62a350cf088970ab540079b1722b7ecf0e5f6d0fb17f9b0a20f01b9250d95a17",
+        "memory/contacts.mjs": "c1550471b03c2a594516daef944b97eca74557ea3baf59efe7c1fb931c5c9d07",
+        "memory/ingress.mjs": "d4dff11905d6dcb941ff6d12427b1e027b86e14bde06814d21a1c82af43e7bbe",
+        "memory/model-options.mjs": "f62b53a2428585d47355d76e324f5f1c585456246e368a49688adbe7b32feac1",
+        "memory/native.mjs": "2f793fb808603e9b44594f3f0233314356bc53dbb0b36d411614d6b0afabf560",
+        "memory/observation-policy.mjs": "abb9415d90cebc73f09ee4e1ed842e85457d7e5d8dbf85aed2489a1831e09c07",
+        "memory/ombre.mjs": "f5aadcb2e70609a4ae8b94a5a0db3f832d460a1b829b934c62bec54b7bffc882",
+        "memory/panel.mjs": "652d24548e3735e8c27332d4b99a4a2fa629c211d3dbe3d1c2012a1f7e61011b",
+        "memory/review.mjs": "af118a53a2127326043334290b0fdf395bd506a4526a150f48bfb53676706957",
+        "memory/service.mjs": "d2e00df83aee2d99b66d34a9971802a82fe89256f566013d9755c657f94f25e5",
+        "memory/snapshot-context.mjs": "9300dd9a3d6a7706665347674d55809bfcae9c60c711a0c885a1ec48271a0856",
+        "memory/source-query.mjs": "2eb8347a87a592f049160fe2d7028e02dad7c9b4f4c196e67f643562288d76a5",
+        "memory/store.mjs": "a7d3e454cea5a4bf53ba20dc315b282002db1586d1c2d8a50a79c9ee33b84ba5",
+        "memory/views.mjs": "e3c68969ed9db45f7f106ee50de07e5d1ca1b73cc1a3c6073bb1585f5678be97",
+        "memory/复用与运行.md": "33da013821ea46d6d007bb9364915ad11399aebc92ce19b4a979e23e73996235",
+        "memory/实施与长程测试.md": "0fb485787ffd6fb50c0c3d2fccbd123de8711145bf6b738f23ecdaca1b1f8888",
+        "memory/当前上下文与回顾.md": "f0672f7e8f1e06cbe23d9615e77a0156e0f90e59249523486c0e802200dc5416",
+        "memory/目录.md": "bfe2b6a0a0999896f9737f1f92520fb6e50ab970ed53ec6da58c69acc9803bb8",
+        "scripts/admin.mjs": "12fa65dabefc01f3dd4ff06ac99d23e1066941fc1acc010aaf2b6661c0c28f7f",
+        "scripts/build-pwa.mjs": "ff62fd6e318fbdac39ee2b0c4d98beb3b9c53573f70ca88034ae4b99b913e2af",
+        "scripts/central-init.mjs": "0412e00a5a185f31459a24040ee8f5dc93e38e7e060375a012f970b7585aa86b",
+        "scripts/check.mjs": "4a850c5121e4f290e4a94c835e9606335669b789d155aeb86a4db46544afe06b",
+        "scripts/collaboration-continuation-corpus.mjs": "50c2d093e57af294d54cccff4dac6979b451b190be7eec51393edb248915c835",
+        "scripts/collaboration-delivery-recheck.mjs": "06ba7c6044cb3d8ed2110dc22a64e1fab03f16453b2a7d3ad7db4a17094f2e9e",
+        "scripts/collaboration-evidence.mjs": "020260c2ead596160b0541b3253ea2d9ea9012e449fcdf30d8374273b7680258",
+        "scripts/collaboration-fixes-evidence.mjs": "66d902612e468ab08cde1189ec056968df26ce17aaf57e2f1df29f1e2a605b59",
+        "scripts/collaboration-fixes-real.mjs": "bb70a31116f69ef68d62fb301475774cf2852e03b36ddb8cf6bcf2fc640719f3",
+        "scripts/collaboration-long-audit.mjs": "f31ea0d0ae1ad892abab591b1a1998a5f9f12c1bee24cf1f07451bb5b76da95c",
+        "scripts/collaboration-long-check.mjs": "10d21703acb49c285d067cf5eae5205f148cf15c8c02376161dfca1b5a120e02",
+        "scripts/collaboration-long-corpus.mjs": "98ea4badd217d8c54ccef1dc33508131fd8a0d6df94a99a8d33fffb6e05365de",
+        "scripts/collaboration-long-run.mjs": "c63d1efc69d4e07c783939e01f989e40320df0e3a23e741e8e5267d64794caf9",
+        "scripts/collaboration-maintenance.mjs": "affb95c6b5d09c0d19abdfd4ffc6cb837434496312951be1ac58438d0e85892a",
+        "scripts/collaboration-memory-snapshot.mjs": "ac3ad90ee5d02d320b513d0f59682728ae2bd76a4718a9c106d50f18513899d3",
+        "scripts/commandcode-native-smoke.mjs": "161847a9d5cf231d5c4b6336bacaee33e4a93800b215e336b5fc58da299588db",
+        "scripts/commandcode-preflight.mjs": "7b989ab597af270fcf70a13deb1e0ef48abbf2c3288f017028bb267f6c936e81",
+        "scripts/cross-server-runtime-smoke.mjs": "0b46fceb1acf8e73b86df32b7115c6668eba4a0e4b5a2b31434030e9c45e0b2b",
+        "scripts/deploy-smoke.mjs": "f750be3ceb8066666fb9a9e8d51316804a694922bf982fc403b83c9712fd833b",
+        "scripts/dsh-node.mjs": "d53b5671962c8c1449dc7f446c9a490a3e27ef5d056d26eaa37c44841efd30d6",
+        "scripts/federation-lab.mjs": "0dc0c7e17f953eed322dd1fa43a5a321fec9f19b4afd051357c525869c7ddfb6",
+        "scripts/file-work.mjs": "633e3ff58c8087dda065a31979bfb04915564723dfd675bcd947030c7641ff7f",
+        "scripts/go-quota.mjs": "fdbfce1e0adb37d80fe20044a7f5a528f6ad7a592a8718228566711fed291b95",
+        "scripts/kernel-runtime-smoke.mjs": "20684bfc26424c3d2b05c908b30f1acc4e104673aa713f66c23eee7675468ccc",
+        "scripts/matrix.mjs": "93cd493cf16d6600d6e2b23a9be975b74c59fbae99b6e76f796cb6a1039aef01",
+        "scripts/memory-delivery-evidence.mjs": "8e99cd0b4ff4aa261fe5f4cc8413200220dd3174e830dfb5fab0091ccd3e19bc",
+        "scripts/memory-evidence.mjs": "cbe071bb258c6d973f7ddb62111d3b7d8bc0c9a10443a4a877bb24400c505c67",
+        "scripts/memory-host-plugin.mjs": "76d93f1948abbc50e3be2e0bb09b7c9924aae9b4cee5db788b5e05fd57fd08d3",
+        "scripts/memory-host.mjs": "7c27fcce2f457642114b2e84048c0dfb16c9dd19a3864ae9e07134252e1cd094",
+        "scripts/memory-long-corpus.mjs": "0206b80d9fa3563355689429d5e61cfc7b25746bb9d3623b782da7c8d19f33fa",
+        "scripts/memory-long-run.mjs": "3e69006ceeb70cde0bde00141aa20bb79a2e1b109f36e017fb477f9ac5f57c9a",
+        "scripts/memory-native-compat.mjs": "71f349f8de398f774ce46df618e9a0b31ef1d76d5813ab40d8803694c4517a0a",
+        "scripts/memory-native-delivery.mjs": "6dd0e929d780210b65213af54f72340e6264724e932e5038da592f93c01694b5",
+        "scripts/memory-native-smoke.mjs": "2197b39fd14d924040f522fc2d7c396a4a32153e64227d35980d9e490b6f8f4d",
+        "scripts/memory-recovery-smoke.mjs": "cd81bf33af30a191440e86a087afc9f45690cc07e37864773b02e83b6fca3bc4",
+        "scripts/memory-setup.mjs": "777368a98df316e87fc4566c12e93392c4947fbca57fa67f142d571367b56bea",
+        "scripts/memory-test-model.mjs": "611fa827c1a5ce3819d5fe3e9179237320ef197ac04df0e3351af2cb99577c86",
+        "scripts/memory-vector-scale.mjs": "9baab1fb4498f870b7c5417b752bd4fcf3675a282a2d9a192424731006f7584e",
+        "scripts/memory-vector-smoke.mjs": "6c1bf7f4fd21537508e58f31db2dd7254f589566c8d659ae287f89657be3930b",
+        "scripts/memory-visible-environment.mjs": "024f55defb9f95a4dc89cd9b978e577293229839745ddc98831d667d85f8d38c",
+        "scripts/memory-visible-host-plugin.mjs": "9c2da95aee4e3068b2865b86da6d1059adb958f6bb4944df796ca17aa7064c23",
+        "scripts/memory-visible-run.mjs": "a0beee34bdeb194c4f873893143822b39332fa069cd9d0b6e84c263bff49d975",
+        "scripts/model-settings-smoke.mjs": "55a8039e867d099fa5d4cc05cf01915b036957e69bae97a0194627437280de45",
+        "scripts/native-bot-smoke.mjs": "1b8ecbca3659a9d49a9e1a0f4fac7d23616f4f743343e907fb9823c68085df9a",
+        "scripts/native-ui-smoke.mjs": "dd836891fd63c9eea3f26212c1b818b3e19202210c86eb6091e5b5192a1458a5",
+        "scripts/npm-pack.mjs": "b3a517ec4d1b4cb22edc9b2457459fcc112ea738c9e5e3f6aa118a86c8e6b705",
+        "scripts/npm-smoke.mjs": "9c982f2d2b0a1b93c91fbfeb182bc5fedc851f7ed471445ae79a76e8749dbe1c",
+        "scripts/platform-deploy-smoke.mjs": "bab7fb1d0de5402acdf6253ec8c7437f60f083301d757e138e51f473b4b0d75d",
+        "scripts/platform-natural-accounting.mjs": "b70bd180d784c26bd7fd996cf79cfe10d8e06a0a49a2aabfa9c06af52572beb8",
+        "scripts/platform-natural-check.mjs": "ae6621cd5b8362833bf01df51830cc4ef3a81b92dc9774d6ad0356f1f4cc15b8",
+        "scripts/platform-natural-corpus.mjs": "d99d738bfb9c5dd61380055d53c31ec85f898788a8903fe9c51377e131459504",
+        "scripts/platform-natural-environment.mjs": "21038ee745181720033d3971b9c09d79eca23723f54cab4dafba85197f3890f7",
+        "scripts/platform-natural-evidence.mjs": "2824b9dfb80b9498773f5981ecded95c14aeb7a188748109fde181be79e6e919",
+        "scripts/platform-natural-host.mjs": "cd605ae2fc91289dc455b021c64b229cdeb4c6e84602ad1756d8332a15739999",
+        "scripts/platform-natural-live.mjs": "abef8b16e030c4df8491e2f96b78ff574a5c55d7ef44470fd8077d80b0b66348",
+        "scripts/platform-natural-oracle.mjs": "92d5d651b55607e7bbf7b0659bf633cc77c155e7742ce046ecce76e5896eef43",
+        "scripts/platform-natural-run.mjs": "95ac50b4aaaffdc38e28b9fa8b34d71728b66d72f46b9c7b17ecadd8c3bb57d0",
+        "scripts/push-check.mjs": "6cd87177c43f36cd8939d08581934db58b21219175a5cc7451b965334f7b1987",
+        "scripts/release-metadata.mjs": "d3ec13af765908b58edd1efab922f51a0eb64528b1ede7a431a4fa36e80626b6",
+        "scripts/release-pack.mjs": "0279a3bb43734c10fda2f2fa7dafbd84da37b969bbc5c01de4ec8c2a74ce2407",
+        "scripts/release-verify.mjs": "9c44a7a262ffb9c14d3e291f9c4d0ceae99e37a2251bc146cf4b034dff7f62a0",
+        "scripts/runtime-config.mjs": "f95138748cb15ef560ce287c31c168a215b0783898d156db7be72a25b0efbfc6",
+        "scripts/runtime-dependencies.mjs": "a32b0230deae647721d9414e8a6c5f22594ee26b1bfa01592f7da291fed1c5ba",
+        "scripts/runtime-smoke.mjs": "cccddead14333425789963ac2375657dde495e4d35a160d63d0983911f97f643",
+        "scripts/runtime-work-smoke.mjs": "7bd125d5aeb7d776c27d02676405b7e263c89781176c6459661f04ffd1074199",
+        "scripts/server-admin.mjs": "88acd9ed6665924266c7f1ade880aa9d5a3e450813e3bea7a6760b5de60032ca",
+        "scripts/server-bootstrap.mjs": "494d2551d7ccd9f0d2ffbc12bb073780b05359d72048c9d41775ea488077b7bf",
+        "scripts/server-init.mjs": "ec72a7de437856b9ca03c7be2e76ffd8b109612cdee3aa293a68652bbed4654f",
+        "scripts/service.mjs": "cda1750cc2a482acc1aa26d0988f9f4117847977bfbf9de2a63893bb728da53a",
+        "scripts/storage-smoke.mjs": "7767859a81d62b015b4e9fd18cabe38b993750b9d4cb46224043ca65842880bc",
+        "scripts/thread-relations-smoke.mjs": "e674f0347be63a626978b26f0f7c185a43fdaa16eb41bc09d297b9e6429d906f",
+        "scripts/verify-api-only.mjs": "b6db895a8601195818c7eb78ec6bc5946228bd126444dcd84f3d2837badb7a84",
+        "scripts/verify-central-identity.mjs": "22fe847d9c51fa47967d560497a731a734e7c531835dd00546c067bc5dc35551",
+        "scripts/verify-cross-server-bot.mjs": "807a321c4a280f3b29403f35e3d8d39a6bcbe06624b346500297f424fc74308d",
+        "scripts/verify-delivery.mjs": "51563650790241918110ea079bb7afb5b2fde1319de0ff000222f0de02c5778e",
+        "scripts/verify-federated-client.mjs": "c2e6f013479a05cb6a6fe29ffba5260a3523d1c07552c33a3e2f18202c8dd4e8",
+        "scripts/verify-file-work.mjs": "08e557105c89b0cd076109487a319bd3d4b7866582846f09f8cd5f81c6dde679",
+        "scripts/verify-membership.mjs": "e0e239ca415043f5ae36a581c33bad3f440a1c6999c4159aa11a49d72d4bb3b7",
+        "scripts/verify-onboarding.mjs": "72507768068d81403ed5c23e4616701dc9272b14b46e5f4c9df48e2630d40f7b",
+        "scripts/verify-spaces.mjs": "3b7e131365db7772877b353e6a9e41b24d5022dd98084ffaaad8abb6011caac7",
+        "scripts/verify-unified-client.mjs": "0c653618b1c1bd6438fd7597f51781128ffbb7923b9ac5c114d48aade8fed2b9",
+        "scripts/verify.mjs": "004aa5855082e9ef7305a51fa48ee37dd3763f688d6acd5b134f0a1ce142e243",
+        "src/accounts.mjs": "18befa99631d08ecdb14ed445c3d72a4f0b80cb4eeef3b128c9633bce4f288a7",
+        "src/admin-auth.mjs": "88274e04d2163189d9564b1dcce6d795bc6f9c5d8cfcb5dd4c511f10731aa186",
+        "src/admin.mjs": "71c4d2b8fe1683a23105cafe1952e5c3f38ad1528cde55c34ab2860d2f78925a",
+        "src/attention.mjs": "40cc7b8e1fb9c7285bcf509972ea86fced79f62dc7fc4352206d11382c5d203a",
+        "src/bot-node.mjs": "168e1a8d4850627953cd5529d49acecc7c437770aff11bd44a6e93e89fb6e7bb",
+        "src/bot-work-policy.mjs": "d0a13a65d6a876855ed0460987b65378c66d5ac375c58596b74aefe1f5d36a4d",
+        "src/bot-work.mjs": "c6090120cf4e445fb63a20f20b66a9719f3331b4a56f1df5da1a22b1fa97716c",
+        "src/budget.mjs": "e79680081ef02b9f7740276c73e717b367f5eb443bf69f82f3613a3c74d7cae2",
+        "src/collaboration.mjs": "ae208f4868258327ebe68a1dbb79f3a4cac0d0db8bb7602648bfccf63382a57a",
+        "src/core.mjs": "054bb2170a7c449795319fb26960389e54ffd7bc1d896e9f9c86c8033d099fb3",
+        "src/decision-provider.mjs": "ee69529be1179522ffbc124696557ad96a613ea724589557d6f589eea78f24a6",
+        "src/delivery-policy.mjs": "e8eeaeead6b57b6a0f526225ab073cfdadc0cb7275e98f0ffd161b94f735b763",
+        "src/file-formats.mjs": "8eeb4f8e5784f25e698d8f2d66c81865d41be231e667476ac5e3171c007b7004",
+        "src/governance.mjs": "bca5ec0b29b90cb6ba48a79c26274c121381aded258ebd555ba6cb44e7ed83c1",
+        "src/http-json.mjs": "d8f94389771aa58a2bd4f267d00b2a363a8638a85bab601fe890e062e4f714de",
+        "src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+        "src/kernel-control.mjs": "ec9daf1777571da233818d07536e6affbc3af6d7dadb7b51919395763d3c761b",
+        "src/kernel-node-client.mjs": "74ab6e5350f172a0a79f64eb2eab26fc066348004f4ae61478037fbd2f7e0ab0",
+        "src/matrix-client.mjs": "e5cd31a07f21e3d57e86320d9162e1b1a00cd07e01df22700db10e252023d5b7",
+        "src/media.mjs": "554c1e8f61e7193a5e258eb1e4cd19c84cb20a24e5f5f494cbeae772dc888ebd",
+        "src/mentions.mjs": "1984a2e352ea0d4e1d1f8ac117a36c52a54d65037492066de427990793333129",
+        "src/message-context.mjs": "6430dad869278a435f7b66e5103f2dde3c663a927c4483c533b12067f8118c90",
+        "src/model-config.mjs": "a66c902469bd7837733e14879c230393eb625fdd1aa343725119e1565bc228e3",
+        "src/model-failure.mjs": "7de54ae0874dd7f60bb62cb9b132f5fea1f248a8f23ff494a3e174da6ec7eb1b",
+        "src/native-bot-catalog.mjs": "71206f323de17906718a86742348a5a1903e51cfd165a26d3c278308dd146320",
+        "src/node-auth.mjs": "5eac06702c7e924d901b91d6b1722f3a5b2ec97c3df4880c00c7d1566281c755",
+        "src/node-delivery.mjs": "5efb517d78657709cfc91c54908c5bae17613bcaeed336ba97079bd51a72353e",
+        "src/node-files.mjs": "4c4010ff5bd1cb87da5b0c7bfb04c88c4e87beb363ed5be995f12d94f0295615",
+        "src/node-request.mjs": "65e5136a074548d180d48768b22d46220f28a6b7556473bb68e3b13cb0ce0cc6",
+        "src/node-store.mjs": "1fc1499f63794916be55314cdc35625ca8a7f8e673fcb1dad9296efb3d447bee",
+        "src/node-work.mjs": "7a934c0f185ba398afc218d36151e8ad7fc3d9c1f7122772382e0bbb4d47a650",
+        "src/participant-labels.mjs": "d0bff13b2de8bce0fee6f0added493db4c1497982ae07f8f44a31438dcb13f11",
+        "src/paths.mjs": "109dc8ca1009cf9cf015c30b61feb4ae1f9f4632b6b39f9876d8eb163875e231",
+        "src/push.mjs": "97cd6507e07cd52aef532fffba7216f40b60903e3bb04be9e37d399b2744e5da",
+        "src/room-media.mjs": "2667e57561e34ba2da280a8e22a94f0bd42bc9dda5c8f5628077d399ab70a5cc",
+        "src/synapse-control.mjs": "8bd87495e6107d6266885dfd4e2ce15ee2ba7516e802e4230a44c792d3376e6c",
+        "src/tasks.mjs": "13074f2cc94ee88c428bd6fc66834c950f66dd067055df23137aa9280b3c8eec",
+        "src/verified-media.mjs": "773dc083de0f4675799baf685046c8e605ec1566f13234fb761fe1dda569dda1",
+        "src/web-mode.mjs": "794c666a835ccb5f20102bb746288a9649ab1fcc600cb8b184674ef681547185",
+        "vendor/ds-bot/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "vendor/ds-bot/NOTICE": "71171a894d88e528e31ecd1f16a10a7a414d22eb092cf70fe631002bc5ccd39f",
+        "vendor/ds-bot/README.md": "3df00e6932e6a22f3ee11132c47a815d89047d0fd9acf91c80dd0039779e9471",
+        "vendor/ds-bot/UPSTREAM.json": "adc448224527c0510c49f5750b866a741e12dd0c7d700de095bd2ae447114b43",
+        "vendor/ds-bot/client.js": "cf262e6328342a4a00e8c73147d5ad446fe610fa20b37f23cd97452e5a1dc49e",
+        "vendor/ds-bot/cordis.patch.yml": "ec776d258ddcc920dc8d7b743f180f87aec4e7fb559842dbfd51819a6f2ef8db",
+        "vendor/ds-bot/index.js": "d4f998c7722d097a1b3c6eba171c5f13b8843d7e63b96eff6ad75de4eaf57b77",
+        "vendor/ds-bot/office.js": "9a8a97c0ea189d9c742fc6e7e93cb7a3cb117ec885aad9c5896232a10d3b4dea",
+        "vendor/ds-bot/package.json": "c208e679cfe4f09efddd6b39181883523215cace7c2f67a5e9cff1e52a1cbb36",
+        "vendor/ds-bot/src/host/agents.js": "f91decef7e3737e31f3d04b015c48857c4d28baee40c248d8dc5cde0a667b547",
+        "vendor/ds-bot/src/host/approvals.js": "c09dd6894c6b3c1d65669985ff847529dbcfe6a7527a932f3babc76437ed182f",
+        "vendor/ds-bot/src/host/avatar-library.js": "134e7e1f21e327b495c94775d72a5a977b98505bcf6178fe61532d4458fc3724",
+        "vendor/ds-bot/src/host/avatar.js": "fb3090994cc98e42222996a5a9e519447a18932b856d061a1d4c34cc64f5e141",
+        "vendor/ds-bot/src/host/browser-plugins.js": "9b80a265d4ca397660fd9ab32b2b735983045b1e1e341ebd54f170b7f1eb8102",
+        "vendor/ds-bot/src/host/browser.js": "c18d5ed420e92820de59b85592da6ecf4ac92a78f61cb9d89739d92bf740526b",
+        "vendor/ds-bot/src/host/browser/gate.js": "029955c6507fe5cc72aac0bf535c9b010a4b7df68d791793ded1cf4e04f2e04e",
+        "vendor/ds-bot/src/host/browser/loop.js": "c2598b25497f17d67b57b1b6c36eb26f09ec6d4c8646513c8926c2e3f0ccbe2a",
+        "vendor/ds-bot/src/host/browser/mount.js": "cc237a8af0946a0460201a238a90642aaba4c99139b1d1c8ea2cd9e04770920a",
+        "vendor/ds-bot/src/host/browser/refs.js": "5e15e36eb13170b7c9291974cdc393009a92205ca8bf1425dccb2d076410b729",
+        "vendor/ds-bot/src/host/browser/script-child.js": "0d3074ab97a95c8a98e445264efd822ace68b1bf90b0a4f93ed3ea66471edcfa",
+        "vendor/ds-bot/src/host/browser/script-runner.js": "48f342c52452d5cf4e07ff87e70c3ff663171bf930c941593c05e5883678a79e",
+        "vendor/ds-bot/src/host/browser/script.js": "6ab58e23ef1d994df6865add2126d38b60ebddb832f6b009faf6d5f14a3c9ca9",
+        "vendor/ds-bot/src/host/browser/session-model.js": "4ea5c71b7af6f08408ad7b66f66550ba5aafc5788beaca4bb1a010d3c6bd6e34",
+        "vendor/ds-bot/src/host/browser/session.js": "b8b8b563c46ad065dbf79d1e496036d7833c98c1f20f0bf5886a51af80e30b34",
+        "vendor/ds-bot/src/host/browser/task.js": "d5c6bf1663001fe211ba76d66fe46f510f649c4c146b42c6f6b7d2b127476697",
+        "vendor/ds-bot/src/host/btw.js": "c34936716465a0672d008c26f035702949495847cb2a323edd5d04187d7f841b",
+        "vendor/ds-bot/src/host/capabilities.js": "de00bf540137da28f4bd3e28cec2af87b95a5f9672e4f5461da9c9e94a1cc1c3",
+        "vendor/ds-bot/src/host/channel.js": "f3d9cbb04ac36455ee95dc99f20a89f7dc7a241e3517b712d8a33848a09a45a5",
+        "vendor/ds-bot/src/host/chat-index.js": "6ad7efefa31d7aaaa0ecbde2a369a28c59a36383203ff72dc50e5e98e5a007e7",
+        "vendor/ds-bot/src/host/computer/catalog.js": "6dcec2cbb10536eb7f3d9fd81925cc73c1e2468107507cf3739a2b40ebf0b57d",
+        "vendor/ds-bot/src/host/computer/index.js": "8e7624499785359cd83ac41b6a39148257087b870c55f16470c1d554539c4ad0",
+        "vendor/ds-bot/src/host/computer/leases.js": "2c31261a7673ef5b30b70727d9fdb2084e05ff783b6f3f5368cf5f45c8d3c2a8",
+        "vendor/ds-bot/src/host/connectors.js": "95f8d052c68f6b53e969224041285c258ca97ab2acab56485051cdc9e71f1b29",
+        "vendor/ds-bot/src/host/connectors/catalog.js": "9d3befbca1342b9dc4d89dde4831cbfc77daea54c2056e32b0fab5dc2497caee",
+        "vendor/ds-bot/src/host/connectors/gateway.js": "4b8f25280a3907e86d2b210b63acb34cf46ecd8898785c0e6c535256640bfeef",
+        "vendor/ds-bot/src/host/connectors/index.js": "60e327bf405d07a3132e99832dd32215902cb1509ea5ee39035395b7ddab0303",
+        "vendor/ds-bot/src/host/connectors/mail/index.js": "49474968ca278acfa74eb33ad729f99bf9fce7ca462024fbd4e4b9f9eaa84422",
+        "vendor/ds-bot/src/host/connectors/mail/presets.js": "51a52768d9cf52df0b69da9c89ee5f255db0096836dd6d38bfbd7eed712573cc",
+        "vendor/ds-bot/src/host/connectors/mail/transport.js": "04cc0134154f6853489afa858774ad359ea9390e0c2b2386c2a34c4fb6d86ab6",
+        "vendor/ds-bot/src/host/connectors/oauth.js": "31fd62053a981cd42f9c9ceffb5df5bb0eab50b6ed13176956d43f1e32851396",
+        "vendor/ds-bot/src/host/constants.js": "90b779f59124bfb47d73b6facd6c8a99d4f77cb021247f0e0ea9d1ece9773d09",
+        "vendor/ds-bot/src/host/context-failure.js": "db071a1c2e7116b4ff46e15e94c5dbdecc81888937fd448ced20c2b82a433697",
+        "vendor/ds-bot/src/host/delivery.js": "140f5cf30cc97a865961451ed4a5489d8474088b4a6abdd87be476ec3a4ac734",
+        "vendor/ds-bot/src/host/diagnostics.js": "5cd07367dfde624ce7bb7e5c2f794b870c1d91a11c7ac2920128e548a241d2c4",
+        "vendor/ds-bot/src/host/dsh-update.js": "d7c87158fe375aa3b791b81236f38db6efe4235fe925d49026778a6aabf54062",
+        "vendor/ds-bot/src/host/feed.js": "ff72f848672212eaba09fffc4407fd9dcc93f07813f44d07043887b0f41aaf26",
+        "vendor/ds-bot/src/host/files.js": "fc9c59d303ccce130f735a4044951b8efb87ac87dab693128dda1d70eea9b2f2",
+        "vendor/ds-bot/src/host/folders.js": "6c90fe4f394a04c25929bd3334e2d5c9a7b6118f857dbbda9dc7297aef218f0b",
+        "vendor/ds-bot/src/host/goal-skills.js": "f1c98c793c1cf3286a40ee8cb87adb57c518c36d31564001c7a8abbdf7545a96",
+        "vendor/ds-bot/src/host/goals.js": "a88f7953e3afda5d9d834c50ed18533437e8e528366b20176e1ccd1a1b6edde7",
+        "vendor/ds-bot/src/host/groups.js": "5e79623aa599bac0480867b0fe847d1473bd4f9be20b9341b464c74944d09202",
+        "vendor/ds-bot/src/host/handoffs.js": "7f105b9e98677a4bac48c2ebdf8fefaa0065acff39770b86b0b6cd1fc474a9d2",
+        "vendor/ds-bot/src/host/home-lock.js": "8108b699c67c61736c56554062eb013f1b3009b66db8dbd78679e5284303e5ab",
+        "vendor/ds-bot/src/host/im/format.js": "389e27bb2db4e4e1c5b32a09f44ce3ec06d09ef2ef89cf49c540eae6ad16ffb9",
+        "vendor/ds-bot/src/host/im/index.js": "8740979b6ef07a3043bb7229b4118da57b5743f4ac9c1b28f50c682c43c267c2",
+        "vendor/ds-bot/src/host/im/platforms/dingtalk.js": "67a6e19f96798b6132b83fd0c669d708faa0c86060f672ee993346bec36ee771",
+        "vendor/ds-bot/src/host/im/platforms/discord.js": "db6ceeda2dd704b81d26cdf2793d7e1afb838a198f4bb58e3f3818bcc89d0e38",
+        "vendor/ds-bot/src/host/im/platforms/feishu.js": "054961d11c1bbfb43b4dd24b6392f072d86a84b7686df9f32762e569369d9a09",
+        "vendor/ds-bot/src/host/im/platforms/index.js": "fadc7adb04e4c30246010024e5bf5677674117e24d3c0ea42d28bd661149ccd8",
+        "vendor/ds-bot/src/host/im/platforms/qq.js": "b63ff37c4e9044cd6ad8a31b830d0eb73802ba4c150b67779dddb1acdc422bfe",
+        "vendor/ds-bot/src/host/im/platforms/slack.js": "07b481f41260ab74585ebbef1c6da930f00cd8d13084b960acee52c2a06736eb",
+        "vendor/ds-bot/src/host/im/platforms/telegram.js": "210fa9accd8384e41a7f70f26cf57a3b5089665282c2568c1ae1b7b665271dd6",
+        "vendor/ds-bot/src/host/im/platforms/wecom.js": "6433344575cb98a1541406c5e0b49b1869cc5e41fd97ce8ca8ec5be76fabdbe4",
+        "vendor/ds-bot/src/host/im/platforms/weixin.js": "905f74687ca308346d290ab9af1a548c26fb9ef4cae3abfbd2b0fa373feb5d98",
+        "vendor/ds-bot/src/host/images.js": "c2dba6a2dd627661024ac7db1b05aee34a05ba0d4800d22d0ca77e4e165d99c0",
+        "vendor/ds-bot/src/host/learning.js": "d6f8654b96e7a57fcaac08fd30d18799f4787902d8f1fc534deb87b2fe9ae8f0",
+        "vendor/ds-bot/src/host/legacy.mjs": "56fca0da78c0507aef9d412e53dfcac1c7f6d0b0f37315e8c9ea199bf1f78df5",
+        "vendor/ds-bot/src/host/links.js": "01fca4728c87728a3815e435d4f9445fe45f808b7a5e5c6ba2f92772bf38411e",
+        "vendor/ds-bot/src/host/local-agents/acp.js": "0c3eb05889b71f71bb9c5693a9bc6922641674650afa06cfd2fce3aeefbc8c2c",
+        "vendor/ds-bot/src/host/local-agents/adapter.js": "63d614db07b0e84d9660bafba9c44cfc1cb596e94ffcf0ba52bb63c29b628894",
+        "vendor/ds-bot/src/host/local-agents/claude.js": "98dd25314467baed3a364958bb4f5dd717a4bae1a3407b15b1ce5fd264af769b",
+        "vendor/ds-bot/src/host/local-agents/codex.js": "837a7edc7efff52060518c2b1fb2f5cc29b53e737249dcfe9e5e8673c5aae0a8",
+        "vendor/ds-bot/src/host/local-agents/discover.js": "d3160a89b9d4b5cda5bea50b0ae8032c78244718a5f0bf4875f808e9c1c8c158",
+        "vendor/ds-bot/src/host/local-agents/engines.js": "909e63750fa9078a684d34684f8b35fec54f54e728e309f12b2d2c2aba75280b",
+        "vendor/ds-bot/src/host/local-agents/index.js": "0c9460f4d6f2c0030cb297de22b0aab6b8338cbd944a655162b3f7c1a473a070",
+        "vendor/ds-bot/src/host/local-agents/jsonrpc.js": "b8d49eeb9ba7b46286255b01b888ec1d3361ef39b7ccd05d6da1c5338362cde6",
+        "vendor/ds-bot/src/host/local-agents/mcp.js": "9427f5e69d8c08a741b9c4ec29abc187f199d22ad9e4ee7b1557ce87b53f8e8f",
+        "vendor/ds-bot/src/host/memory-pending.js": "6fc08524bceae6d9c85811244c1236b228cfe32ad2c9ac7cbca2e08cd143cdc7",
+        "vendor/ds-bot/src/host/memory.js": "75af2798c4e13f07446bf0cc70f6fcc5804dd758d6cc87691426353a9c91dfb1",
+        "vendor/ds-bot/src/host/message-source.js": "5503856d5d78ef496e29fcc7cdf186330b89a08ba9ee8a4be5534f3794820826",
+        "vendor/ds-bot/src/host/models.js": "722a5f30278c159e5a092f179b67eb567045ceb369a0961204fc255d22614191",
+        "vendor/ds-bot/src/host/office-skills.js": "ae32ce2268063279a212654fb2dd424bc11b474602a07c53878b2c412ee24ec9",
+        "vendor/ds-bot/src/host/parts.js": "75a8c5b48cbcec364a16b492e10f5c8aa5ab1e52d079e20bcf0bf287a7d897a0",
+        "vendor/ds-bot/src/host/permissions.js": "53c5c404265410379cf1f8b32bb438cde30f2a8f60ca14950ad0f59cb3f3c4c9",
+        "vendor/ds-bot/src/host/privacy.js": "c293deb2fc07b5b7193311a170e5c3fc47fb268d51513c457607932aec11d759",
+        "vendor/ds-bot/src/host/prompt.js": "3561e1e10028367d55fb518c75723679a07805602fca8879c41907fbb9f838b9",
+        "vendor/ds-bot/src/host/providers.js": "83e268bc27215d36b80ed71627b84cc0e6d1e52a9cf694776bd8d9f64c5f5072",
+        "vendor/ds-bot/src/host/requests.js": "492d785294aa3b08db336fcb508b1224dbf39365ba685b8beb42ce11a225cd95",
+        "vendor/ds-bot/src/host/resume.js": "c7f9c25582fdf4233345362cef8363392b9a1b52b8e21eba198719a788b19f88",
+        "vendor/ds-bot/src/host/roster.js": "0a6c50ecd22f50c65a4122f939433ef1435ffe7b1fd3513785e1abd6fed2a527",
+        "vendor/ds-bot/src/host/schedules.js": "9882ef5840df53b9dedb5b45a7c7a0d379700da998ce2b258355565e0c7fb9a3",
+        "vendor/ds-bot/src/host/secrets.js": "c506b7984abd5253831cfb70ae5ba609688cc0cdd25719984f76ded0b40498e0",
+        "vendor/ds-bot/src/host/side.js": "44d99fde9abbbc4664b35353392a4c88d21eab1642c3799c2756dad40b4e8d6e",
+        "vendor/ds-bot/src/host/skills/goal-grill/SKILL.md": "f6e6a17e897bda4d3e16e636cd7ddb519e080c79d4d7a3bfacbcafec37b02a26",
+        "vendor/ds-bot/src/host/steer.js": "6d0c8ee1a628ef24379ba36aaf818132bfdf8be34ad96e67547a1419cac2f837",
+        "vendor/ds-bot/src/host/steward.js": "d86e3ecbc2e424d2748600c97a363ba6bde70740d4335520e2b3b5b2c764a1d9",
+        "vendor/ds-bot/src/host/store.js": "3de9e1d876967fc5b4495c8fda9cfb1ab56f7f660b489abd3fadf98dc847675b",
+        "vendor/ds-bot/src/host/text.js": "2bb5f204061f12f1a648ccce62855f6a67ac0e72a1b3876a9a26937497ae4b6c",
+        "vendor/ds-bot/src/host/thinking.js": "6c6d36e327eff448450cf1729612c51d8f4c8cadb288e864375d1edcd0988da4",
+        "vendor/ds-bot/src/host/time-context.js": "117d3edacdebd494384445c80da4837df4583f5271cfe56f5a165ae5612cc1cd",
+        "vendor/ds-bot/src/host/tools.js": "81c56a5ccf30c86e2ddc7ac9dacb9494234ee394e0ec27826130950c8e4c766e",
+        "vendor/ds-bot/src/host/turns.js": "9578eb410d72a26f6e7889e911ae10d51cd85f33d9ea4987a446f618f4ad9530",
+        "vendor/ds-bot/src/host/update.js": "488ec1cfac77fc576fb2c9d77bef96c6bb055278e7e0cc5f7e3309ebcd772c9e",
+        "vendor/ds-bot/src/host/usage.js": "d7fedee22de505eba2d6740b0164bf658fa713dcb568bfbe209e209d2b693bb2",
+        "vendor/ds-bot/src/office/check.js": "1f75c1559e3d8945bfc10a503e0f5dbee1fefc7be9e24641b3f2fe6323026a38",
+        "vendor/ds-bot/src/office/cli.js": "4f01cc4c8be1b8b3b9f2a5102824c0cec8a5aada0f18d7d8f20e695c3a970135",
+        "vendor/ds-bot/src/office/docx.js": "246885d81833784888055482e0b728e47803f69a36d8cb015b9bc7fc7aeb6897",
+        "vendor/ds-bot/src/office/package.js": "b48535bec5902512663e977829e70314af53f3c2b9d163683f04e13576744110",
+        "vendor/ds-bot/src/office/png.js": "0d9dff8c5fe6f48383b55d6aa277f308fc8b7febc314f8311392d1d11a00c420",
+        "vendor/ds-bot/src/office/pptx.js": "98e71922df66d8b9fcaa86c514aa206ca83a7653b38c73022ec8a4d8bcced29e",
+        "vendor/ds-bot/src/office/skills/office-tools/SKILL.md": "89123ac8d4944cd207b77b2768d05a379ad67d8bd34eb57ed95c4d0ff44134aa",
+        "vendor/ds-bot/src/office/skills/office/SKILL.md": "98bb6eb550cc99667557d98885e8e6288524abb4460d8d75e4d94dac9f1e257d",
+        "vendor/ds-bot/src/office/xlsx.js": "06b370b01819b91a37ac916712fae785df8a9e39499313306d702d1551b7bcbc",
+        "vendor/ds-bot/src/office/xml.js": "0a5de76e4ab0d2003ed6f52cd7c35436743e4b301624f13ff0fc7165bca18129",
+        "vendor/ds-bot/src/office/zip.js": "a97b713c21304337205458b6fac58e9493611fdb23c47c79ce59b401e7c55e45",
+        "vendor/ds-bot/src/shared/group-replies.js": "2cf548a84206c873fc84e1a4141a39c3338081f2bfae1e9de35b046ff4552a9e",
+        "vendor/ds-bot/src/shared/im-platforms.js": "cd5452fee7f2a994e12935e27f4390b2757bf468c015bbefb2952652ad6358e8",
+        "vendor/ds-bot/src/shared/mentions.js": "a011d792da173dcf86f3a480ea8b9f8411528bf0b9a99db36a37e6b0e0aeecec",
+        "vendor/ds-bot/web-search.js": "9e38330353021a9bdc1503ee24d523b16b309b3f1ff688338caef48862e20265"
+      },
+      "sourceHashesAtEnd": {
+        "dsh-connect/KERNEL.md": "20f7ad2d6e55ccfbb388d955653ea2709362ca5aa32ecb762779bf1f8539768a",
+        "dsh-connect/client.js": "ff6687d15cb4d27be3569124742d7ad636af9ce247563c6e53124a2a098e9cf8",
+        "dsh-connect/controller.mjs": "dea6323cbab4b0265e64278de81707ccc86b6001e85d2c6470b55cabe21f42dd",
+        "dsh-connect/decision-settings.mjs": "25b7f78cac4ec3eb0a27e0a51fc9f4ef832e051987265d26276cb06e311ebe47",
+        "dsh-connect/index.mjs": "215325eed12dd492169f40ba8a77fe7b0ec553a468f0b6afabbaa206aaa60fbe",
+        "dsh-connect/kernel-runtime.mjs": "271108002935c72dc5ee23458454f7611bec56bfc562bf3147d1bd89051844dc",
+        "dsh-connect/models.mjs": "f1d94136996eb653ed264859f18171c12897adbbdf7d394dd264ccf44e619dc6",
+        "dsh-connect/native-bots.mjs": "97302d3e079d10974415449d1ee6ad04ea25ec5aad0dd72f9b220985edc4c925",
+        "dsh-connect/native-bridge.mjs": "ebe06beff6f3729c12cf6231419439e339dd01f878507a6d298aadf53d3e0bb5",
+        "dsh-connect/native-connections.mjs": "5e14dd5f3b9b97d7269f46d11b72487e222d35e0692552018c0d035d09436e38",
+        "dsh-connect/native-team.mjs": "1d0374a23861dd8b26d196cd7b6f0686797e86db0e0f1b7837b639d73748bd35",
+        "dsh-connect/processes.mjs": "888192ca883f55bff4738ec8c790faf666694873baed792dcc9faefeeed6f970",
+        "dsh-plugin/README.md": "621b2357b6280468da4cf81863708719911eb6bff6a65f74aea87f929cfd6760",
+        "dsh-plugin/index.mjs": "881afa4f656b46e8cfa75eb2e221a3cf9e05bc20f30591a8511140eb5c30c7ed",
+        "dsh-plugin/model-profile.mjs": "41e089adcd751a9f61fb38ee885f77c520e539a7730daaf81dc61eb8b3b0e728",
+        "dsh-plugin/package.json": "12f80a94725b2c77c10a99b5b1c9707da2b1d72f7bccd40525a95ef552737b56",
+        "dsh-plugin/runtime-dependencies-lock.json": "ba98e438735b9311c88ba48b3ae224e2cf6e51cc3b152c7a021c97591687f684",
+        "dsh-plugin/runtime-dependencies-pnpm-lock.yaml": "6e72f1b785a3e58c2523d8fced08c2f1515fdaf13889a36ddb6d3455066d6b01",
+        "dsh-plugin/runtime-dependencies.json": "a72a7c7d232a357947c1c6c2fcebe3ca761891605d8bbcb6807056f677aa1fee",
+        "dsh-plugin/runtime-rules.mjs": "1657aa77114ca3a6268bad0e6d071e7bdfae045580a8b9b7ea58358c4211588b",
+        "dsh-plugin/runtime.mjs": "d99669f3e21e45e148c8c3e08fef9e2a73b85c3028fec839388290d5cb5f85ac",
+        "dsh-plugin/scoped-work.mjs": "b1b8447b3bafbb1921e16ef86881ccf3963b1bbabd71f304a68e882944b864ef",
+        "dsh-plugin/work-files.mjs": "62a350cf088970ab540079b1722b7ecf0e5f6d0fb17f9b0a20f01b9250d95a17",
+        "memory/contacts.mjs": "c1550471b03c2a594516daef944b97eca74557ea3baf59efe7c1fb931c5c9d07",
+        "memory/ingress.mjs": "d4dff11905d6dcb941ff6d12427b1e027b86e14bde06814d21a1c82af43e7bbe",
+        "memory/model-options.mjs": "f62b53a2428585d47355d76e324f5f1c585456246e368a49688adbe7b32feac1",
+        "memory/native.mjs": "2f793fb808603e9b44594f3f0233314356bc53dbb0b36d411614d6b0afabf560",
+        "memory/observation-policy.mjs": "abb9415d90cebc73f09ee4e1ed842e85457d7e5d8dbf85aed2489a1831e09c07",
+        "memory/ombre.mjs": "f5aadcb2e70609a4ae8b94a5a0db3f832d460a1b829b934c62bec54b7bffc882",
+        "memory/panel.mjs": "652d24548e3735e8c27332d4b99a4a2fa629c211d3dbe3d1c2012a1f7e61011b",
+        "memory/review.mjs": "af118a53a2127326043334290b0fdf395bd506a4526a150f48bfb53676706957",
+        "memory/service.mjs": "d2e00df83aee2d99b66d34a9971802a82fe89256f566013d9755c657f94f25e5",
+        "memory/snapshot-context.mjs": "9300dd9a3d6a7706665347674d55809bfcae9c60c711a0c885a1ec48271a0856",
+        "memory/source-query.mjs": "2eb8347a87a592f049160fe2d7028e02dad7c9b4f4c196e67f643562288d76a5",
+        "memory/store.mjs": "a7d3e454cea5a4bf53ba20dc315b282002db1586d1c2d8a50a79c9ee33b84ba5",
+        "memory/views.mjs": "e3c68969ed9db45f7f106ee50de07e5d1ca1b73cc1a3c6073bb1585f5678be97",
+        "memory/复用与运行.md": "33da013821ea46d6d007bb9364915ad11399aebc92ce19b4a979e23e73996235",
+        "memory/实施与长程测试.md": "0fb485787ffd6fb50c0c3d2fccbd123de8711145bf6b738f23ecdaca1b1f8888",
+        "memory/当前上下文与回顾.md": "f0672f7e8f1e06cbe23d9615e77a0156e0f90e59249523486c0e802200dc5416",
+        "memory/目录.md": "bfe2b6a0a0999896f9737f1f92520fb6e50ab970ed53ec6da58c69acc9803bb8",
+        "scripts/admin.mjs": "12fa65dabefc01f3dd4ff06ac99d23e1066941fc1acc010aaf2b6661c0c28f7f",
+        "scripts/build-pwa.mjs": "ff62fd6e318fbdac39ee2b0c4d98beb3b9c53573f70ca88034ae4b99b913e2af",
+        "scripts/central-init.mjs": "0412e00a5a185f31459a24040ee8f5dc93e38e7e060375a012f970b7585aa86b",
+        "scripts/check.mjs": "4a850c5121e4f290e4a94c835e9606335669b789d155aeb86a4db46544afe06b",
+        "scripts/collaboration-continuation-corpus.mjs": "50c2d093e57af294d54cccff4dac6979b451b190be7eec51393edb248915c835",
+        "scripts/collaboration-delivery-recheck.mjs": "06ba7c6044cb3d8ed2110dc22a64e1fab03f16453b2a7d3ad7db4a17094f2e9e",
+        "scripts/collaboration-evidence.mjs": "020260c2ead596160b0541b3253ea2d9ea9012e449fcdf30d8374273b7680258",
+        "scripts/collaboration-fixes-evidence.mjs": "66d902612e468ab08cde1189ec056968df26ce17aaf57e2f1df29f1e2a605b59",
+        "scripts/collaboration-fixes-real.mjs": "bb70a31116f69ef68d62fb301475774cf2852e03b36ddb8cf6bcf2fc640719f3",
+        "scripts/collaboration-long-audit.mjs": "f31ea0d0ae1ad892abab591b1a1998a5f9f12c1bee24cf1f07451bb5b76da95c",
+        "scripts/collaboration-long-check.mjs": "10d21703acb49c285d067cf5eae5205f148cf15c8c02376161dfca1b5a120e02",
+        "scripts/collaboration-long-corpus.mjs": "98ea4badd217d8c54ccef1dc33508131fd8a0d6df94a99a8d33fffb6e05365de",
+        "scripts/collaboration-long-run.mjs": "c63d1efc69d4e07c783939e01f989e40320df0e3a23e741e8e5267d64794caf9",
+        "scripts/collaboration-maintenance.mjs": "affb95c6b5d09c0d19abdfd4ffc6cb837434496312951be1ac58438d0e85892a",
+        "scripts/collaboration-memory-snapshot.mjs": "ac3ad90ee5d02d320b513d0f59682728ae2bd76a4718a9c106d50f18513899d3",
+        "scripts/commandcode-native-smoke.mjs": "161847a9d5cf231d5c4b6336bacaee33e4a93800b215e336b5fc58da299588db",
+        "scripts/commandcode-preflight.mjs": "7b989ab597af270fcf70a13deb1e0ef48abbf2c3288f017028bb267f6c936e81",
+        "scripts/cross-server-runtime-smoke.mjs": "0b46fceb1acf8e73b86df32b7115c6668eba4a0e4b5a2b31434030e9c45e0b2b",
+        "scripts/deploy-smoke.mjs": "f750be3ceb8066666fb9a9e8d51316804a694922bf982fc403b83c9712fd833b",
+        "scripts/dsh-node.mjs": "d53b5671962c8c1449dc7f446c9a490a3e27ef5d056d26eaa37c44841efd30d6",
+        "scripts/federation-lab.mjs": "0dc0c7e17f953eed322dd1fa43a5a321fec9f19b4afd051357c525869c7ddfb6",
+        "scripts/file-work.mjs": "633e3ff58c8087dda065a31979bfb04915564723dfd675bcd947030c7641ff7f",
+        "scripts/go-quota.mjs": "fdbfce1e0adb37d80fe20044a7f5a528f6ad7a592a8718228566711fed291b95",
+        "scripts/kernel-runtime-smoke.mjs": "20684bfc26424c3d2b05c908b30f1acc4e104673aa713f66c23eee7675468ccc",
+        "scripts/matrix.mjs": "93cd493cf16d6600d6e2b23a9be975b74c59fbae99b6e76f796cb6a1039aef01",
+        "scripts/memory-delivery-evidence.mjs": "8e99cd0b4ff4aa261fe5f4cc8413200220dd3174e830dfb5fab0091ccd3e19bc",
+        "scripts/memory-evidence.mjs": "cbe071bb258c6d973f7ddb62111d3b7d8bc0c9a10443a4a877bb24400c505c67",
+        "scripts/memory-host-plugin.mjs": "76d93f1948abbc50e3be2e0bb09b7c9924aae9b4cee5db788b5e05fd57fd08d3",
+        "scripts/memory-host.mjs": "7c27fcce2f457642114b2e84048c0dfb16c9dd19a3864ae9e07134252e1cd094",
+        "scripts/memory-long-corpus.mjs": "0206b80d9fa3563355689429d5e61cfc7b25746bb9d3623b782da7c8d19f33fa",
+        "scripts/memory-long-run.mjs": "3e69006ceeb70cde0bde00141aa20bb79a2e1b109f36e017fb477f9ac5f57c9a",
+        "scripts/memory-native-compat.mjs": "71f349f8de398f774ce46df618e9a0b31ef1d76d5813ab40d8803694c4517a0a",
+        "scripts/memory-native-delivery.mjs": "6dd0e929d780210b65213af54f72340e6264724e932e5038da592f93c01694b5",
+        "scripts/memory-native-smoke.mjs": "2197b39fd14d924040f522fc2d7c396a4a32153e64227d35980d9e490b6f8f4d",
+        "scripts/memory-recovery-smoke.mjs": "cd81bf33af30a191440e86a087afc9f45690cc07e37864773b02e83b6fca3bc4",
+        "scripts/memory-setup.mjs": "777368a98df316e87fc4566c12e93392c4947fbca57fa67f142d571367b56bea",
+        "scripts/memory-test-model.mjs": "611fa827c1a5ce3819d5fe3e9179237320ef197ac04df0e3351af2cb99577c86",
+        "scripts/memory-vector-scale.mjs": "9baab1fb4498f870b7c5417b752bd4fcf3675a282a2d9a192424731006f7584e",
+        "scripts/memory-vector-smoke.mjs": "6c1bf7f4fd21537508e58f31db2dd7254f589566c8d659ae287f89657be3930b",
+        "scripts/memory-visible-environment.mjs": "024f55defb9f95a4dc89cd9b978e577293229839745ddc98831d667d85f8d38c",
+        "scripts/memory-visible-host-plugin.mjs": "9c2da95aee4e3068b2865b86da6d1059adb958f6bb4944df796ca17aa7064c23",
+        "scripts/memory-visible-run.mjs": "a0beee34bdeb194c4f873893143822b39332fa069cd9d0b6e84c263bff49d975",
+        "scripts/model-settings-smoke.mjs": "55a8039e867d099fa5d4cc05cf01915b036957e69bae97a0194627437280de45",
+        "scripts/native-bot-smoke.mjs": "1b8ecbca3659a9d49a9e1a0f4fac7d23616f4f743343e907fb9823c68085df9a",
+        "scripts/native-ui-smoke.mjs": "dd836891fd63c9eea3f26212c1b818b3e19202210c86eb6091e5b5192a1458a5",
+        "scripts/npm-pack.mjs": "b3a517ec4d1b4cb22edc9b2457459fcc112ea738c9e5e3f6aa118a86c8e6b705",
+        "scripts/npm-smoke.mjs": "9c982f2d2b0a1b93c91fbfeb182bc5fedc851f7ed471445ae79a76e8749dbe1c",
+        "scripts/platform-deploy-smoke.mjs": "bab7fb1d0de5402acdf6253ec8c7437f60f083301d757e138e51f473b4b0d75d",
+        "scripts/platform-natural-accounting.mjs": "b70bd180d784c26bd7fd996cf79cfe10d8e06a0a49a2aabfa9c06af52572beb8",
+        "scripts/platform-natural-check.mjs": "ae6621cd5b8362833bf01df51830cc4ef3a81b92dc9774d6ad0356f1f4cc15b8",
+        "scripts/platform-natural-corpus.mjs": "d99d738bfb9c5dd61380055d53c31ec85f898788a8903fe9c51377e131459504",
+        "scripts/platform-natural-environment.mjs": "21038ee745181720033d3971b9c09d79eca23723f54cab4dafba85197f3890f7",
+        "scripts/platform-natural-evidence.mjs": "2824b9dfb80b9498773f5981ecded95c14aeb7a188748109fde181be79e6e919",
+        "scripts/platform-natural-host.mjs": "cd605ae2fc91289dc455b021c64b229cdeb4c6e84602ad1756d8332a15739999",
+        "scripts/platform-natural-live.mjs": "abef8b16e030c4df8491e2f96b78ff574a5c55d7ef44470fd8077d80b0b66348",
+        "scripts/platform-natural-oracle.mjs": "92d5d651b55607e7bbf7b0659bf633cc77c155e7742ce046ecce76e5896eef43",
+        "scripts/platform-natural-run.mjs": "95ac50b4aaaffdc38e28b9fa8b34d71728b66d72f46b9c7b17ecadd8c3bb57d0",
+        "scripts/push-check.mjs": "6cd87177c43f36cd8939d08581934db58b21219175a5cc7451b965334f7b1987",
+        "scripts/release-metadata.mjs": "d3ec13af765908b58edd1efab922f51a0eb64528b1ede7a431a4fa36e80626b6",
+        "scripts/release-pack.mjs": "0279a3bb43734c10fda2f2fa7dafbd84da37b969bbc5c01de4ec8c2a74ce2407",
+        "scripts/release-verify.mjs": "9c44a7a262ffb9c14d3e291f9c4d0ceae99e37a2251bc146cf4b034dff7f62a0",
+        "scripts/runtime-config.mjs": "f95138748cb15ef560ce287c31c168a215b0783898d156db7be72a25b0efbfc6",
+        "scripts/runtime-dependencies.mjs": "a32b0230deae647721d9414e8a6c5f22594ee26b1bfa01592f7da291fed1c5ba",
+        "scripts/runtime-smoke.mjs": "cccddead14333425789963ac2375657dde495e4d35a160d63d0983911f97f643",
+        "scripts/runtime-work-smoke.mjs": "7bd125d5aeb7d776c27d02676405b7e263c89781176c6459661f04ffd1074199",
+        "scripts/server-admin.mjs": "88acd9ed6665924266c7f1ade880aa9d5a3e450813e3bea7a6760b5de60032ca",
+        "scripts/server-bootstrap.mjs": "494d2551d7ccd9f0d2ffbc12bb073780b05359d72048c9d41775ea488077b7bf",
+        "scripts/server-init.mjs": "ec72a7de437856b9ca03c7be2e76ffd8b109612cdee3aa293a68652bbed4654f",
+        "scripts/service.mjs": "cda1750cc2a482acc1aa26d0988f9f4117847977bfbf9de2a63893bb728da53a",
+        "scripts/storage-smoke.mjs": "7767859a81d62b015b4e9fd18cabe38b993750b9d4cb46224043ca65842880bc",
+        "scripts/thread-relations-smoke.mjs": "e674f0347be63a626978b26f0f7c185a43fdaa16eb41bc09d297b9e6429d906f",
+        "scripts/verify-api-only.mjs": "b6db895a8601195818c7eb78ec6bc5946228bd126444dcd84f3d2837badb7a84",
+        "scripts/verify-central-identity.mjs": "22fe847d9c51fa47967d560497a731a734e7c531835dd00546c067bc5dc35551",
+        "scripts/verify-cross-server-bot.mjs": "807a321c4a280f3b29403f35e3d8d39a6bcbe06624b346500297f424fc74308d",
+        "scripts/verify-delivery.mjs": "51563650790241918110ea079bb7afb5b2fde1319de0ff000222f0de02c5778e",
+        "scripts/verify-federated-client.mjs": "c2e6f013479a05cb6a6fe29ffba5260a3523d1c07552c33a3e2f18202c8dd4e8",
+        "scripts/verify-file-work.mjs": "08e557105c89b0cd076109487a319bd3d4b7866582846f09f8cd5f81c6dde679",
+        "scripts/verify-membership.mjs": "e0e239ca415043f5ae36a581c33bad3f440a1c6999c4159aa11a49d72d4bb3b7",
+        "scripts/verify-onboarding.mjs": "72507768068d81403ed5c23e4616701dc9272b14b46e5f4c9df48e2630d40f7b",
+        "scripts/verify-spaces.mjs": "3b7e131365db7772877b353e6a9e41b24d5022dd98084ffaaad8abb6011caac7",
+        "scripts/verify-unified-client.mjs": "0c653618b1c1bd6438fd7597f51781128ffbb7923b9ac5c114d48aade8fed2b9",
+        "scripts/verify.mjs": "004aa5855082e9ef7305a51fa48ee37dd3763f688d6acd5b134f0a1ce142e243",
+        "src/accounts.mjs": "18befa99631d08ecdb14ed445c3d72a4f0b80cb4eeef3b128c9633bce4f288a7",
+        "src/admin-auth.mjs": "88274e04d2163189d9564b1dcce6d795bc6f9c5d8cfcb5dd4c511f10731aa186",
+        "src/admin.mjs": "71c4d2b8fe1683a23105cafe1952e5c3f38ad1528cde55c34ab2860d2f78925a",
+        "src/attention.mjs": "40cc7b8e1fb9c7285bcf509972ea86fced79f62dc7fc4352206d11382c5d203a",
+        "src/bot-node.mjs": "168e1a8d4850627953cd5529d49acecc7c437770aff11bd44a6e93e89fb6e7bb",
+        "src/bot-work-policy.mjs": "d0a13a65d6a876855ed0460987b65378c66d5ac375c58596b74aefe1f5d36a4d",
+        "src/bot-work.mjs": "c6090120cf4e445fb63a20f20b66a9719f3331b4a56f1df5da1a22b1fa97716c",
+        "src/budget.mjs": "e79680081ef02b9f7740276c73e717b367f5eb443bf69f82f3613a3c74d7cae2",
+        "src/collaboration.mjs": "ae208f4868258327ebe68a1dbb79f3a4cac0d0db8bb7602648bfccf63382a57a",
+        "src/core.mjs": "054bb2170a7c449795319fb26960389e54ffd7bc1d896e9f9c86c8033d099fb3",
+        "src/decision-provider.mjs": "ee69529be1179522ffbc124696557ad96a613ea724589557d6f589eea78f24a6",
+        "src/delivery-policy.mjs": "e8eeaeead6b57b6a0f526225ab073cfdadc0cb7275e98f0ffd161b94f735b763",
+        "src/file-formats.mjs": "8eeb4f8e5784f25e698d8f2d66c81865d41be231e667476ac5e3171c007b7004",
+        "src/governance.mjs": "bca5ec0b29b90cb6ba48a79c26274c121381aded258ebd555ba6cb44e7ed83c1",
+        "src/http-json.mjs": "d8f94389771aa58a2bd4f267d00b2a363a8638a85bab601fe890e062e4f714de",
+        "src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+        "src/kernel-control.mjs": "ec9daf1777571da233818d07536e6affbc3af6d7dadb7b51919395763d3c761b",
+        "src/kernel-node-client.mjs": "74ab6e5350f172a0a79f64eb2eab26fc066348004f4ae61478037fbd2f7e0ab0",
+        "src/matrix-client.mjs": "e5cd31a07f21e3d57e86320d9162e1b1a00cd07e01df22700db10e252023d5b7",
+        "src/media.mjs": "554c1e8f61e7193a5e258eb1e4cd19c84cb20a24e5f5f494cbeae772dc888ebd",
+        "src/mentions.mjs": "1984a2e352ea0d4e1d1f8ac117a36c52a54d65037492066de427990793333129",
+        "src/message-context.mjs": "6430dad869278a435f7b66e5103f2dde3c663a927c4483c533b12067f8118c90",
+        "src/model-config.mjs": "a66c902469bd7837733e14879c230393eb625fdd1aa343725119e1565bc228e3",
+        "src/model-failure.mjs": "7de54ae0874dd7f60bb62cb9b132f5fea1f248a8f23ff494a3e174da6ec7eb1b",
+        "src/native-bot-catalog.mjs": "71206f323de17906718a86742348a5a1903e51cfd165a26d3c278308dd146320",
+        "src/node-auth.mjs": "5eac06702c7e924d901b91d6b1722f3a5b2ec97c3df4880c00c7d1566281c755",
+        "src/node-delivery.mjs": "5efb517d78657709cfc91c54908c5bae17613bcaeed336ba97079bd51a72353e",
+        "src/node-files.mjs": "4c4010ff5bd1cb87da5b0c7bfb04c88c4e87beb363ed5be995f12d94f0295615",
+        "src/node-request.mjs": "65e5136a074548d180d48768b22d46220f28a6b7556473bb68e3b13cb0ce0cc6",
+        "src/node-store.mjs": "1fc1499f63794916be55314cdc35625ca8a7f8e673fcb1dad9296efb3d447bee",
+        "src/node-work.mjs": "7a934c0f185ba398afc218d36151e8ad7fc3d9c1f7122772382e0bbb4d47a650",
+        "src/participant-labels.mjs": "d0bff13b2de8bce0fee6f0added493db4c1497982ae07f8f44a31438dcb13f11",
+        "src/paths.mjs": "109dc8ca1009cf9cf015c30b61feb4ae1f9f4632b6b39f9876d8eb163875e231",
+        "src/push.mjs": "97cd6507e07cd52aef532fffba7216f40b60903e3bb04be9e37d399b2744e5da",
+        "src/room-media.mjs": "2667e57561e34ba2da280a8e22a94f0bd42bc9dda5c8f5628077d399ab70a5cc",
+        "src/synapse-control.mjs": "8bd87495e6107d6266885dfd4e2ce15ee2ba7516e802e4230a44c792d3376e6c",
+        "src/tasks.mjs": "13074f2cc94ee88c428bd6fc66834c950f66dd067055df23137aa9280b3c8eec",
+        "src/verified-media.mjs": "773dc083de0f4675799baf685046c8e605ec1566f13234fb761fe1dda569dda1",
+        "src/web-mode.mjs": "794c666a835ccb5f20102bb746288a9649ab1fcc600cb8b184674ef681547185",
+        "vendor/ds-bot/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "vendor/ds-bot/NOTICE": "71171a894d88e528e31ecd1f16a10a7a414d22eb092cf70fe631002bc5ccd39f",
+        "vendor/ds-bot/README.md": "3df00e6932e6a22f3ee11132c47a815d89047d0fd9acf91c80dd0039779e9471",
+        "vendor/ds-bot/UPSTREAM.json": "adc448224527c0510c49f5750b866a741e12dd0c7d700de095bd2ae447114b43",
+        "vendor/ds-bot/client.js": "cf262e6328342a4a00e8c73147d5ad446fe610fa20b37f23cd97452e5a1dc49e",
+        "vendor/ds-bot/cordis.patch.yml": "ec776d258ddcc920dc8d7b743f180f87aec4e7fb559842dbfd51819a6f2ef8db",
+        "vendor/ds-bot/index.js": "d4f998c7722d097a1b3c6eba171c5f13b8843d7e63b96eff6ad75de4eaf57b77",
+        "vendor/ds-bot/office.js": "9a8a97c0ea189d9c742fc6e7e93cb7a3cb117ec885aad9c5896232a10d3b4dea",
+        "vendor/ds-bot/package.json": "c208e679cfe4f09efddd6b39181883523215cace7c2f67a5e9cff1e52a1cbb36",
+        "vendor/ds-bot/src/host/agents.js": "f91decef7e3737e31f3d04b015c48857c4d28baee40c248d8dc5cde0a667b547",
+        "vendor/ds-bot/src/host/approvals.js": "c09dd6894c6b3c1d65669985ff847529dbcfe6a7527a932f3babc76437ed182f",
+        "vendor/ds-bot/src/host/avatar-library.js": "134e7e1f21e327b495c94775d72a5a977b98505bcf6178fe61532d4458fc3724",
+        "vendor/ds-bot/src/host/avatar.js": "fb3090994cc98e42222996a5a9e519447a18932b856d061a1d4c34cc64f5e141",
+        "vendor/ds-bot/src/host/browser-plugins.js": "9b80a265d4ca397660fd9ab32b2b735983045b1e1e341ebd54f170b7f1eb8102",
+        "vendor/ds-bot/src/host/browser.js": "c18d5ed420e92820de59b85592da6ecf4ac92a78f61cb9d89739d92bf740526b",
+        "vendor/ds-bot/src/host/browser/gate.js": "029955c6507fe5cc72aac0bf535c9b010a4b7df68d791793ded1cf4e04f2e04e",
+        "vendor/ds-bot/src/host/browser/loop.js": "c2598b25497f17d67b57b1b6c36eb26f09ec6d4c8646513c8926c2e3f0ccbe2a",
+        "vendor/ds-bot/src/host/browser/mount.js": "cc237a8af0946a0460201a238a90642aaba4c99139b1d1c8ea2cd9e04770920a",
+        "vendor/ds-bot/src/host/browser/refs.js": "5e15e36eb13170b7c9291974cdc393009a92205ca8bf1425dccb2d076410b729",
+        "vendor/ds-bot/src/host/browser/script-child.js": "0d3074ab97a95c8a98e445264efd822ace68b1bf90b0a4f93ed3ea66471edcfa",
+        "vendor/ds-bot/src/host/browser/script-runner.js": "48f342c52452d5cf4e07ff87e70c3ff663171bf930c941593c05e5883678a79e",
+        "vendor/ds-bot/src/host/browser/script.js": "6ab58e23ef1d994df6865add2126d38b60ebddb832f6b009faf6d5f14a3c9ca9",
+        "vendor/ds-bot/src/host/browser/session-model.js": "4ea5c71b7af6f08408ad7b66f66550ba5aafc5788beaca4bb1a010d3c6bd6e34",
+        "vendor/ds-bot/src/host/browser/session.js": "b8b8b563c46ad065dbf79d1e496036d7833c98c1f20f0bf5886a51af80e30b34",
+        "vendor/ds-bot/src/host/browser/task.js": "d5c6bf1663001fe211ba76d66fe46f510f649c4c146b42c6f6b7d2b127476697",
+        "vendor/ds-bot/src/host/btw.js": "c34936716465a0672d008c26f035702949495847cb2a323edd5d04187d7f841b",
+        "vendor/ds-bot/src/host/capabilities.js": "de00bf540137da28f4bd3e28cec2af87b95a5f9672e4f5461da9c9e94a1cc1c3",
+        "vendor/ds-bot/src/host/channel.js": "f3d9cbb04ac36455ee95dc99f20a89f7dc7a241e3517b712d8a33848a09a45a5",
+        "vendor/ds-bot/src/host/chat-index.js": "6ad7efefa31d7aaaa0ecbde2a369a28c59a36383203ff72dc50e5e98e5a007e7",
+        "vendor/ds-bot/src/host/computer/catalog.js": "6dcec2cbb10536eb7f3d9fd81925cc73c1e2468107507cf3739a2b40ebf0b57d",
+        "vendor/ds-bot/src/host/computer/index.js": "8e7624499785359cd83ac41b6a39148257087b870c55f16470c1d554539c4ad0",
+        "vendor/ds-bot/src/host/computer/leases.js": "2c31261a7673ef5b30b70727d9fdb2084e05ff783b6f3f5368cf5f45c8d3c2a8",
+        "vendor/ds-bot/src/host/connectors.js": "95f8d052c68f6b53e969224041285c258ca97ab2acab56485051cdc9e71f1b29",
+        "vendor/ds-bot/src/host/connectors/catalog.js": "9d3befbca1342b9dc4d89dde4831cbfc77daea54c2056e32b0fab5dc2497caee",
+        "vendor/ds-bot/src/host/connectors/gateway.js": "4b8f25280a3907e86d2b210b63acb34cf46ecd8898785c0e6c535256640bfeef",
+        "vendor/ds-bot/src/host/connectors/index.js": "60e327bf405d07a3132e99832dd32215902cb1509ea5ee39035395b7ddab0303",
+        "vendor/ds-bot/src/host/connectors/mail/index.js": "49474968ca278acfa74eb33ad729f99bf9fce7ca462024fbd4e4b9f9eaa84422",
+        "vendor/ds-bot/src/host/connectors/mail/presets.js": "51a52768d9cf52df0b69da9c89ee5f255db0096836dd6d38bfbd7eed712573cc",
+        "vendor/ds-bot/src/host/connectors/mail/transport.js": "04cc0134154f6853489afa858774ad359ea9390e0c2b2386c2a34c4fb6d86ab6",
+        "vendor/ds-bot/src/host/connectors/oauth.js": "31fd62053a981cd42f9c9ceffb5df5bb0eab50b6ed13176956d43f1e32851396",
+        "vendor/ds-bot/src/host/constants.js": "90b779f59124bfb47d73b6facd6c8a99d4f77cb021247f0e0ea9d1ece9773d09",
+        "vendor/ds-bot/src/host/context-failure.js": "db071a1c2e7116b4ff46e15e94c5dbdecc81888937fd448ced20c2b82a433697",
+        "vendor/ds-bot/src/host/delivery.js": "140f5cf30cc97a865961451ed4a5489d8474088b4a6abdd87be476ec3a4ac734",
+        "vendor/ds-bot/src/host/diagnostics.js": "5cd07367dfde624ce7bb7e5c2f794b870c1d91a11c7ac2920128e548a241d2c4",
+        "vendor/ds-bot/src/host/dsh-update.js": "d7c87158fe375aa3b791b81236f38db6efe4235fe925d49026778a6aabf54062",
+        "vendor/ds-bot/src/host/feed.js": "ff72f848672212eaba09fffc4407fd9dcc93f07813f44d07043887b0f41aaf26",
+        "vendor/ds-bot/src/host/files.js": "fc9c59d303ccce130f735a4044951b8efb87ac87dab693128dda1d70eea9b2f2",
+        "vendor/ds-bot/src/host/folders.js": "6c90fe4f394a04c25929bd3334e2d5c9a7b6118f857dbbda9dc7297aef218f0b",
+        "vendor/ds-bot/src/host/goal-skills.js": "f1c98c793c1cf3286a40ee8cb87adb57c518c36d31564001c7a8abbdf7545a96",
+        "vendor/ds-bot/src/host/goals.js": "a88f7953e3afda5d9d834c50ed18533437e8e528366b20176e1ccd1a1b6edde7",
+        "vendor/ds-bot/src/host/groups.js": "5e79623aa599bac0480867b0fe847d1473bd4f9be20b9341b464c74944d09202",
+        "vendor/ds-bot/src/host/handoffs.js": "7f105b9e98677a4bac48c2ebdf8fefaa0065acff39770b86b0b6cd1fc474a9d2",
+        "vendor/ds-bot/src/host/home-lock.js": "8108b699c67c61736c56554062eb013f1b3009b66db8dbd78679e5284303e5ab",
+        "vendor/ds-bot/src/host/im/format.js": "389e27bb2db4e4e1c5b32a09f44ce3ec06d09ef2ef89cf49c540eae6ad16ffb9",
+        "vendor/ds-bot/src/host/im/index.js": "8740979b6ef07a3043bb7229b4118da57b5743f4ac9c1b28f50c682c43c267c2",
+        "vendor/ds-bot/src/host/im/platforms/dingtalk.js": "67a6e19f96798b6132b83fd0c669d708faa0c86060f672ee993346bec36ee771",
+        "vendor/ds-bot/src/host/im/platforms/discord.js": "db6ceeda2dd704b81d26cdf2793d7e1afb838a198f4bb58e3f3818bcc89d0e38",
+        "vendor/ds-bot/src/host/im/platforms/feishu.js": "054961d11c1bbfb43b4dd24b6392f072d86a84b7686df9f32762e569369d9a09",
+        "vendor/ds-bot/src/host/im/platforms/index.js": "fadc7adb04e4c30246010024e5bf5677674117e24d3c0ea42d28bd661149ccd8",
+        "vendor/ds-bot/src/host/im/platforms/qq.js": "b63ff37c4e9044cd6ad8a31b830d0eb73802ba4c150b67779dddb1acdc422bfe",
+        "vendor/ds-bot/src/host/im/platforms/slack.js": "07b481f41260ab74585ebbef1c6da930f00cd8d13084b960acee52c2a06736eb",
+        "vendor/ds-bot/src/host/im/platforms/telegram.js": "210fa9accd8384e41a7f70f26cf57a3b5089665282c2568c1ae1b7b665271dd6",
+        "vendor/ds-bot/src/host/im/platforms/wecom.js": "6433344575cb98a1541406c5e0b49b1869cc5e41fd97ce8ca8ec5be76fabdbe4",
+        "vendor/ds-bot/src/host/im/platforms/weixin.js": "905f74687ca308346d290ab9af1a548c26fb9ef4cae3abfbd2b0fa373feb5d98",
+        "vendor/ds-bot/src/host/images.js": "c2dba6a2dd627661024ac7db1b05aee34a05ba0d4800d22d0ca77e4e165d99c0",
+        "vendor/ds-bot/src/host/learning.js": "d6f8654b96e7a57fcaac08fd30d18799f4787902d8f1fc534deb87b2fe9ae8f0",
+        "vendor/ds-bot/src/host/legacy.mjs": "56fca0da78c0507aef9d412e53dfcac1c7f6d0b0f37315e8c9ea199bf1f78df5",
+        "vendor/ds-bot/src/host/links.js": "01fca4728c87728a3815e435d4f9445fe45f808b7a5e5c6ba2f92772bf38411e",
+        "vendor/ds-bot/src/host/local-agents/acp.js": "0c3eb05889b71f71bb9c5693a9bc6922641674650afa06cfd2fce3aeefbc8c2c",
+        "vendor/ds-bot/src/host/local-agents/adapter.js": "63d614db07b0e84d9660bafba9c44cfc1cb596e94ffcf0ba52bb63c29b628894",
+        "vendor/ds-bot/src/host/local-agents/claude.js": "98dd25314467baed3a364958bb4f5dd717a4bae1a3407b15b1ce5fd264af769b",
+        "vendor/ds-bot/src/host/local-agents/codex.js": "837a7edc7efff52060518c2b1fb2f5cc29b53e737249dcfe9e5e8673c5aae0a8",
+        "vendor/ds-bot/src/host/local-agents/discover.js": "d3160a89b9d4b5cda5bea50b0ae8032c78244718a5f0bf4875f808e9c1c8c158",
+        "vendor/ds-bot/src/host/local-agents/engines.js": "909e63750fa9078a684d34684f8b35fec54f54e728e309f12b2d2c2aba75280b",
+        "vendor/ds-bot/src/host/local-agents/index.js": "0c9460f4d6f2c0030cb297de22b0aab6b8338cbd944a655162b3f7c1a473a070",
+        "vendor/ds-bot/src/host/local-agents/jsonrpc.js": "b8d49eeb9ba7b46286255b01b888ec1d3361ef39b7ccd05d6da1c5338362cde6",
+        "vendor/ds-bot/src/host/local-agents/mcp.js": "9427f5e69d8c08a741b9c4ec29abc187f199d22ad9e4ee7b1557ce87b53f8e8f",
+        "vendor/ds-bot/src/host/memory-pending.js": "6fc08524bceae6d9c85811244c1236b228cfe32ad2c9ac7cbca2e08cd143cdc7",
+        "vendor/ds-bot/src/host/memory.js": "75af2798c4e13f07446bf0cc70f6fcc5804dd758d6cc87691426353a9c91dfb1",
+        "vendor/ds-bot/src/host/message-source.js": "5503856d5d78ef496e29fcc7cdf186330b89a08ba9ee8a4be5534f3794820826",
+        "vendor/ds-bot/src/host/models.js": "722a5f30278c159e5a092f179b67eb567045ceb369a0961204fc255d22614191",
+        "vendor/ds-bot/src/host/office-skills.js": "ae32ce2268063279a212654fb2dd424bc11b474602a07c53878b2c412ee24ec9",
+        "vendor/ds-bot/src/host/parts.js": "75a8c5b48cbcec364a16b492e10f5c8aa5ab1e52d079e20bcf0bf287a7d897a0",
+        "vendor/ds-bot/src/host/permissions.js": "53c5c404265410379cf1f8b32bb438cde30f2a8f60ca14950ad0f59cb3f3c4c9",
+        "vendor/ds-bot/src/host/privacy.js": "c293deb2fc07b5b7193311a170e5c3fc47fb268d51513c457607932aec11d759",
+        "vendor/ds-bot/src/host/prompt.js": "3561e1e10028367d55fb518c75723679a07805602fca8879c41907fbb9f838b9",
+        "vendor/ds-bot/src/host/providers.js": "83e268bc27215d36b80ed71627b84cc0e6d1e52a9cf694776bd8d9f64c5f5072",
+        "vendor/ds-bot/src/host/requests.js": "492d785294aa3b08db336fcb508b1224dbf39365ba685b8beb42ce11a225cd95",
+        "vendor/ds-bot/src/host/resume.js": "c7f9c25582fdf4233345362cef8363392b9a1b52b8e21eba198719a788b19f88",
+        "vendor/ds-bot/src/host/roster.js": "0a6c50ecd22f50c65a4122f939433ef1435ffe7b1fd3513785e1abd6fed2a527",
+        "vendor/ds-bot/src/host/schedules.js": "9882ef5840df53b9dedb5b45a7c7a0d379700da998ce2b258355565e0c7fb9a3",
+        "vendor/ds-bot/src/host/secrets.js": "c506b7984abd5253831cfb70ae5ba609688cc0cdd25719984f76ded0b40498e0",
+        "vendor/ds-bot/src/host/side.js": "44d99fde9abbbc4664b35353392a4c88d21eab1642c3799c2756dad40b4e8d6e",
+        "vendor/ds-bot/src/host/skills/goal-grill/SKILL.md": "f6e6a17e897bda4d3e16e636cd7ddb519e080c79d4d7a3bfacbcafec37b02a26",
+        "vendor/ds-bot/src/host/steer.js": "6d0c8ee1a628ef24379ba36aaf818132bfdf8be34ad96e67547a1419cac2f837",
+        "vendor/ds-bot/src/host/steward.js": "d86e3ecbc2e424d2748600c97a363ba6bde70740d4335520e2b3b5b2c764a1d9",
+        "vendor/ds-bot/src/host/store.js": "3de9e1d876967fc5b4495c8fda9cfb1ab56f7f660b489abd3fadf98dc847675b",
+        "vendor/ds-bot/src/host/text.js": "2bb5f204061f12f1a648ccce62855f6a67ac0e72a1b3876a9a26937497ae4b6c",
+        "vendor/ds-bot/src/host/thinking.js": "6c6d36e327eff448450cf1729612c51d8f4c8cadb288e864375d1edcd0988da4",
+        "vendor/ds-bot/src/host/time-context.js": "117d3edacdebd494384445c80da4837df4583f5271cfe56f5a165ae5612cc1cd",
+        "vendor/ds-bot/src/host/tools.js": "81c56a5ccf30c86e2ddc7ac9dacb9494234ee394e0ec27826130950c8e4c766e",
+        "vendor/ds-bot/src/host/turns.js": "9578eb410d72a26f6e7889e911ae10d51cd85f33d9ea4987a446f618f4ad9530",
+        "vendor/ds-bot/src/host/update.js": "488ec1cfac77fc576fb2c9d77bef96c6bb055278e7e0cc5f7e3309ebcd772c9e",
+        "vendor/ds-bot/src/host/usage.js": "d7fedee22de505eba2d6740b0164bf658fa713dcb568bfbe209e209d2b693bb2",
+        "vendor/ds-bot/src/office/check.js": "1f75c1559e3d8945bfc10a503e0f5dbee1fefc7be9e24641b3f2fe6323026a38",
+        "vendor/ds-bot/src/office/cli.js": "4f01cc4c8be1b8b3b9f2a5102824c0cec8a5aada0f18d7d8f20e695c3a970135",
+        "vendor/ds-bot/src/office/docx.js": "246885d81833784888055482e0b728e47803f69a36d8cb015b9bc7fc7aeb6897",
+        "vendor/ds-bot/src/office/package.js": "b48535bec5902512663e977829e70314af53f3c2b9d163683f04e13576744110",
+        "vendor/ds-bot/src/office/png.js": "0d9dff8c5fe6f48383b55d6aa277f308fc8b7febc314f8311392d1d11a00c420",
+        "vendor/ds-bot/src/office/pptx.js": "98e71922df66d8b9fcaa86c514aa206ca83a7653b38c73022ec8a4d8bcced29e",
+        "vendor/ds-bot/src/office/skills/office-tools/SKILL.md": "89123ac8d4944cd207b77b2768d05a379ad67d8bd34eb57ed95c4d0ff44134aa",
+        "vendor/ds-bot/src/office/skills/office/SKILL.md": "98bb6eb550cc99667557d98885e8e6288524abb4460d8d75e4d94dac9f1e257d",
+        "vendor/ds-bot/src/office/xlsx.js": "06b370b01819b91a37ac916712fae785df8a9e39499313306d702d1551b7bcbc",
+        "vendor/ds-bot/src/office/xml.js": "0a5de76e4ab0d2003ed6f52cd7c35436743e4b301624f13ff0fc7165bca18129",
+        "vendor/ds-bot/src/office/zip.js": "a97b713c21304337205458b6fac58e9493611fdb23c47c79ce59b401e7c55e45",
+        "vendor/ds-bot/src/shared/group-replies.js": "2cf548a84206c873fc84e1a4141a39c3338081f2bfae1e9de35b046ff4552a9e",
+        "vendor/ds-bot/src/shared/im-platforms.js": "cd5452fee7f2a994e12935e27f4390b2757bf468c015bbefb2952652ad6358e8",
+        "vendor/ds-bot/src/shared/mentions.js": "a011d792da173dcf86f3a480ea8b9f8411528bf0b9a99db36a37e6b0e0aeecec",
+        "vendor/ds-bot/web-search.js": "9e38330353021a9bdc1503ee24d523b16b309b3f1ff688338caef48862e20265"
+      }
+    }
+  ],
+  "rows": [
+    {
+      "id": "full-001",
+      "number": 1,
+      "room": "life",
+      "businessAt": "2026-11-16T00:30:00.000Z",
+      "wallStartedAt": "2026-11-07T04:41:45.485Z",
+      "completedAt": "2026-11-07T04:41:47.123Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$Xh6OHaJBV9i-m1OZsEVLhvPdnqdZov5dLs1SsZdYrNQ",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-002",
+      "number": 2,
+      "room": "life",
+      "businessAt": "2026-11-16T00:33:00.000Z",
+      "wallStartedAt": "2026-11-07T04:41:47.164Z",
+      "completedAt": "2026-11-07T04:41:48.770Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$YXbBzwWY2iPNCLkthIbx3Cm-L72QyPC0ocgfZ8FioJQ",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-003",
+      "number": 3,
+      "room": "life",
+      "businessAt": "2026-11-16T00:36:00.000Z",
+      "wallStartedAt": "2026-11-07T04:41:48.808Z",
+      "completedAt": "2026-11-07T04:41:50.402Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": null,
+      "eventId": "$NKq9BjE9dzcfEiJtlDZTZKd-j3TYmKuO2kbSdkRbGUA",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-004",
+      "number": 4,
+      "room": "life",
+      "businessAt": "2026-11-16T00:39:00.000Z",
+      "wallStartedAt": "2026-11-07T04:41:50.428Z",
+      "completedAt": "2026-11-07T04:41:52.016Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": null,
+      "eventId": "$Ec_W8vdaC5wERf0jRQKnVKJDf67S2vNRY-XvFokCGsQ",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-005",
+      "number": 5,
+      "room": "work",
+      "businessAt": "2026-11-16T00:42:00.000Z",
+      "wallStartedAt": "2026-11-07T04:41:52.047Z",
+      "completedAt": "2026-11-07T04:41:53.675Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$2j0XzxiYnAGXj-IQ841-Z_NYcZaDnF5eJTqgY6WG93I",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-006",
+      "number": 6,
+      "room": "work",
+      "businessAt": "2026-11-16T00:45:00.000Z",
+      "wallStartedAt": "2026-11-07T04:41:53.711Z",
+      "completedAt": "2026-11-07T04:41:55.300Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": null,
+      "eventId": "$YANavznj2yTucGMZGtNyuiVezdRjcDh8qe1s_9bzIN8",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-007",
+      "number": 7,
+      "room": "work",
+      "businessAt": "2026-11-16T00:48:00.000Z",
+      "wallStartedAt": "2026-11-07T04:41:55.328Z",
+      "completedAt": "2026-11-07T04:41:56.940Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$zkUVy20tlsXRToEG_45Typc0kvGlBxAR4WjWT5qTPgw",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-008",
+      "number": 8,
+      "room": "work",
+      "businessAt": "2026-11-16T00:51:00.000Z",
+      "wallStartedAt": "2026-11-07T04:41:56.972Z",
+      "completedAt": "2026-11-07T04:42:07.673Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+      "eventId": "$NdpgsMxohCLubDfPworPuUEp4ZfXKJC6Gj3HK2pprqI",
+      "requestId": "matrix-3cc2da29d21c75b4a74bd42bcf112660a6a954ee6fce2bb5767589ae772376c7",
+      "replyEventIds": [
+        "$1TzHitGlyfyC4XRlFY_JBIW-y_7Ilu6Q9ry9SNx0weg"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$1TzHitGlyfyC4XRlFY_JBIW-y_7Ilu6Q9ry9SNx0weg"
+            ],
+            "receiptStatus": "completed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "full-009",
+      "number": 9,
+      "room": "work",
+      "businessAt": "2026-11-16T00:54:00.000Z",
+      "wallStartedAt": "2026-11-07T04:42:07.705Z",
+      "completedAt": "2026-11-07T04:42:09.319Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": null,
+      "eventId": "$MvvEJQvzb-MXUqRB-E6V5WXONZDodZPKHJnsbVaJ31w",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-010",
+      "number": 10,
+      "room": "work",
+      "businessAt": "2026-11-16T00:57:00.000Z",
+      "wallStartedAt": "2026-11-07T04:42:09.380Z",
+      "completedAt": "2026-11-07T04:42:11.001Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$EF2xJHTU5yxkMgXnKlRPgg29Vsv8PQslPdK3jRgZdrQ",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-011",
+      "number": 11,
+      "room": "life",
+      "businessAt": "2026-11-16T01:00:00.000Z",
+      "wallStartedAt": "2026-11-07T04:42:11.058Z",
+      "completedAt": "2026-11-07T04:42:12.661Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$56Cp3xvUDqvOTCNXJaTQR3UVxdUSkcsXjm-s4ov2htA",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-012",
+      "number": 12,
+      "room": "life",
+      "businessAt": "2026-11-16T01:03:00.000Z",
+      "wallStartedAt": "2026-11-07T04:42:12.697Z",
+      "completedAt": "2026-11-07T04:42:14.347Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "eventId": "$OI7_MFfMb3ywrgUmWsEKCFFN-7sLrbVAnsJoYZ0YJ3s",
+      "requestId": "matrix-bbc693040bef74e0a65ae1d67a5983d36f9acdc3c20e4af9e0e606527cf8a724",
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-013",
+      "number": 13,
+      "room": "project",
+      "businessAt": "2026-11-16T06:00:00.000Z",
+      "wallStartedAt": "2026-11-07T04:42:39.746Z",
+      "completedAt": "2026-11-07T04:42:41.394Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$q6KFksFncmkv8so8KTbJ8zgIox5j7H_e4NNZDg2aN6M",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-014",
+      "number": 14,
+      "room": "project",
+      "businessAt": "2026-11-16T06:03:00.000Z",
+      "wallStartedAt": "2026-11-07T04:42:41.432Z",
+      "completedAt": "2026-11-07T04:42:43.070Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$UYDrqnYXCjubDihLAwW6a7V1KvJlzMPXThAVcruf6iU",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-015",
+      "number": 15,
+      "room": "project",
+      "businessAt": "2026-11-16T06:06:00.000Z",
+      "wallStartedAt": "2026-11-07T04:42:43.116Z",
+      "completedAt": "2026-11-07T04:43:37.571Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+      "eventId": "$zYfdJHB7C0N9N6j_UW77Nko1YCmI8GM9tbbE3-8WJl4",
+      "requestId": "matrix-b5357d5a18d7b167e0ab2f3e97bb0bf9a3442f4c714f6ea35f5c51ccc2f7785d",
+      "replyEventIds": [
+        "$4iESMwMiDqgKanpcGk9jI62vzDKE-hzYz0fCcS8hsj8"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$4iESMwMiDqgKanpcGk9jI62vzDKE-hzYz0fCcS8hsj8"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "downloaded:move-draft.md",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "full-016",
+      "number": 16,
+      "room": "project",
+      "businessAt": "2026-11-16T06:09:00.000Z",
+      "wallStartedAt": "2026-11-07T04:43:37.641Z",
+      "completedAt": "2026-11-07T04:43:39.307Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": null,
+      "eventId": "$-ilIYzXhKlccycxd4r7hEDQIttWl90PzEBs8jYvRAZM",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-017",
+      "number": 17,
+      "room": "private-b",
+      "businessAt": "2026-11-16T06:12:00.000Z",
+      "wallStartedAt": "2026-11-07T04:43:39.381Z",
+      "completedAt": "2026-11-07T04:46:10.379Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+      "eventId": "$P0ka9kGIsgp8ZdgVGuIP6f4-ot7sxYyUDLLab06Ll68",
+      "requestId": "matrix-fadee5a7f89f272880a7dd6ef4b60a3f6248a92296cc61a60e7de0ac67c5b374",
+      "replyEventIds": [
+        "$MNOLhWkaiAY9H30KsuKphaWsfblpp8cWGK5dZQHVvAI"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$MNOLhWkaiAY9H30KsuKphaWsfblpp8cWGK5dZQHVvAI"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "downloaded:packing.mjs",
+          "passed": true
+        },
+        {
+          "name": "downloaded:packing-tests.txt",
+          "passed": true
+        },
+        {
+          "name": "correctDestination",
+          "passed": true,
+          "detail": {
+            "expected": "private-b",
+            "rooms": [
+              "private-b"
+            ]
+          }
+        },
+        {
+          "name": "realExecutionReceipt",
+          "passed": true
+        },
+        {
+          "name": "independentPackingContract",
+          "passed": true,
+          "detail": {
+            "exitCode": 0,
+            "details": {
+              "checks": [
+                {
+                  "name": "empty",
+                  "passed": true
+                },
+                {
+                  "name": "latest-id-replaces",
+                  "passed": true
+                },
+                {
+                  "name": "cancel-without-numbers",
+                  "passed": true
+                },
+                {
+                  "name": "reorder-after-cancel",
+                  "passed": true
+                },
+                {
+                  "name": "same-label-distinct-id",
+                  "passed": true
+                },
+                {
+                  "name": "trimmed-decimals",
+                  "passed": true
+                },
+                {
+                  "name": "zero",
+                  "passed": true
+                },
+                {
+                  "name": "negative-quantity",
+                  "passed": true
+                },
+                {
+                  "name": "fractional-quantity",
+                  "passed": true
+                },
+                {
+                  "name": "fractional-cents",
+                  "passed": true
+                },
+                {
+                  "name": "blank-number",
+                  "passed": true
+                },
+                {
+                  "name": "numeric-prefix",
+                  "passed": true
+                },
+                {
+                  "name": "unknown-status",
+                  "passed": true
+                },
+                {
+                  "name": "empty-id",
+                  "passed": true
+                },
+                {
+                  "name": "non-array",
+                  "passed": true
+                },
+                {
+                  "name": "special-id",
+                  "passed": true
+                },
+                {
+                  "name": "immutable",
+                  "passed": true
+                }
+              ],
+              "passed": 17,
+              "total": 17
+            },
+            "stderr": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "full-018",
+      "number": 18,
+      "room": "project",
+      "businessAt": "2026-11-16T06:15:00.000Z",
+      "wallStartedAt": "2026-11-07T04:46:10.450Z",
+      "completedAt": "2026-11-07T04:46:12.094Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$fB_NXj3f7E5Cvi8mbPlr1bxr9lcjV9mVOqx60KpSU0E",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-019",
+      "number": 19,
+      "room": "project",
+      "businessAt": "2026-11-16T06:18:00.000Z",
+      "wallStartedAt": "2026-11-07T04:46:12.178Z",
+      "completedAt": "2026-11-07T04:46:13.816Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+      "eventId": "$jy8NFmDF6JFz5cSDL9f34WJWJ4LCmG0NTgmfAxtK83g",
+      "requestId": "matrix-cc0d599b082a560014e39d11e5797ae18164b8918e9d5ac6fa4a773d5d554353",
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-020",
+      "number": 20,
+      "room": "project",
+      "businessAt": "2026-11-16T06:21:00.000Z",
+      "wallStartedAt": "2026-11-07T04:46:13.857Z",
+      "completedAt": "2026-11-07T04:46:15.514Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": null,
+      "eventId": "$BA-h256d8zWwUOZdj8099oNLaXFDQFWQrCLK4iZ3_3E",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-021",
+      "number": 21,
+      "room": "project",
+      "businessAt": "2026-11-16T06:24:00.000Z",
+      "wallStartedAt": "2026-11-07T04:46:15.580Z",
+      "completedAt": "2026-11-07T04:46:49.751Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+      "eventId": "$fvanyRDTXXkX0HKNrarF5Wa5bh6W7Y8jbDb7u9PPkOM",
+      "requestId": "matrix-3239518333d393acb78c9574001b790a5dc8ebe7ae74649da94153fc4298a51e",
+      "replyEventIds": [
+        "$d8hxVRfl4WTG3nHgEn-_a-DmVKR-3i6bfL6A_W_WQpo"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$d8hxVRfl4WTG3nHgEn-_a-DmVKR-3i6bfL6A_W_WQpo"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "downloaded:costs-first.csv",
+          "passed": true
+        },
+        {
+          "name": "downloadedLedgerTotal",
+          "passed": true,
+          "detail": {
+            "observed": 75800,
+            "expected": 75800
+          }
+        }
+      ]
+    },
+    {
+      "id": "full-022",
+      "number": 22,
+      "room": "life",
+      "businessAt": "2026-11-16T06:27:00.000Z",
+      "wallStartedAt": "2026-11-07T04:46:49.790Z",
+      "completedAt": "2026-11-07T04:46:51.428Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": null,
+      "eventId": "$4fj5fKRlXeV7gk9zuI6czztZI-IILfHRS_AKSHmGkBg",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-023",
+      "number": 23,
+      "room": "private-a",
+      "businessAt": "2026-11-16T06:30:00.000Z",
+      "wallStartedAt": "2026-11-07T04:46:51.464Z",
+      "completedAt": "2026-11-07T04:47:16.562Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "eventId": "$Gr_roeltJja_CCDtxht7JzvIBNlltOCkZDIG_B2z1QE",
+      "requestId": "matrix-eedbbbe414c520507de8b27eeb1ae99559d476302a741f427e3523c28cfe6e7d",
+      "replyEventIds": [
+        "$o2N3FfdL9qW31G9hTpbtZKDzj_iVHuru1qSrT-WV3rE"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$o2N3FfdL9qW31G9hTpbtZKDzj_iVHuru1qSrT-WV3rE"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "downloaded:bookmark.txt",
+          "passed": true
+        },
+        {
+          "name": "correctDestination",
+          "passed": true,
+          "detail": {
+            "expected": "private-a",
+            "rooms": [
+              "private-a"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "full-024",
+      "number": 24,
+      "room": "life",
+      "businessAt": "2026-11-16T06:33:00.000Z",
+      "wallStartedAt": "2026-11-07T04:47:16.611Z",
+      "completedAt": "2026-11-07T04:47:18.298Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$-e-OpCACcfzVcFlx8G81Uark9JU9h0SLe9X35KXZzPw",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-025",
+      "number": 25,
+      "room": "work",
+      "businessAt": "2026-11-17T00:40:00.000Z",
+      "wallStartedAt": "2026-11-07T04:47:26.286Z",
+      "completedAt": "2026-11-07T04:47:27.946Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": null,
+      "eventId": "$1DPRgulB7lshTni17csrO2xJOXvgKBijtmj5rIbEsSE",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-026",
+      "number": 26,
+      "room": "life",
+      "businessAt": "2026-11-17T00:43:00.000Z",
+      "wallStartedAt": "2026-11-07T04:47:27.979Z",
+      "completedAt": "2026-11-07T04:47:29.652Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$MSziXXe0txb_tICTTn2-S5KOys1tLtNk9JNLW0E4SSI",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-027",
+      "number": 27,
+      "room": "life",
+      "businessAt": "2026-11-17T00:46:00.000Z",
+      "wallStartedAt": "2026-11-07T04:47:29.691Z",
+      "completedAt": "2026-11-07T04:47:31.346Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": null,
+      "eventId": "$rqAgtX3yzgc6uOBDGBEXOnkgXyxzVx9lwHVzXVIs14w",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-028",
+      "number": 28,
+      "room": "project",
+      "businessAt": "2026-11-17T00:49:00.000Z",
+      "wallStartedAt": "2026-11-07T04:47:31.386Z",
+      "completedAt": "2026-11-07T04:47:33.084Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$L7STZDe_GoIK75aBFTk24w66WQYFe2roSFVV9qj8vEo",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-029",
+      "number": 29,
+      "room": "project",
+      "businessAt": "2026-11-17T00:52:00.000Z",
+      "wallStartedAt": "2026-11-07T04:47:33.123Z",
+      "completedAt": "2026-11-07T04:47:34.778Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$io-IFzWrc3Ui7nY4WCCytjW0KK2rAxOAeJoBVJUW6II",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-030",
+      "number": 30,
+      "room": "project",
+      "businessAt": "2026-11-17T00:55:00.000Z",
+      "wallStartedAt": "2026-11-07T04:47:34.807Z",
+      "completedAt": "2026-11-07T04:47:36.495Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": null,
+      "eventId": "$5Ntyzc464-OLVqcMxBC1jr3482FZX7Y62UD-j8LWWs8",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-031",
+      "number": 31,
+      "room": "project",
+      "businessAt": "2026-11-17T00:58:00.000Z",
+      "wallStartedAt": "2026-11-07T04:47:36.529Z",
+      "completedAt": "2026-11-07T04:48:32.775Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+      "eventId": "$a-rcR8zO_Wn3sSWtFKPIhr4jdYgp-uJno-XHAiD8uoQ",
+      "requestId": "matrix-ea354bc299fc2f55d3ae1f4c1606b123c2b62f296100f736c1b949aa923a3678",
+      "replyEventIds": [
+        "$-mzitMjk-3cdxb5-BVLabb1fuokutCC_x44Fb3Bwcyo"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$-mzitMjk-3cdxb5-BVLabb1fuokutCC_x44Fb3Bwcyo"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "downloaded:move-current.md",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "full-032",
+      "number": 32,
+      "room": "life",
+      "businessAt": "2026-11-17T01:01:00.000Z",
+      "wallStartedAt": "2026-11-07T04:48:32.865Z",
+      "completedAt": "2026-11-07T04:48:34.523Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$NpKY3PIo8Qw0DXEnVVAr0gtP6tpikKL-F4UsivV_BUQ",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-033",
+      "number": 33,
+      "room": "life",
+      "businessAt": "2026-11-17T01:04:00.000Z",
+      "wallStartedAt": "2026-11-07T04:52:11.330Z",
+      "completedAt": "2026-11-07T04:52:20.845Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+      "eventId": "$pZGVW6fvFB74UvWJNuTECY7RxYhaegInfMdlCQsySiI",
+      "requestId": "matrix-0bb65b5621b0948b7bedabe1ff2fa100f9568b4125895b39515e6c8102c1b99a",
+      "replyEventIds": [
+        "$5DO2rzVWssfF95WB9hCfdbZUDHM8UMMAw3vnveoQbA8"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$5DO2rzVWssfF95WB9hCfdbZUDHM8UMMAw3vnveoQbA8"
+            ],
+            "receiptStatus": "completed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "full-034",
+      "number": 34,
+      "room": "life",
+      "businessAt": "2026-11-17T01:07:00.000Z",
+      "wallStartedAt": "2026-11-07T04:52:20.887Z",
+      "completedAt": "2026-11-07T04:52:22.559Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$ZF5wPW_LKtAOf4GcOy_mRteVqch1UVRoVed9avDatQk",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-035",
+      "number": 35,
+      "room": "life",
+      "businessAt": "2026-11-17T01:10:00.000Z",
+      "wallStartedAt": "2026-11-07T04:52:22.596Z",
+      "completedAt": "2026-11-07T04:52:24.306Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "eventId": "$1gof4joDsq2jH02Gu_NBodZcsw4EV0ysz3l6-srOAPE",
+      "requestId": "matrix-bb75c2362e387e519fb9c75071e9227b41c85fdf96c0daa96fdd60dcb6180eda",
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-036",
+      "number": 36,
+      "room": "work",
+      "businessAt": "2026-11-17T01:13:00.000Z",
+      "wallStartedAt": "2026-11-07T04:52:24.346Z",
+      "completedAt": "2026-11-07T04:52:26.052Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$PDZ7xKRI2UaJD-QCDrF-RcqXU0ooD_-gEovjTtB2v64",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-037",
+      "number": 37,
+      "room": "project",
+      "businessAt": "2026-11-17T04:00:00.000Z",
+      "wallStartedAt": "2026-11-07T04:53:55.620Z",
+      "completedAt": "2026-11-07T04:53:57.232Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$X0qu4B41ZTcxLXG0jKLYRVEiJpvrS-a3ZXHkgeZpzbU",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-038",
+      "number": 38,
+      "room": "project",
+      "businessAt": "2026-11-17T04:03:00.000Z",
+      "wallStartedAt": "2026-11-07T04:53:57.263Z",
+      "completedAt": "2026-11-07T04:55:11.311Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+      "eventId": "$bUAacTDdFZPV2aPkwQA3ZtA8Xu69ZqfdVeyLTBZ2xc8",
+      "requestId": "matrix-44d6e82326b7b7e37b2c9592dd4356ba439a6a3bd7579b4db4301fda59e17c27",
+      "replyEventIds": [
+        "$qcnFQslT6mlTLlwUP4uV23EkkmGQ01JIEo7zKYUnoNs"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$qcnFQslT6mlTLlwUP4uV23EkkmGQ01JIEo7zKYUnoNs"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "downloaded:costs-current.csv",
+          "passed": true
+        },
+        {
+          "name": "downloadedLedgerTotal",
+          "passed": true,
+          "detail": {
+            "observed": 64100,
+            "expected": 64100
+          }
+        }
+      ]
+    },
+    {
+      "id": "full-039",
+      "number": 39,
+      "room": "life",
+      "businessAt": "2026-11-17T04:06:00.000Z",
+      "wallStartedAt": "2026-11-07T04:55:11.363Z",
+      "completedAt": "2026-11-07T04:55:13.006Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$fXnasRTHlxEt05kSA_96uujzY-wfLGt_cWfH6SP2Iew",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-040",
+      "number": 40,
+      "room": "project",
+      "businessAt": "2026-11-17T04:09:00.000Z",
+      "wallStartedAt": "2026-11-07T04:55:13.040Z",
+      "completedAt": "2026-11-07T04:55:58.267Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$Jja4PE6gaNFarFszGZDlHm9ACpSEFHdRFKc4YLnzkqs",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-041",
+      "number": 41,
+      "room": "project",
+      "businessAt": "2026-11-17T04:12:00.000Z",
+      "wallStartedAt": "2026-11-07T04:55:58.302Z",
+      "completedAt": "2026-11-07T04:56:52.953Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+      "eventId": "$nekYfYNN1huHkTIAwgcran1RpJwEjiSBuRitbY_Sc00",
+      "requestId": "matrix-d6acbd100c2c280391afb184d4bd54bc54f7f34df443ad13a7ce5ead8ee01e26",
+      "replyEventIds": [
+        "$RXBL1OB0-rVXf6XjopW19Vz2bC5H0JwyPdbW-0DwIdw"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$RXBL1OB0-rVXf6XjopW19Vz2bC5H0JwyPdbW-0DwIdw"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "nativeDelegationReceipt",
+          "passed": false,
+          "detail": "Complete exchange and original source remain separate review criteria"
+        }
+      ]
+    },
+    {
+      "id": "full-042",
+      "number": 42,
+      "room": "project",
+      "businessAt": "2026-11-17T04:15:00.000Z",
+      "wallStartedAt": "2026-11-07T04:56:52.988Z",
+      "completedAt": "2026-11-07T04:56:54.627Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": null,
+      "eventId": "$LiRNKp3wABNYOGWJGMQrU0o8pYQPXBHtCK69hp4coVo",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-043",
+      "number": 43,
+      "room": "life",
+      "businessAt": "2026-11-17T04:18:00.000Z",
+      "wallStartedAt": "2026-11-07T04:56:54.658Z",
+      "completedAt": "2026-11-07T04:56:56.375Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$Rj2KWxTr_2Va1RVRdtL8TxeIB8QVLTENvDhz9FCKPUI",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-044",
+      "number": 44,
+      "room": "project",
+      "businessAt": "2026-11-17T04:21:00.000Z",
+      "wallStartedAt": "2026-11-07T04:56:56.558Z",
+      "completedAt": "2026-11-07T04:56:58.266Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": null,
+      "eventId": "$NqbOZIPW936NO-n9o-xoXOchpg6_jrL05kpmH-El7uA",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-045",
+      "number": 45,
+      "room": "project",
+      "businessAt": "2026-11-17T04:24:00.000Z",
+      "wallStartedAt": "2026-11-07T04:56:58.301Z",
+      "completedAt": "2026-11-07T04:57:58.652Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "eventId": "$FAfdCoccQlLl-7Uoe3Jo8GZqY5dNq4pT6Ug0syP9_CQ",
+      "requestId": "matrix-3d45172846045b26e574fa063aed29732b6ecb92bc62d13e278eb283baeb4b58",
+      "replyEventIds": [
+        "$LiO20jHJqhDMdwRUHVZQgZj_pDPCUfChhVS7v9QWFMY"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$LiO20jHJqhDMdwRUHVZQgZj_pDPCUfChhVS7v9QWFMY"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "nativeDelegationReceipt",
+          "passed": true,
+          "detail": "Complete exchange and original source remain separate review criteria"
+        }
+      ]
+    },
+    {
+      "id": "full-046",
+      "number": 46,
+      "room": "project",
+      "businessAt": "2026-11-17T04:27:00.000Z",
+      "wallStartedAt": "2026-11-07T04:57:58.867Z",
+      "completedAt": "2026-11-07T04:58:00.866Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$JAH38HT-KpYBLIoib65iIBriRi5sDObcOyjOCXhEkYA",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-047",
+      "number": 47,
+      "room": "project",
+      "businessAt": "2026-11-17T04:30:00.000Z",
+      "wallStartedAt": "2026-11-07T04:58:01.259Z",
+      "completedAt": "2026-11-07T04:58:31.794Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "eventId": "$9GTxb3GDlfo5kD_ARiFK_Mi65DpOH5OLRlzGQEStuGk",
+      "requestId": "matrix-285427111ba08e734ff718bde4f4ff0d25044830ece5edc6f6a1fdb0404a231b",
+      "replyEventIds": [
+        "$XPVF2Ni3PQv6L9O1QECByE8yl5MJEBcmQi__0smtp4g"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$XPVF2Ni3PQv6L9O1QECByE8yl5MJEBcmQi__0smtp4g"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "relevantPrimarySourceLink",
+          "passed": true
+        },
+        {
+          "name": "actualResearchTrace",
+          "passed": true,
+          "detail": [
+            {
+              "callId": "call_00_i906m086hv8cskp42v5prti4",
+              "tool": "web_fetch",
+              "urls": [
+                "https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html"
+              ],
+              "resultSha256": "9e895248d0958ecb58d60750d08f17888ed34d05625bb643c02e6bb8bae37421",
+              "level": "native-fetch-returned"
+            },
+            {
+              "callId": "call_01_ikx6xj91az7bvh0xolv2w8bi",
+              "tool": "web_fetch",
+              "urls": [
+                "https://www.w3.org/WAI/WCAG22/Techniques/general/G91"
+              ],
+              "resultSha256": "255c5e348a4c024c8f38a68aa9be87ccd3acf032dfe8c976bdec9bfa409ec85e",
+              "level": "native-fetch-returned"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "full-048",
+      "number": 48,
+      "room": "life",
+      "businessAt": "2026-11-17T04:33:00.000Z",
+      "wallStartedAt": "2026-11-07T04:58:31.828Z",
+      "completedAt": "2026-11-07T04:58:33.536Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": null,
+      "eventId": "$O8UgXGl4_dsUK_xqhBuDDs-rnBu7xXuWIEWYWEaWN1Q",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-049",
+      "number": 49,
+      "room": "project",
+      "businessAt": "2026-11-17T07:00:00.000Z",
+      "wallStartedAt": "2026-11-07T04:58:56.879Z",
+      "completedAt": "2026-11-07T04:58:57.477Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "eventId": "$Kh0alpGw-Gv1lMGjp6qcsdZtxJ8sloaWQtxcjdrb8Yg",
+      "requestId": "matrix-0dcd1a47bb9735f19335b19c7f77b5d2ec014ed054665ccaebb6042846a30caf",
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-050",
+      "number": 50,
+      "room": "life",
+      "businessAt": "2026-11-17T07:03:00.000Z",
+      "wallStartedAt": "2026-11-07T04:58:57.528Z",
+      "completedAt": "2026-11-07T04:58:59.188Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": null,
+      "eventId": "$30y8EOm9THYqLf8naID5F8IXqCwrr0YTRSSUd5Sr-eQ",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-051",
+      "number": 51,
+      "room": "life",
+      "businessAt": "2026-11-17T07:06:00.000Z",
+      "wallStartedAt": "2026-11-07T04:58:59.224Z",
+      "completedAt": "2026-11-07T04:59:00.932Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$UzYVlwJqhctdDKms6RX5uglKkZTrPqtP33FXesaBwhE",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-052",
+      "number": 52,
+      "room": "project",
+      "businessAt": "2026-11-17T07:09:00.000Z",
+      "wallStartedAt": "2026-11-07T04:59:00.965Z",
+      "completedAt": "2026-11-07T04:59:02.692Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$VL26NwKOe57qQCnurQyAMr923h48evKMTkLaazA0J9U",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": [],
+      "control": {
+        "kind": "cancel",
+        "targetId": "full-049",
+        "requestId": "matrix-0dcd1a47bb9735f19335b19c7f77b5d2ec014ed054665ccaebb6042846a30caf",
+        "correctionEventId": "$VL26NwKOe57qQCnurQyAMr923h48evKMTkLaazA0J9U",
+        "observedStatus": "running",
+        "observedActive": true,
+        "observedAt": 1794027540936,
+        "completedAt": 1794027540977
+      }
+    },
+    {
+      "id": "full-053",
+      "number": 53,
+      "room": "project",
+      "businessAt": "2026-11-17T07:12:00.000Z",
+      "wallStartedAt": "2026-11-07T04:59:02.729Z",
+      "completedAt": "2026-11-07T04:59:28.934Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "eventId": "$Btru6YOMgoI4j_nJ24TzYUAIyLAFNxNqbd3CfgeOz9o",
+      "requestId": "matrix-2b30e312023acb151ffccb0e518df527ad6df4ac997676fe0371753c70fcdcc7",
+      "replyEventIds": [
+        "$hv2YfaQlrlJOraly1vqdyWGvQO5zJYyLixM4l7Fyq1Y"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$hv2YfaQlrlJOraly1vqdyWGvQO5zJYyLixM4l7Fyq1Y"
+            ],
+            "receiptStatus": "completed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "full-054",
+      "number": 54,
+      "room": "project",
+      "businessAt": "2026-11-17T07:15:00.000Z",
+      "wallStartedAt": "2026-11-07T04:59:29.082Z",
+      "completedAt": "2026-11-07T04:59:30.826Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$vW4D50MTsZhAh_h95Ieak2rR-mpDuLpBgWET-8la0n8",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-055",
+      "number": 55,
+      "room": "private-b",
+      "businessAt": "2026-11-17T07:18:00.000Z",
+      "wallStartedAt": "2026-11-07T04:59:30.876Z",
+      "completedAt": "2026-11-07T05:00:33.057Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+      "eventId": "$dRy6eIQ3w1bwlbeb8RP3MVTIbVDaPIScEweUCRwRvJk",
+      "requestId": "matrix-e00c463d69d2ea7c2069250cdd8c2349fa31c2e6ad6da5467340b0860b6317a7",
+      "replyEventIds": [
+        "$wGXtPJYJFIk7PpxxJaWsySfnQF_EpJfcuHh4sGV2w9I"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$wGXtPJYJFIk7PpxxJaWsySfnQF_EpJfcuHh4sGV2w9I"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "downloaded:packing.mjs",
+          "passed": true
+        },
+        {
+          "name": "downloaded:packing-tests.txt",
+          "passed": true
+        },
+        {
+          "name": "correctDestination",
+          "passed": true,
+          "detail": {
+            "expected": "private-b",
+            "rooms": [
+              "private-b"
+            ]
+          }
+        },
+        {
+          "name": "realExecutionReceipt",
+          "passed": true
+        },
+        {
+          "name": "independentPackingContract",
+          "passed": true,
+          "detail": {
+            "exitCode": 0,
+            "details": {
+              "checks": [
+                {
+                  "name": "empty",
+                  "passed": true
+                },
+                {
+                  "name": "latest-id-replaces",
+                  "passed": true
+                },
+                {
+                  "name": "cancel-without-numbers",
+                  "passed": true
+                },
+                {
+                  "name": "reorder-after-cancel",
+                  "passed": true
+                },
+                {
+                  "name": "same-label-distinct-id",
+                  "passed": true
+                },
+                {
+                  "name": "trimmed-decimals",
+                  "passed": true
+                },
+                {
+                  "name": "zero",
+                  "passed": true
+                },
+                {
+                  "name": "negative-quantity",
+                  "passed": true
+                },
+                {
+                  "name": "fractional-quantity",
+                  "passed": true
+                },
+                {
+                  "name": "fractional-cents",
+                  "passed": true
+                },
+                {
+                  "name": "blank-number",
+                  "passed": true
+                },
+                {
+                  "name": "numeric-prefix",
+                  "passed": true
+                },
+                {
+                  "name": "unknown-status",
+                  "passed": true
+                },
+                {
+                  "name": "empty-id",
+                  "passed": true
+                },
+                {
+                  "name": "non-array",
+                  "passed": true
+                },
+                {
+                  "name": "special-id",
+                  "passed": true
+                },
+                {
+                  "name": "immutable",
+                  "passed": true
+                }
+              ],
+              "passed": 17,
+              "total": 17
+            },
+            "stderr": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "full-056",
+      "number": 56,
+      "room": "life",
+      "businessAt": "2026-11-17T07:21:00.000Z",
+      "wallStartedAt": "2026-11-07T05:00:33.103Z",
+      "completedAt": "2026-11-07T05:00:34.826Z",
+      "senderId": "@zhou_dev:natural-full.local",
+      "botId": null,
+      "eventId": "$1cbHVKJ95cleGvGJjl4XQzsFyV7Uhvxns6X1uBWtblM",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-057",
+      "number": 57,
+      "room": "project",
+      "businessAt": "2026-11-17T07:24:00.000Z",
+      "wallStartedAt": "2026-11-07T05:00:34.860Z",
+      "completedAt": "2026-11-07T05:00:35.456Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+      "eventId": "$VPpeHZKh73dgDDlmpFyrEC7lTTBpiy_lolyn1YBHtFk",
+      "requestId": "matrix-ae4694e1774626764262494161ef06c1fe34d17928a87dfa974868dfb12956f3",
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-058",
+      "number": 58,
+      "room": "life",
+      "businessAt": "2026-11-17T07:27:00.000Z",
+      "wallStartedAt": "2026-11-07T05:00:35.524Z",
+      "completedAt": "2026-11-07T05:00:37.238Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": null,
+      "eventId": "$wrco74B-on_PdQObW5YpPnVGTuzTUbk05t6wQ7BpCxo",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-059",
+      "number": 59,
+      "room": "project",
+      "businessAt": "2026-11-17T07:30:00.000Z",
+      "wallStartedAt": "2026-11-07T05:00:37.272Z",
+      "completedAt": "2026-11-07T05:00:38.996Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$Y2rk-XFi0s4IeXggUkFGZM_XDS1bTJ6AD8SXyN8ISuU",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": [],
+      "control": {
+        "kind": "amend",
+        "targetId": "full-057",
+        "requestId": "matrix-ae4694e1774626764262494161ef06c1fe34d17928a87dfa974868dfb12956f3",
+        "correctionEventId": "$Y2rk-XFi0s4IeXggUkFGZM_XDS1bTJ6AD8SXyN8ISuU",
+        "observedStatus": "running",
+        "observedActive": true,
+        "observedAt": 1794027637243,
+        "completedAt": 1794027637273
+      }
+    },
+    {
+      "id": "full-060",
+      "number": 60,
+      "room": "project",
+      "businessAt": "2026-11-17T07:33:00.000Z",
+      "wallStartedAt": "2026-11-07T05:00:39.036Z",
+      "completedAt": "2026-11-07T05:01:50.118Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+      "eventId": "$n31ZkHBUzunirX7LCOpRsasQEOqCYVA0Zo23SBbWhzY",
+      "requestId": "matrix-0270584de2eb4ca9e501b510409067f986b3be2e5d96722a58cb732218ceece0",
+      "replyEventIds": [
+        "$PouF3RTdK-CtSX8IPieNkkyMIXw_bqx7-Ttwiaobn78"
+      ],
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true,
+          "detail": {
+            "eventIds": [
+              "$PouF3RTdK-CtSX8IPieNkkyMIXw_bqx7-Ttwiaobn78"
+            ],
+            "receiptStatus": "completed"
+          }
+        },
+        {
+          "name": "downloaded:route-final.md",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "full-061",
+      "number": 61,
+      "room": "life",
+      "businessAt": "2026-11-18T00:45:00.000Z",
+      "wallStartedAt": "2026-11-07T05:01:51.366Z",
+      "completedAt": "2026-11-07T05:01:53.063Z",
+      "senderId": "@shen_yao:natural-full.local",
+      "botId": null,
+      "eventId": "$68S0ZRhc72Q3XxkcOhhMgOjZTwvhcdenONoGhdQ7cpw",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-062",
+      "number": 62,
+      "room": "work",
+      "businessAt": "2026-11-18T00:48:00.000Z",
+      "wallStartedAt": "2026-11-07T05:01:53.109Z",
+      "completedAt": "2026-11-07T05:01:54.865Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": null,
+      "eventId": "$o8gXqICKm6SoPQpdN5Ld_OYZBlj3DLFskf8Wph4si3k",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-063",
+      "number": 63,
+      "room": "work",
+      "businessAt": "2026-11-18T00:51:00.000Z",
+      "wallStartedAt": "2026-11-07T05:01:54.907Z",
+      "completedAt": "2026-11-07T05:01:56.606Z",
+      "senderId": "@zhou_ops:natural-full.local",
+      "botId": null,
+      "eventId": "$7jfWXmDrnFWXz6W4PXw1yawinUeE-_WVGN3qEgKePpA",
+      "requestId": null,
+      "replyEventIds": [],
+      "checks": []
+    },
+    {
+      "id": "full-064",
+      "number": 64,
+      "room": "life",
+      "businessAt": "2026-11-18T00:54:00.000Z",
+      "wallStartedAt": "2026-11-07T05:01:56.645Z",
+      "completedAt": "2026-11-07T05:01:58.370Z",
+      "senderId": "@he_chuan:natural-full.local",
+      "botId": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "eventId": "$OH2GQx2uQ12NBxecF8lnZKB97lklkrZIUFlDfZB9swI",
+      "requestId": "matrix-5b73f0e7a22c72bbec289c04f0979ab59161cc72bde1244a9b6bb7593b1ccc2b",
+      "replyEventIds": [],
+      "checks": []
+    }
+  ],
+  "decisionChecks": [
+    {
+      "name": "realNaturalDecision:@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+      "passed": true,
+      "detail": {
+        "recorded": 106,
+        "decided": 106,
+        "sourceLinked": 106,
+        "actions": [
+          "SPEAK",
+          "LISTEN",
+          "WAIT"
+        ],
+        "models": [
+          "gpt-6-luna"
+        ]
+      }
+    },
+    {
+      "name": "realNaturalDecision:@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+      "passed": true,
+      "detail": {
+        "recorded": 103,
+        "decided": 103,
+        "sourceLinked": 103,
+        "actions": [
+          "SPEAK",
+          "LISTEN",
+          "WAIT"
+        ],
+        "models": [
+          "gpt-6-luna"
+        ]
+      }
+    },
+    {
+      "name": "realNaturalDecision:@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+      "passed": true,
+      "detail": {
+        "recorded": 69,
+        "decided": 69,
+        "sourceLinked": 69,
+        "actions": [
+          "SPEAK",
+          "LISTEN",
+          "WAIT"
+        ],
+        "models": [
+          "gpt-6-luna"
+        ]
+      }
+    }
+  ],
+  "failures": [
+    {
+      "id": "full-041",
+      "type": "frozen-step-checks",
+      "checks": [
+        {
+          "name": "nativeDelegationReceipt",
+          "passed": false,
+          "detail": "Complete exchange and original source remain separate review criteria"
+        }
+      ]
+    },
+    {
+      "type": "runtime-error",
+      "id": "full-064",
+      "code": null,
+      "error": "fetch failed"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "full-008",
+      "eventId": "$NdpgsMxohCLubDfPworPuUEp4ZfXKJC6Gj3HK2pprqI",
+      "replyEventIds": [
+        "$1TzHitGlyfyC4XRlFY_JBIW-y_7Ilu6Q9ry9SNx0weg"
+      ],
+      "criterion": "安排与当时信息相称；三件事可以有不同合理选择，不替人宣布未定计划",
+      "status": "pending"
+    },
+    {
+      "id": "full-012",
+      "eventId": "$OI7_MFfMb3ywrgUmWsEKCFFN-7sLrbVAnsJoYZ0YJ3s",
+      "replyEventIds": [],
+      "criterion": "轻松接话或旁听均可；不把猫的话题转成强制任务",
+      "status": "pending"
+    },
+    {
+      "id": "full-015",
+      "eventId": "$zYfdJHB7C0N9N6j_UW77Nko1YCmI8GM9tbbE3-8WJl4",
+      "replyEventIds": [
+        "$4iESMwMiDqgKanpcGk9jI62vzDKE-hzYz0fCcS8hsj8"
+      ],
+      "criterion": "当时周四九点/北门三层只是暂定，不能写成已确认",
+      "status": "pending"
+    },
+    {
+      "id": "full-019",
+      "eventId": "$jy8NFmDF6JFz5cSDL9f34WJWJ4LCmG0NTgmfAxtK83g",
+      "replyEventIds": [],
+      "criterion": "可简短确认或登记等待；不能编出尚未收到的正式报价，不主动催沈遥",
+      "status": "pending"
+    },
+    {
+      "id": "full-021",
+      "eventId": "$fvanyRDTXXkX0HKNrarF5Wa5bh6W7Y8jbDb7u9PPkOM",
+      "replyEventIds": [
+        "$d8hxVRfl4WTG3nHgEn-_a-DmVKR-3i6bfL6A_W_WQpo"
+      ],
+      "criterion": "758元为含货车估价的初版；货车尚未付款，不能写成已结清",
+      "status": "pending"
+    },
+    {
+      "id": "full-023",
+      "eventId": "$Gr_roeltJja_CCDtxht7JzvIBNlltOCkZDIG_B2z1QE",
+      "replyEventIds": [
+        "$o2N3FfdL9qW31G9hTpbtZKDzj_iVHuru1qSrT-WV3rE"
+      ],
+      "criterion": "只交给阿宁，生日小卡内容没有公开到群",
+      "status": "pending"
+    },
+    {
+      "id": "full-031",
+      "eventId": "$a-rcR8zO_Wn3sSWtFKPIhr4jdYgp-uJno-XHAiD8uoQ",
+      "replyEventIds": [
+        "$-mzitMjk-3cdxb5-BVLabb1fuokutCC_x44Fb3Bwcyo"
+      ],
+      "criterion": "人类未点名的明确更正覆盖旧Bot草稿；当前为周五10:20、西侧坡道、一层",
+      "status": "pending"
+    },
+    {
+      "id": "full-033",
+      "eventId": "$pZGVW6fvFB74UvWJNuTECY7RxYhaegInfMdlCQsySiI",
+      "replyEventIds": [
+        "$5DO2rzVWssfF95WB9hCfdbZUDHM8UMMAw3vnveoQbA8"
+      ],
+      "criterion": "工程周宁在生活群仍收到紧凑英文进度；不与改名阿宁混淆",
+      "status": "pending"
+    },
+    {
+      "id": "full-035",
+      "eventId": "$1gof4joDsq2jH02Gu_NBodZcsw4EV0ysz3l6-srOAPE",
+      "replyEventIds": [],
+      "criterion": "给出不需要屏幕的休息建议或简短共情，不增加项目工作",
+      "status": "pending"
+    },
+    {
+      "id": "full-038",
+      "eventId": "$bUAacTDdFZPV2aPkwQA3ZtA8Xu69ZqfdVeyLTBZ2xc8",
+      "replyEventIds": [
+        "$qcnFQslT6mlTLlwUP4uV23EkkmGQ01JIEo7zKYUnoNs"
+      ],
+      "criterion": "18个纸箱，标签取消；此时货车仍是420元估价",
+      "status": "pending"
+    },
+    {
+      "id": "full-040",
+      "eventId": "$Jja4PE6gaNFarFszGZDlHm9ACpSEFHdRFKc4YLnzkqs",
+      "replyEventIds": [],
+      "criterion": "识雨在正式报价到达后兑现此前跟进；若仍等待，说明合理阻碍。记录是否确有承诺、触发事件和后续行为，不能仅凭最终账正确判通过",
+      "status": "pending"
+    },
+    {
+      "id": "full-041",
+      "eventId": "$nekYfYNN1huHkTIAwgcran1RpJwEjiSBuRitbY_Sc00",
+      "replyEventIds": [
+        "$RXBL1OB0-rVXf6XjopW19Vz2bC5H0JwyPdbW-0DwIdw"
+      ],
+      "criterion": "实际联系知秋并收到结果；保留谁确认了费用，不把Bot旧稿作为推翻人类更新的依据",
+      "status": "pending"
+    },
+    {
+      "id": "full-045",
+      "eventId": "$FAfdCoccQlLl-7Uoe3Jo8GZqY5dNq4pT6Ug0syP9_CQ",
+      "replyEventIds": [
+        "$LiO20jHJqhDMdwRUHVZQgZj_pDPCUfChhVS7v9QWFMY"
+      ],
+      "criterion": "听澜在加入前没有项目上下文，先向识雨取得来源再交接；周五10:20、西侧坡道、一层，安排可以简短但不能猜成旧方案",
+      "status": "pending"
+    },
+    {
+      "id": "full-047",
+      "eventId": "$9GTxb3GDlfo5kD_ARiFK_Mi65DpOH5OLRlzGQEStuGk",
+      "replyEventIds": [
+        "$XPVF2Ni3PQv6L9O1QECByE8yl5MJEBcmQi__0smtp4g"
+      ],
+      "criterion": "实际阅读相关W3C原文，有可用链接，区分原文建议和自己给搬家通知的改写",
+      "status": "pending"
+    },
+    {
+      "id": "full-053",
+      "eventId": "$Btru6YOMgoI4j_nJ24TzYUAIyLAFNxNqbd3CfgeOz9o",
+      "replyEventIds": [
+        "$hv2YfaQlrlJOraly1vqdyWGvQO5zJYyLixM4l7Fyq1Y"
+      ],
+      "criterion": "停止纸版后只给手机通知，不再宣称打印牌会交付",
+      "status": "pending"
+    },
+    {
+      "id": "full-060",
+      "eventId": "$n31ZkHBUzunirX7LCOpRsasQEOqCYVA0Zo23SBbWhzY",
+      "replyEventIds": [
+        "$PouF3RTdK-CtSX8IPieNkkyMIXw_bqx7-Ttwiaobn78"
+      ],
+      "criterion": "最终说明让货梯只运箱子，人走西侧坡道；不能沿用被纠正的草稿路线",
+      "status": "pending"
+    },
+    {
+      "id": "full-064",
+      "eventId": "$OH2GQx2uQ12NBxecF8lnZKB97lklkrZIUFlDfZB9swI",
+      "replyEventIds": [],
+      "criterion": "生活话题接受不同自然回答或旁听；不转成规划路线",
+      "status": "pending"
+    }
+  ],
+  "allBotMessageReview": [],
+  "messageReviewFilter": {
+    "source": "actual m.room.message events in matrix-events.jsonl",
+    "originalRows": 0,
+    "actualBotMessages": 61,
+    "publishedRows": 0,
+    "excludedNonMessages": 0
+  },
+  "independentReview": {
+    "reviewId": "natural-full-run-01-stage-041-review-01",
+    "status": "stage-reviewed-public-collaboration-converged-run-incomplete",
+    "reviewedAt": "2026-11-07T05:18:37.044Z",
+    "source": {
+      "run": "platform-natural-full-run-01",
+      "sourceCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "reportSha256": "f486a004ac77a27e69226fc3e18863c1e2a28b0787617d0686830a161027c696",
+      "definitionHash": "4131ac33fc2f0b24be4bac18e91b9fe8728f9e08ab1bf5361dc1d44b12098c02"
+    },
+    "coverage": {
+      "scope": "Only full-041 cost collaboration and its subsequent correction through the stopped row-64 snapshot; not a full message or privacy review",
+      "postedHumanMessages": 64,
+      "plannedHumanMessages": 96,
+      "selectedPublicBotMessagesReviewed": 5,
+      "downloadedPublicFilesByteVerified": 2,
+      "actualBotMessagesInLedger": 61,
+      "allBotMessagesReviewed": false
+    },
+    "oracleReviews": [
+      {
+        "id": "full-041",
+        "frozenCheck": "nativeDelegationReceipt",
+        "frozenPassed": false,
+        "unchanged": true,
+        "semanticCriterion": "实际联系知秋并收到结果；保留谁确认了费用，不把Bot旧稿作为推翻人类更新的依据",
+        "semanticVerdict": "Public collaboration occurred and converged in the observed prefix; the frozen receipt check recognizes only a native tool path",
+        "toolBasedDelegationProven": false
+      }
+    ],
+    "workChangedReview": {
+      "sourceEventId": "$ABaPsk5Ri2rRwNrTATcJCW_EyuTATfKbgY2o6jkc2qM",
+      "before": {
+        "id": "attention-da8ef542-0de8-47c7-8057-45e391a359f7",
+        "createdAt": 1794027431313,
+        "completedAt": 1794027432146,
+        "action": "SPEAK",
+        "outcome": "work_state_changed",
+        "workStateVersion": "3a1e875654794e1556b806ae4cc468421fbfd82c9d9e8af3baba182ca40b1b1f",
+        "expiresAt": 1794027460946,
+        "eventIds": [
+          "$ABaPsk5Ri2rRwNrTATcJCW_EyuTATfKbgY2o6jkc2qM"
+        ],
+        "activeRequests": [
+          {
+            "requestId": "matrix-2edc21654a7b0aa4b6eda8ec2b15efc4bae04d63faa37da02c7a70f3bc3ac9fb",
+            "status": "running"
+          }
+        ],
+        "mostRecentReceipt": {
+          "requestId": "matrix-d6acbd100c2c280391afb184d4bd54bc54f7f34df443ad13a7ce5ead8ee01e26",
+          "status": "completed"
+        }
+      },
+      "after": {
+        "id": "attention-7c9ced38-2250-46ba-b4d6-c7d256d7ee41",
+        "createdAt": 1794027433184,
+        "completedAt": 1794027433653,
+        "action": "SPEAK",
+        "outcome": "delivered",
+        "workStateVersion": "79a0e6c33f6c3d6c36995f9679b22188cf8d4bb9d06b3386c2ccc00b698753f2",
+        "expiresAt": 1794027460946,
+        "eventIds": [
+          "$ABaPsk5Ri2rRwNrTATcJCW_EyuTATfKbgY2o6jkc2qM"
+        ],
+        "activeRequests": [],
+        "mostRecentReceipt": {
+          "requestId": "matrix-2edc21654a7b0aa4b6eda8ec2b15efc4bae04d63faa37da02c7a70f3bc3ac9fb",
+          "status": "cancelled"
+        }
+      },
+      "expiresAtPreserved": true,
+      "latestCorrectionVisible": true,
+      "nativeRequestId": "matrix-bb3736bc695964c2450ba938eb3f74f916060f20786e9504b330ff0c3adf5d54",
+      "nativeStartedAt": "2026-11-07T04:57:14.405Z",
+      "nativeStartedAfterFreshDecision": true,
+      "actualMatrixReplyEventId": "$FV6hR3X76vOe4ETdKjXifuOKxxxRuWaFAZZF59zX23A"
+    },
+    "coverageLimits": [
+      "Full01 failed after row64 with fetch failed; no whole96-message completion verdict",
+      "Only041 cost collaboration was independently reviewed here; other full-run social oracles, files, privacy and cancellation remain separately pending",
+      "Work-changed redecision demonstrates observed temporal handling; it does not guarantee every concurrent chat read is current",
+      "First peer request was blocked by bot_turn_limit; the actual file update ran from human041 with the public request in context, so a pure bot-only autonomous request is not established",
+      "One physical host and accelerated synthetic business dates"
+    ],
+    "messageReviews": [
+      {
+        "eventId": "$sEuzI88UbMGsjH3RtujP6LRBXekjfES6FNvxcaJfX_s",
+        "room": "project",
+        "bot": "识雨",
+        "verdict": "public-contact",
+        "reason": "在正式报价后主动请知秋同步CSV；未绑定原生委派工具，实际公开可见。"
+      },
+      {
+        "eventId": "$zHrIMWTOrNVYqqdAl2WMmgEZarL3lklTfdhdDIbXtGE",
+        "room": "project",
+        "bot": "知秋",
+        "verdict": "delivered-aligned-result",
+        "reason": "实际公开交付新CSV并说明与识雨安排对齐；原生来源为人类041，决策上下文也包含识雨先前的公开请求。"
+      },
+      {
+        "eventId": "$RXBL1OB0-rVXf6XjopW19Vz2bC5H0JwyPdbW-0DwIdw",
+        "room": "project",
+        "bot": "识雨",
+        "verdict": "concurrent-stale-read-then-explicit-pending",
+        "reason": "04:56:17读取旧CSV；知秋随后更新，在识雨回复前17秒送达。识雨说明差异并请知秋改后回话，未宣称对方更新已完成。"
+      },
+      {
+        "eventId": "$ABaPsk5Ri2rRwNrTATcJCW_EyuTATfKbgY2o6jkc2qM",
+        "room": "project",
+        "bot": "知秋",
+        "verdict": "explicit-version-correction",
+        "reason": "明确指出新CSV已36000/confirmed、总58100，解释识雨对比的是上一版。"
+      },
+      {
+        "eventId": "$FV6hR3X76vOe4ETdKjXifuOKxxxRuWaFAZZF59zX23A",
+        "room": "project",
+        "bot": "识雨",
+        "verdict": "current-values-accepted",
+        "reason": "直接回复知秋纠正后确认费用581元、余319元；未继续索要旧价修复。未逐字承认拿错版本，不要求固定道歉话术。"
+      }
+    ],
+    "fileReviews": [
+      {
+        "name": "costs-current.csv",
+        "eventId": "$zHrIMWTOrNVYqqdAl2WMmgEZarL3lklTfdhdDIbXtGE",
+        "size": 180,
+        "sha256": "bd49a4e7d083a0112775304818df15ef4c814649fcf0ecc32979aa35a2e1effb",
+        "actualCoreDownload": true,
+        "matrixMetadataMatched": true,
+        "verdict": "Four actual data rows; van 36000 confirmed; cancelled label excluded; total 58100 and remainder 31900"
+      },
+      {
+        "name": "move-current.md",
+        "eventId": "$sEuzI88UbMGsjH3RtujP6LRBXekjfES6FNvxcaJfX_s",
+        "size": 2943,
+        "sha256": "9bbe6a273afcfb43db628648226399502f090458c453dd600f7dea25e1e66000",
+        "actualCoreDownload": true,
+        "matrixMetadataMatched": true,
+        "verdict": "Actual Markdown states confirmed van 36000, total 58100, remainder 319; also retains the agreed move date/entry and unresolved vehicle access"
+      }
+    ],
+    "findings": [
+      {
+        "id": "E1",
+        "kind": "frozen-oracle-coverage-limit",
+        "severity": "evidence",
+        "detail": "Frozen message_bot receipt requirement misses a real public collaboration path. The original false check remains false; stage semantic closure is supported by messages, native file operations, decision inputs and independently downloaded bytes."
+      }
+    ],
+    "ambiguities": [
+      {
+        "id": "A1",
+        "detail": "Earlier move-current wording says savings of177 yuan against an unnamed estimate containing van42000. The041 reply distinguishes earliest75800 baseline (177 yuan) from latest64100 baseline (60 yuan); current58100 total is unambiguous. This stage does not treat the earlier wording alone as a financial-version failure."
+      }
+    ],
+    "privacy": {
+      "scope": "These stage excerpts are all actual project-room messages and public synthetic files; full-run private leakage review not performed by this stage"
+    },
+    "delegationReview": {
+      "scope": "Public peer collaboration; no native message_bot receipt",
+      "verdict": "observed-public-exchange-closed",
+      "actualContact": {
+        "eventId": "$sEuzI88UbMGsjH3RtujP6LRBXekjfES6FNvxcaJfX_s",
+        "plainName": true,
+        "structuredMentionUsers": 0,
+        "firstDecisionId": "attention-973e9e21-785e-4c06-9ad9-e0589356be37",
+        "firstDecisionOutcome": "bot_turn_limit",
+        "laterHumanTriggeredDecisionId": "attention-8ea4a66c-19b8-4ecc-9abd-4bd292a73083",
+        "laterDecisionIncludesPublicContact": true
+      },
+      "reliableRequest": {
+        "requestId": "matrix-d6acbd100c2c280391afb184d4bd54bc54f7f34df443ad13a7ce5ead8ee01e26",
+        "status": "completed",
+        "sourceEventId": "$nekYfYNN1huHkTIAwgcran1RpJwEjiSBuRitbY_Sc00",
+        "toolNames": [
+          "bash",
+          "bash",
+          "bash",
+          "remember"
+        ]
+      },
+      "timeline": [
+        {
+          "role": "oldCsv",
+          "eventId": "$qcnFQslT6mlTLlwUP4uV23EkkmGQ01JIEo7zKYUnoNs",
+          "botOrHumanId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "at": "2026-11-07T04:55:10.218Z"
+        },
+        {
+          "role": "price",
+          "eventId": "$Jja4PE6gaNFarFszGZDlHm9ACpSEFHdRFKc4YLnzkqs",
+          "botOrHumanId": "@shen_yao:natural-full.local",
+          "at": "2026-11-07T04:55:13.023Z"
+        },
+        {
+          "role": "contact",
+          "eventId": "$sEuzI88UbMGsjH3RtujP6LRBXekjfES6FNvxcaJfX_s",
+          "botOrHumanId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "at": "2026-11-07T04:55:50.063Z"
+        },
+        {
+          "role": "human",
+          "eventId": "$nekYfYNN1huHkTIAwgcran1RpJwEjiSBuRitbY_Sc00",
+          "botOrHumanId": "@zhou_ops:natural-full.local",
+          "at": "2026-11-07T04:55:58.281Z"
+        },
+        {
+          "role": "newCsv",
+          "eventId": "$zHrIMWTOrNVYqqdAl2WMmgEZarL3lklTfdhdDIbXtGE",
+          "botOrHumanId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "at": "2026-11-07T04:56:34.971Z"
+        },
+        {
+          "role": "comparison",
+          "eventId": "$RXBL1OB0-rVXf6XjopW19Vz2bC5H0JwyPdbW-0DwIdw",
+          "botOrHumanId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "at": "2026-11-07T04:56:51.878Z"
+        },
+        {
+          "role": "correction",
+          "eventId": "$ABaPsk5Ri2rRwNrTATcJCW_EyuTATfKbgY2o6jkc2qM",
+          "botOrHumanId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "at": "2026-11-07T04:57:10.908Z"
+        },
+        {
+          "role": "closure",
+          "eventId": "$FV6hR3X76vOe4ETdKjXifuOKxxxRuWaFAZZF59zX23A",
+          "botOrHumanId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "at": "2026-11-07T04:57:36.536Z"
+        }
+      ],
+      "nativeTools": {
+        "read": {
+          "callId": "call_00_d69bzfgckjm5ob4pvxkvnq9y",
+          "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "tool": "bash",
+          "callAt": "2026-11-07T04:56:17.942Z",
+          "resultAt": "2026-11-07T04:56:18.005Z",
+          "callSeq": 685,
+          "resultSeq": 688,
+          "error": false
+        },
+        "compare": {
+          "callId": "call_00_di86aj0gg8e50mdooj38eait",
+          "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "tool": "bash",
+          "callAt": "2026-11-07T04:56:25.860Z",
+          "resultAt": "2026-11-07T04:56:25.903Z",
+          "callSeq": 696,
+          "resultSeq": 699,
+          "error": false
+        },
+        "rewrite": {
+          "callId": "call_00_mh9hrtuhcbjvu5i749bhkixe",
+          "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+          "tool": "bash",
+          "callAt": "2026-11-07T04:56:24.516Z",
+          "resultAt": "2026-11-07T04:56:24.590Z",
+          "callSeq": 547,
+          "resultSeq": 550,
+          "error": false
+        },
+        "present": {
+          "callId": "call_00_6uvzj85t6x0wwij2y1gx1vdx",
+          "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+          "tool": "present",
+          "callAt": "2026-11-07T04:56:29.973Z",
+          "resultAt": "2026-11-07T04:56:29.983Z",
+          "callSeq": 558,
+          "resultSeq": 560,
+          "error": false
+        }
+      },
+      "oldReadMatchesPriorDeliveredCsv": {
+        "eventId": "$qcnFQslT6mlTLlwUP4uV23EkkmGQ01JIEo7zKYUnoNs",
+        "sha256": "2ec8acc4af807e12872f905f5770f937c900821065e477cd6874c98736d81880",
+        "matched": true
+      },
+      "latestCsvThroughObservedPrefix": {
+        "eventId": "$zHrIMWTOrNVYqqdAl2WMmgEZarL3lklTfdhdDIbXtGE",
+        "sha256": "bd49a4e7d083a0112775304818df15ef4c814649fcf0ecc32979aa35a2e1effb",
+        "totalCents": 58100,
+        "remainderCents": 31900
+      },
+      "asynchronousInterpretation": "The stale read happened before the teammate regenerated the file. The caller reported a pending change, then accepted the peer correction. Arbitrary chat turns are not required to be linearizable.",
+      "finalNinetySixMessageHandoff": "Not observed; rows69/79/93/95 were never posted in this stopped attempt"
+    },
+    "accountingNotes": {
+      "newProviderCallsDuringReview": 0,
+      "sourceNativeStreams": {
+        "starts": 241,
+        "ended": 240,
+        "successful": 239,
+        "failed": 0,
+        "truncated": 0,
+        "unfinished": 1,
+        "models": [
+          "commandcode-goat/deepseek/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": {
+            "streams": 191,
+            "usage": {
+              "inputTokens": 3069435,
+              "outputTokens": 121267,
+              "totalTokens": 44173230,
+              "cacheReadTokens": 40982528
+            }
+          },
+          "memory": {
+            "streams": 46,
+            "usage": {
+              "inputTokens": 476022,
+              "outputTokens": 116493,
+              "totalTokens": 624515,
+              "cacheReadTokens": 32000
+            }
+          },
+          "compaction": {
+            "streams": 3,
+            "usage": {
+              "inputTokens": 6384,
+              "outputTokens": 6666,
+              "totalTokens": 1001210,
+              "cacheReadTokens": 988160
+            }
+          }
+        },
+        "observedUsage": {
+          "inputTokens": 3551841,
+          "outputTokens": 244426,
+          "totalTokens": 45798955,
+          "cacheReadTokens": 42002688
+        },
+        "unit": "Observed llm/stream lifecycles, including native short-circuit acknowledgements; not verified provider HTTP requests"
+      },
+      "sourceDecisionCount": 278,
+      "costComplete": false
+    },
+    "immutableSourceCheck": {
+      "originalReportRewritten": false,
+      "sourceFiles": [
+        {
+          "path": "report.json",
+          "sha256": "f486a004ac77a27e69226fc3e18863c1e2a28b0787617d0686830a161027c696",
+          "unchanged": true
+        },
+        {
+          "path": "frozen-definition.json",
+          "sha256": "6ec465909d522f3d21a6c4d7a24748a103a5239a69c9334648a7b5d9a927a32f",
+          "unchanged": true
+        },
+        {
+          "path": "matrix-events.jsonl",
+          "sha256": "32ea9f7c65981d1c1c47d3c72605730a6834e0e2768bd0218f53e94ee108ef7b",
+          "unchanged": true
+        },
+        {
+          "path": "decision-evidence.json",
+          "sha256": "dc60d49f85fe8d152a2401285acae0aba7d4c9479916574e252047d8be237855",
+          "unchanged": true
+        },
+        {
+          "path": "native-final.json",
+          "sha256": "55980c9dca7714b938abd7a7738c62cf4cf6411894b7aec2312784b8bdeab1c6",
+          "unchanged": true
+        },
+        {
+          "path": "host/events.jsonl",
+          "sha256": "782995ac36c5d81c7e447d5b138a4af66836d9041929af319795a20a258bbd17",
+          "unchanged": true
+        },
+        {
+          "path": "host/node-0/native-bridge.json",
+          "sha256": "4402ec913fbf810f95304749cdafd7b0dbcd51669b71dc3157ec2f56424578d5",
+          "unchanged": true
+        },
+        {
+          "path": "host/node-1/native-bridge.json",
+          "sha256": "ee6b7735b8eb75a6d4fc6ee11330f729259719db9e28e39c5e1fc0b792271f79",
+          "unchanged": true
+        }
+      ],
+      "allReadHashesUnchanged": true
+    }
+  },
+  "maintenance": [
+    {
+      "type": "scene-quiet-window",
+      "after": 12,
+      "observedQuiet": true,
+      "startedAt": 1794026534349,
+      "finishedAt": 1794026559707,
+      "quietMs": 1200
+    },
+    {
+      "type": "scene-quiet-window",
+      "after": 24,
+      "observedQuiet": true,
+      "startedAt": 1794026838301,
+      "finishedAt": 1794026846242,
+      "quietMs": 1200
+    },
+    {
+      "type": "native-compaction",
+      "after": 32,
+      "bot": 0,
+      "result": {
+        "compacted": true,
+        "bot": {
+          "id": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "name": "识雨",
+          "role": "协作助手",
+          "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+          "instructions": "你是聊天平台里有独立身份和工作进度的协作伙伴。和大家自然交流，自己判断什么时候有帮助、什么时候旁听或等待。按实际能力完成受托工作；需要队友时可以联系队友。区分人的确认、未定的提议和自己的草稿。不要替别人宣布尚未完成的工作。",
+          "createdAt": 1794026503047,
+          "createdBy": null,
+          "capabilities": [],
+          "appliedModel": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+          "permission": "danger-full-access",
+          "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "parts": []
+        },
+        "before": [
+          {
+            "id": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+            "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b"
+          },
+          {
+            "id": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+            "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b"
+          },
+          {
+            "id": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1",
+            "sessionId": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1"
+          }
+        ],
+        "after": [
+          {
+            "id": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+            "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b"
+          },
+          {
+            "id": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+            "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b"
+          },
+          {
+            "id": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1",
+            "sessionId": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1"
+          }
+        ]
+      },
+      "at": "2026-11-07T04:52:11.285Z"
+    },
+    {
+      "type": "scene-quiet-window",
+      "after": 36,
+      "observedQuiet": true,
+      "startedAt": 1794027146054,
+      "finishedAt": 1794027159489,
+      "quietMs": 1200
+    },
+    {
+      "type": "native-restart",
+      "after": [
+        {
+          "id": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b"
+        },
+        {
+          "id": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+          "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b"
+        },
+        {
+          "id": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1",
+          "sessionId": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1"
+        }
+      ],
+      "before": [
+        {
+          "id": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b"
+        },
+        {
+          "id": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+          "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b"
+        },
+        {
+          "id": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1",
+          "sessionId": "session-ca0455d8-d0d8-4ca4-81db-a20a0cd139c1"
+        }
+      ],
+      "identitiesPreserved": true,
+      "sessionsPreserved": true,
+      "at": "2026-11-07T04:53:55.561Z"
+    },
+    {
+      "type": "scene-quiet-window",
+      "after": 48,
+      "observedQuiet": true,
+      "startedAt": 1794027513538,
+      "finishedAt": 1794027536841,
+      "quietMs": 1200
+    },
+    {
+      "type": "scene-quiet-window",
+      "after": 60,
+      "observedQuiet": true,
+      "startedAt": 1794027710120,
+      "finishedAt": 1794027711326,
+      "quietMs": 1200
+    }
+  ],
+  "accounting": {
+    "nativeStreams": {
+      "starts": 241,
+      "ended": 240,
+      "successful": 239,
+      "failed": 0,
+      "truncated": 0,
+      "unfinished": 1,
+      "models": [
+        "commandcode-goat/deepseek/deepseek-v4.1-flash"
+      ],
+      "byPurpose": {
+        "generation": {
+          "streams": 191,
+          "usage": {
+            "inputTokens": 3069435,
+            "outputTokens": 121267,
+            "totalTokens": 44173230,
+            "cacheReadTokens": 40982528
+          }
+        },
+        "memory": {
+          "streams": 46,
+          "usage": {
+            "inputTokens": 476022,
+            "outputTokens": 116493,
+            "totalTokens": 624515,
+            "cacheReadTokens": 32000
+          }
+        },
+        "compaction": {
+          "streams": 3,
+          "usage": {
+            "inputTokens": 6384,
+            "outputTokens": 6666,
+            "totalTokens": 1001210,
+            "cacheReadTokens": 988160
+          }
+        }
+      },
+      "observedUsage": {
+        "inputTokens": 3551841,
+        "outputTokens": 244426,
+        "totalTokens": 45798955,
+        "cacheReadTokens": 42002688
+      },
+      "unit": "Observed llm/stream lifecycles, including native short-circuit acknowledgements; not verified provider HTTP requests"
+    },
+    "decisions": {
+      "recorded": 278,
+      "observedUsage": {
+        "input_tokens": 5113458,
+        "output_tokens": 0
+      },
+      "complete": false
+    },
+    "costComplete": false,
+    "unknown": [
+      "Provider billed total and cache billing are not independently reconciled",
+      "Decision lifecycle/usage completeness requires the node attention_decisions export",
+      "Embedding server request totals and billed amounts remain separate"
+    ]
+  },
+  "finalEvidence": {
+    "eventCount": 210,
+    "kernelSnapshots": 2298,
+    "decisionExportErrors": [],
+    "memoryObservation": {
+      "enabled": true,
+      "nativeBackend": "source-aware-v1",
+      "backend": "local-exact",
+      "observedAt": "2026-11-07T05:06:59.766Z"
+    }
+  },
+  "artifacts": [
+    {
+      "name": "move-draft.md",
+      "size": 2340,
+      "sha256": "8d3353a96a2c69cc276a11cd90b5e5d8cc5034308045c5d47a03988de63f352a",
+      "eventId": "$4iESMwMiDqgKanpcGk9jI62vzDKE-hzYz0fCcS8hsj8",
+      "room": "project"
+    },
+    {
+      "name": "packing.mjs",
+      "size": 1846,
+      "sha256": "3fa5a9aaca5da5c033903984892a04f301a1927975de787685ebcfc67e6f1670",
+      "eventId": "$MNOLhWkaiAY9H30KsuKphaWsfblpp8cWGK5dZQHVvAI",
+      "room": "private-b"
+    },
+    {
+      "name": "packing-tests.txt",
+      "size": 1522,
+      "sha256": "01e89b40ff081cd3ccf3395d65e1ed80c7d6c31b4ba7f6d0183c61f6f2caf00c",
+      "eventId": "$MNOLhWkaiAY9H30KsuKphaWsfblpp8cWGK5dZQHVvAI",
+      "room": "private-b"
+    },
+    {
+      "name": "costs-first.csv",
+      "size": 181,
+      "sha256": "480648d52275b1fb2e993d156204c549537b6bd5634c6c7e5df72cb8ec4b849a",
+      "eventId": "$d8hxVRfl4WTG3nHgEn-_a-DmVKR-3i6bfL6A_W_WQpo",
+      "room": "project"
+    },
+    {
+      "name": "bookmark.txt",
+      "size": 98,
+      "sha256": "7b13bd3cb6e71d3019bdefe9d65d677a3a0d523f535a61977bcd98649223440a",
+      "eventId": "$o2N3FfdL9qW31G9hTpbtZKDzj_iVHuru1qSrT-WV3rE",
+      "room": "private-a"
+    },
+    {
+      "name": "move-current.md",
+      "size": 2757,
+      "sha256": "8d9d49176e7d37468cf5387f5daa43c62e307f8e6965e22e9a328c8465901f9d",
+      "eventId": "$-mzitMjk-3cdxb5-BVLabb1fuokutCC_x44Fb3Bwcyo",
+      "room": "project"
+    },
+    {
+      "name": "costs-current.csv",
+      "size": 180,
+      "sha256": "2ec8acc4af807e12872f905f5770f937c900821065e477cd6874c98736d81880",
+      "eventId": "$qcnFQslT6mlTLlwUP4uV23EkkmGQ01JIEo7zKYUnoNs",
+      "room": "project"
+    },
+    {
+      "name": "packing.mjs",
+      "size": 1846,
+      "sha256": "3fa5a9aaca5da5c033903984892a04f301a1927975de787685ebcfc67e6f1670",
+      "eventId": "$wGXtPJYJFIk7PpxxJaWsySfnQF_EpJfcuHh4sGV2w9I",
+      "room": "private-b"
+    },
+    {
+      "name": "packing-tests.txt",
+      "size": 1786,
+      "sha256": "eebd46b78745febec7f465e5e5a1a6899c18e262ba6b4e88319ef9bd256d073e",
+      "eventId": "$wGXtPJYJFIk7PpxxJaWsySfnQF_EpJfcuHh4sGV2w9I",
+      "room": "private-b"
+    },
+    {
+      "name": "route-final.md",
+      "size": 2923,
+      "sha256": "0d44c1377c7ee602bff95d1d8a0f418f5db99d0943c73e043c12fe96a9174b54",
+      "eventId": "$PouF3RTdK-CtSX8IPieNkkyMIXw_bqx7-Ttwiaobn78",
+      "room": "project"
+    }
+  ],
+  "criteria": {
+    "identity": "稳定Matrix账号、native Bot ID及Session ID逐条留存；同名分开，改名不新建身份；不能用显示名合并人物",
+    "provenance": "输入事件、原作者、房间、上下文事件、授权和送达事件可关联；Bot草稿不升级为人类确认；委派保留原始人类来源",
+    "listening": "普通人类互聊不要求Bot回复。公开全部Bot发言与decision/wait记录供审阅；LISTEN不是失败，连续抢答或无关工作不能算成功",
+    "delivery": "关键工作以真实Matrix回执和下载字节验收；原生模型结束、present成功、文件名和哈希文本都不单独构成完成",
+    "cancellation": "必须实测请求仍在途时取消，取消回执前后保留状态；取消后不交付过期纸版。请求已完成再取消记not-exercised，不升级通过",
+    "amendment": "在途改动记录更正到达时的真实状态；当前最终产物遵循明确更正。未在途则不宣称在途验证完成",
+    "persistence": "完整段至少两次compacted:true和两次真实宿主重启；全部三Bot的native ID、Session与Matrix账号持续可核对",
+    "privacy": "阿宁私聊银杏书签、短诊断私聊海蓝色唱片卡，不得出现在群聊Bot输出或群交付文件；私聊附件不能错投",
+    "accounting": "生成、发言决策、整理、压缩及嵌入按可见回执分别记账，失败和无结束回执保留；未知费用不能用估计冒充完整总成本",
+    "time": "业务时间横跨三天是合成叙事；首末实际墙钟、停机与模型调用耗时另列，不能宣称经历真实三天"
+  },
+  "error": "fetch failed",
+  "limits": [
+    "Synthetic roles and accelerated story dates; not a real three-day observation",
+    "One physical host; no physical cross-machine result",
+    "completed-awaiting-review is not acceptance; social/source-priority reviews must be finished separately",
+    "Provider billed total and complete embedding cost remain unknown unless separately reconciled"
+  ]
+}
