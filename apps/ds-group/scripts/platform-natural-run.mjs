@@ -47,9 +47,19 @@ export function validateNaturalDefinition(definition) {
 export function summarizeObservedCalls(calls = [], decisionRows = []) {
   const starts = calls.filter(row => row.event === 'start'), ends = calls.filter(row => row.event === 'end');
   const ended = new Set(ends.map(row => row.callId));
+  const abortCodes = new Set(['ABORTED', 'CANCELLED', 'CANCELED', 'ABORT_ERR', 'ERR_ABORTED']);
+  const outcome = row => {
+    if (['aborted', 'cancelled', 'canceled'].includes(row.status) || ['aborted', 'cancelled', 'canceled'].includes(row.finish?.kind)
+      || [row.failure?.code, row.finish?.failure?.code, row.error?.code].some(code => abortCodes.has(code))) return 'aborted';
+    if (row.status === 'truncated' || row.finish?.kind === 'max-tokens') return 'truncated';
+    if (row.status === 'failed') return 'failed';
+    if (row.status === 'completed' && row.finish?.kind !== 'error' && !row.failure && !row.error) return 'successful';
+    return 'unknownEnded';
+  };
+  const outcomes = ends.map(outcome), count = kind => outcomes.filter(value => value === kind).length;
   const sumUsage = rows => rows.reduce((sum, row) => { for (const [key, value] of Object.entries(row.usage || {})) if (typeof value === 'number') sum[key] = (sum[key] || 0) + value; return sum; }, {});
-  return { nativeStreams: { starts: starts.length, ended: ends.length, successful: ends.filter(row => row.status === 'completed' && row.finish?.kind !== 'max-tokens').length,
-    failed: ends.filter(row => row.status === 'failed').length, truncated: ends.filter(row => row.status === 'truncated' || row.finish?.kind === 'max-tokens').length,
+  return { nativeStreams: { classificationVersion: 2, starts: starts.length, ended: ends.length, successful: count('successful'),
+    failed: count('failed'), truncated: count('truncated'), aborted: count('aborted'), unknownEnded: count('unknownEnded'),
     unfinished: starts.filter(row => !ended.has(row.callId)).length, models: [...new Set(calls.map(row => row.model).filter(Boolean))],
     byPurpose: Object.fromEntries([...new Set(ends.map(row => row.purpose || 'unknown'))].map(purpose => [purpose, { streams: ends.filter(row => (row.purpose || 'unknown') === purpose).length,
       usage: sumUsage(ends.filter(row => (row.purpose || 'unknown') === purpose)) }])), observedUsage: sumUsage(ends), unit: 'Observed llm/stream lifecycles, including native short-circuit acknowledgements; not verified provider HTTP requests' },

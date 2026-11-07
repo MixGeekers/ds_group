@@ -162,6 +162,26 @@ test('accounting keeps failures, truncation, unfinished streams and decisions se
   assert.equal(summary.nativeStreams.unfinished, 1); assert.equal(summary.nativeStreams.observedUsage.inputTokens, 16);
   assert.equal(summary.decisions.observedUsage.input_tokens, 7); assert.equal(summary.costComplete, false);
 });
+test('accounting never calls completed-wrapper aborts or unknown ends successful and retains their usage', () => {
+  const endings = [
+    { callId: 'ok', status: 'completed', finish: { kind: 'stop' }, usage: { inputTokens: 3 } },
+    { callId: 'abort-kind', status: 'completed', finish: { kind: 'aborted' }, usage: { inputTokens: 5 } },
+    { callId: 'abort-code', status: 'completed', failure: { code: 'ABORTED' }, usage: { inputTokens: 7 } },
+    { callId: 'abort-nested', status: 'failed', finish: { kind: 'error', failure: { code: 'ABORTED' } } },
+    { callId: 'cancelled', status: 'cancelled' },
+    { callId: 'truncated', status: 'completed', finish: { kind: 'max-tokens' } },
+    { callId: 'failed', status: 'failed' },
+    { callId: 'unknown' },
+    { callId: 'contradictory', status: 'completed', finish: { kind: 'error' } },
+  ].map(row => ({ event: 'end', purpose: 'memory', ...row }));
+  const calls = [...endings.map(row => ({ event: 'start', callId: row.callId })), ...endings, { event: 'start', callId: 'unfinished' }];
+  const { nativeStreams: streams, costComplete } = summarizeObservedCalls(calls);
+  assert.equal(streams.classificationVersion, 2); assert.equal(streams.successful, 1); assert.equal(streams.aborted, 4);
+  assert.equal(streams.failed, 1); assert.equal(streams.truncated, 1); assert.equal(streams.unknownEnded, 2); assert.equal(streams.unfinished, 1);
+  assert.equal(streams.successful + streams.aborted + streams.failed + streams.truncated + streams.unknownEnded, streams.ended);
+  assert.equal(streams.observedUsage.inputTokens, 15); assert.equal(streams.byPurpose.memory.usage.inputTokens, 15);
+  assert.equal(costComplete, false);
+});
 test('natural mode configuration is insufficient without real decisions linked to Matrix sources', () => {
   const bots = [{ id: 'b0' }, { id: 'b1' }], ledger = [{ event_id: 'e1' }];
   const decisions = [{ botId: 'b0', status: 'decided', action: 'LISTEN', model: 'decision-model', eventIds: ['e1'] },
