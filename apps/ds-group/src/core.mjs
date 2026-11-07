@@ -21,6 +21,7 @@ import { nodeBundle } from '../scripts/server-admin.mjs';
 import { Governance, serverOf, roomAllows } from './governance.mjs';
 import { CollaborationService } from './collaboration.mjs';
 import { RoomMedia } from './room-media.mjs';
+import { AttachmentAccess } from './attachment-access.mjs';
 import { BotWorkService } from './bot-work.mjs';
 import { readJsonBody } from './http-json.mjs';
 import { KernelControl, publicKernelSummary } from './kernel-control.mjs';
@@ -119,6 +120,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   });
   const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES,
     verifiedDownloadMaxBytes: config.verifiedDownloadMaxBytes, verifiedDownloadConcurrency: config.verifiedDownloadConcurrency });
+  const attachmentAccess = new AttachmentAccess({ media, roomMedia, accounts });
   const chat = new DatabaseSync(path.join(dataRoot, 'chat.sqlite'));
   chat.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS direct_rooms (pair_key TEXT PRIMARY KEY, room_id TEXT NOT NULL, participants_json TEXT NOT NULL)');
   chat.exec(`CREATE TABLE IF NOT EXISTS group_requests (request_key TEXT PRIMARY KEY, input_hash TEXT NOT NULL, status TEXT NOT NULL, room_id TEXT);
@@ -200,13 +202,17 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     if ((previous && previous.input_hash !== inputHash) || (active && active.inputHash !== inputHash)) {
       throw Object.assign(new Error('This message transaction belongs to different content'), { status: 409 });
     }
-    if (previous?.event_id) return { event_id: previous.event_id };
+    if (previous?.event_id) {
+      attachmentAccess.record(JSON.parse(previous.payload_json).attachments || [], roomId, previous.event_id);
+      return { event_id: previous.event_id };
+    }
     if (active) return active.promise;
     const tokenHash = createHash('sha256').update(token).digest('hex');
     if (previous && previous.token_hash !== tokenHash) {
       throw Object.assign(new Error('Check the conversation for this pending message before sending it from another login'), { status: 409 });
     }
     const promise = (async () => {
+      for (const attachment of attachments) await attachmentAccess.local({ client, userId, id: attachment.id });
       let payload;
       if (previous) payload = JSON.parse(previous.payload_json);
       else {
@@ -221,6 +227,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       }
       const receipt = await client.send(roomId, payload.body, payload);
       chat.prepare('UPDATE message_requests SET event_id=? WHERE request_key=?').run(receipt.event_id, key);
+      attachmentAccess.record(attachments, roomId, receipt.event_id);
       return receipt;
     })();
     sendingMessages.set(key, { inputHash, promise });
@@ -357,13 +364,13 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
       if (serverOf(userId) !== setup.serverName || accounts.row(userId)?.status !== 'active') return send(403, { error: 'An active home identity is required' });
-      const proven = await roomMedia.prove({ client, userId, roomId: decodeURIComponent(roomAttachment[1]),
+      const proven = await attachmentAccess.prove({ client, userId, roomId: decodeURIComponent(roomAttachment[1]),
         attachmentId: decodeURIComponent(roomAttachment[2]), eventId: url.searchParams.get('eventId') });
       if (roomAttachment[3]) return send(200, proven);
       return media.download({ verifiedAttachment: proven.attachment, client, request, response, asDownload: url.searchParams.get('download') === '1',
         authorize: async () => {
           if (accounts.row(userId)?.status !== 'active') throw Object.assign(new Error('An active home identity is required'), { status: 403 });
-          await roomMedia.prove({ client, userId, roomId: proven.proof.roomId, eventId: proven.proof.eventId, attachmentId: proven.attachment.id });
+          await attachmentAccess.prove({ client, userId, roomId: proven.proof.roomId, eventId: proven.proof.eventId, attachmentId: proven.attachment.id });
         } });
     }
     if (url.pathname === '/api/attachments' || url.pathname.startsWith('/api/attachments/')) {
@@ -382,8 +389,12 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const attachment = url.pathname.match(/^\/api\/attachments\/([^/]+)(\/metadata)?$/);
       if (request.method === 'GET' && attachment) {
         const id = decodeURIComponent(attachment[1]);
-        if (attachment[2]) return send(200, { attachment: media.get(id) });
-        return media.download({ id, client, request, response, asDownload: url.searchParams.get('download') === '1' });
+        const source = url.searchParams.has('roomId') || url.searchParams.has('eventId')
+          ? { roomId: url.searchParams.get('roomId'), eventId: url.searchParams.get('eventId') } : undefined;
+        const authorized = await attachmentAccess.local({ client, userId, id, source });
+        if (attachment[2]) return send(200, { attachment: authorized });
+        return media.download({ verifiedAttachment: authorized, client, request, response, asDownload: url.searchParams.get('download') === '1',
+          authorize: () => attachmentAccess.local({ client, userId, id, source }) });
       }
       return send(404, { error: 'Unknown attachment endpoint' });
     }
@@ -500,6 +511,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const result = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/context/${encodeURIComponent(eventId)}?limit=30`);
       const events = [...(result.events_before || []).toReversed(), ...(result.event ? [result.event] : []), ...(result.events_after || [])]
         .map(event => ({ ...event, room_id: roomId }));
+      attachmentAccess.observe(events, roomId);
       chatFeatures.recordEvents(userId, events);
       return send(200, { eventId, events });
     }
@@ -511,6 +523,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         const { user_id: userId } = await client.whoami();
         const events = (await client.timeline(roomId, Math.min(Number(url.searchParams.get('limit')) || 100, 200)))
           .map(event => ({ ...event, room_id: roomId }));
+        attachmentAccess.observe(events, roomId);
         chatFeatures.recordEvents(userId, events);
         return send(200, { events });
       }
