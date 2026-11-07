@@ -1,0 +1,1147 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "natural-full-followup-independent-review-01",
+  "reviewedAt": "2026-11-07T07:26:36.488Z",
+  "evidenceLevel": "Independent read-only review of actual local Matrix/Core delivery, native tools and downloaded bytes",
+  "original": {
+    "run": "platform-natural-full-run-01",
+    "reportSha256": "416430f8d2a2b4a9fae914fb444a962e5bb0443599e85d160821198b931d6c08",
+    "definitionHash": "4131ac33fc2f0b24be4bac18e91b9fe8728f9e08ab1bf5361dc1d44b12098c02",
+    "status": "completed-with-failures",
+    "failureCount": 4,
+    "originalScoresUnchanged": true,
+    "review": "natural-full-run-01-review.md"
+  },
+  "coverage": {
+    "runs": 5,
+    "feedbackMessages": 7,
+    "newActualBotMessages": 15,
+    "actualDeliveredAttachmentsDownloaded": 8,
+    "originalUploadsDownloaded": 4,
+    "sourceInputHashesVerified": 29,
+    "allActualBotMessagesIndividuallyReviewed": true,
+    "privateBodyExported": false,
+    "newModelCallsByReviewer": 0
+  },
+  "runs": [
+    {
+      "name": "platform-natural-full-repair-01",
+      "reportSha256": "a05eb7c0bc8e3e164983d481535c4979775e4d3dcc2e82b053445c32f127f5e8",
+      "sourceCommit": "79ae498bbf6cfede961cfdb6643c83046ea433e2",
+      "startedAt": "2026-11-07T06:49:28.747Z",
+      "finishedAt": "2026-11-07T06:51:01.906Z",
+      "status": "passed",
+      "productHashesMatchFirstRepair": true,
+      "sourceUnchanged": true,
+      "scriptUnchanged": null,
+      "identitiesPreserved": true,
+      "hostExitCode": 0,
+      "originalProtectedFileCount": 18,
+      "originalProtectedCurrentBytesVerified": true,
+      "sourceInputHashes": {
+        "report.json": "a05eb7c0bc8e3e164983d481535c4979775e4d3dcc2e82b053445c32f127f5e8",
+        "matrix-events.jsonl": "a03e903888cbc9aeebf6be51a0190c0a97a2cb753c145353375a479d27218e7f",
+        "host/events.jsonl": "2f37fbf440de04e7460f5dbbb0e10dc11bb84c78b7c745c553a22e8d2a97d38b",
+        "host/calls.jsonl": "eaae346e616e726111dc628b27da304048e6d195fc15e79374bc700850053218",
+        "native-final.json": "36bd79f0b75f5585d9c0f457d96e91d539796c7f01990527bca8e5009e583b9e"
+      },
+      "feedback": [
+        {
+          "id": "full084-repair-01",
+          "eventId": "$S5cvG3C7ZTRHolyDytJWRvBqXvuoBqBWV3HlBLYmWbQ",
+          "roomId": "!VP5xS0M2KV4tPNuYKss0zC0yizJQ94grHuTX00orjeg",
+          "senderId": "@zhou_dev:natural-full.local",
+          "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "requestId": "matrix-d03c99202bb3f9d2780e1f0fb750f39b91c93af27b618c1fbd2d4b9820d0f173",
+          "postedAt": "2026-11-07T06:49:31.085Z",
+          "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+          "sourceEventId": "$S5cvG3C7ZTRHolyDytJWRvBqXvuoBqBWV3HlBLYmWbQ",
+          "sourceSenderId": "@zhou_dev:natural-full.local",
+          "sourceRoomId": "!VP5xS0M2KV4tPNuYKss0zC0yizJQ94grHuTX00orjeg",
+          "startedAt": "2026-11-07T06:49:31.282Z",
+          "finishedAt": "2026-11-07T06:50:45.016Z",
+          "replyEventIds": [
+            "$AcBNkrj1A_sFmzKVtl_X5g_PVjSzOo7oRaDhx7vwPDU"
+          ],
+          "sourceAndActualDeliveryVerified": true
+        }
+      ],
+      "actualBotMessages": 1,
+      "messageReviews": [
+        {
+          "eventId": "$AcBNkrj1A_sFmzKVtl_X5g_PVjSzOo7oRaDhx7vwPDU",
+          "room": "private-b",
+          "sender": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "at": "2026-11-07T06:50:45.218Z",
+          "verdict": "accepted-explicit-repair",
+          "reason": "自身空目录仅三文件实跑15/15；独立下载同样15/15，另17项合同通过。",
+          "privateBodyOmitted": true
+        }
+      ],
+      "attachments": [
+        {
+          "id": "attachment-ac10c6b1-aad1-4d34-bd2c-ab542b61fd91",
+          "name": "packing.mjs",
+          "size": 1846,
+          "sha256": "3fa5a9aaca5da5c033903984892a04f301a1927975de787685ebcfc67e6f1670",
+          "eventId": "$AcBNkrj1A_sFmzKVtl_X5g_PVjSzOo7oRaDhx7vwPDU",
+          "room": "private-b",
+          "independentCoreDownloadVerified": true
+        },
+        {
+          "id": "attachment-cbbcffe4-697f-4e6d-9b4d-19ba0c610ae4",
+          "name": "packing.test.mjs",
+          "size": 5048,
+          "sha256": "c5eed96a8c0abf3ca0d6434d71f6be8b4183e3e24aba104a9007d636f054fa39",
+          "eventId": "$AcBNkrj1A_sFmzKVtl_X5g_PVjSzOo7oRaDhx7vwPDU",
+          "room": "private-b",
+          "independentCoreDownloadVerified": true
+        },
+        {
+          "id": "attachment-184d6602-fc24-4148-a5ef-0f7f30821e3b",
+          "name": "packing-tests.txt",
+          "size": 3600,
+          "sha256": "02e07ecda7b1c183e27abc333b5a898b193eadc3c771457c390b0c27ee96b668",
+          "eventId": "$AcBNkrj1A_sFmzKVtl_X5g_PVjSzOo7oRaDhx7vwPDU",
+          "room": "private-b",
+          "independentCoreDownloadVerified": true
+        }
+      ],
+      "accounting": {
+        "originalReport": {
+          "classificationVersion": 1,
+          "starts": 9,
+          "ended": 9,
+          "successful": 9,
+          "aborted": null,
+          "unfinished": 0
+        },
+        "independentRawClassificationV2": {
+          "classificationVersion": 2,
+          "starts": 9,
+          "ended": 9,
+          "successful": 8,
+          "failed": 0,
+          "truncated": 0,
+          "aborted": 1,
+          "unknownEnded": 0,
+          "unfinished": 0,
+          "models": [
+            "commandcode-goat/deepseek/deepseek-v4.1-flash"
+          ],
+          "byPurpose": {
+            "generation": {
+              "streams": 8,
+              "usage": {
+                "inputTokens": 621504,
+                "outputTokens": 4970,
+                "totalTokens": 4669610,
+                "cacheReadTokens": 4043136
+              }
+            },
+            "memory": {
+              "streams": 1,
+              "usage": {
+                "inputTokens": 0,
+                "outputTokens": 0,
+                "totalTokens": 0
+              }
+            }
+          },
+          "observedUsage": {
+            "inputTokens": 621504,
+            "outputTokens": 4970,
+            "totalTokens": 4669610,
+            "cacheReadTokens": 4043136
+          },
+          "unit": "Observed llm/stream lifecycles, including native short-circuit acknowledgements; not verified provider HTTP requests"
+        },
+        "decisions": {
+          "recorded": 0,
+          "observedUsage": {},
+          "complete": false,
+          "actualDeltaRecordCountVerified": true
+        },
+        "costComplete": false
+      }
+    },
+    {
+      "name": "platform-natural-source-feedback-01",
+      "reportSha256": "531c17991d8fcf754b1e090ed7248bd399d5bfbdbe32685dc40611ae38539a22",
+      "sourceCommit": "79ae498bbf6cfede961cfdb6643c83046ea433e2",
+      "startedAt": "2026-11-07T06:51:42.261Z",
+      "finishedAt": "2026-11-07T06:54:39.811Z",
+      "status": "completed-awaiting-review",
+      "productHashesMatchFirstRepair": true,
+      "sourceUnchanged": true,
+      "scriptUnchanged": true,
+      "identitiesPreserved": true,
+      "hostExitCode": 0,
+      "originalProtectedFileCount": 19,
+      "originalProtectedCurrentBytesVerified": true,
+      "sourceInputHashes": {
+        "report.json": "531c17991d8fcf754b1e090ed7248bd399d5bfbdbe32685dc40611ae38539a22",
+        "matrix-events.jsonl": "ce35d3e3a2765711fe4ef58f5c3474408fb35528a8fb31d25ae7fa40a680c1d2",
+        "host/events.jsonl": "dfe513636694e831f7d4a58121b2308df10a161e7eac222a8a97c037fd5d3cd1",
+        "host/calls.jsonl": "735d7bb3eeb0730865da721662c8d4531fce863b0c5a5f46db0f6edf8828d613",
+        "native-final.json": "f4faf91ac1974202327083e258a2d5e196cc8ad936d64ebc5c29e513cf05a685"
+      },
+      "feedback": [
+        {
+          "id": "handoff-feedback-01",
+          "eventId": "$WBaXz5tN3UDhGnfHp5ddnCmNy8V6t6bcBcQNDw9kGpI",
+          "roomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+          "senderId": "@zhou_ops:natural-full.local",
+          "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "requestId": "matrix-be64e6b7439c8de1098553e03e009b29211054fce8d15ed5b996dfd6209c5a92",
+          "postedAt": "2026-11-07T06:51:45.969Z",
+          "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "sourceEventId": "$WBaXz5tN3UDhGnfHp5ddnCmNy8V6t6bcBcQNDw9kGpI",
+          "sourceSenderId": "@zhou_ops:natural-full.local",
+          "sourceRoomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+          "startedAt": "2026-11-07T06:51:46.177Z",
+          "finishedAt": "2026-11-07T06:53:44.724Z",
+          "replyEventIds": [
+            "$xzq589bG19a2rhSQ_Hwg-OQHyHYHiMrLns-KwmKHWkY"
+          ],
+          "sourceAndActualDeliveryVerified": true
+        },
+        {
+          "id": "object-source-feedback-01",
+          "eventId": "$CHGluGJnuPdBHQ0D4ZDKOvekpp6lnX4ZIRXFwUbqqiY",
+          "roomId": "!xdKelVojc_xhVyZK6jRGW94YfBftWm5ba5Q-iyyWL50",
+          "senderId": "@shen_yao:natural-full.local",
+          "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "requestId": "matrix-ae124d0ff412128916c994169e6649f651115a06b88d5d30c7ac5d627b33039b",
+          "replyTo": "$DUt6lRj3eYPlxYb7DlbhyTsbE0yTMsf5fc_WvUPfyg0",
+          "postedAt": "2026-11-07T06:53:46.289Z",
+          "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+          "sourceEventId": "$CHGluGJnuPdBHQ0D4ZDKOvekpp6lnX4ZIRXFwUbqqiY",
+          "sourceSenderId": "@shen_yao:natural-full.local",
+          "sourceRoomId": "!xdKelVojc_xhVyZK6jRGW94YfBftWm5ba5Q-iyyWL50",
+          "startedAt": "2026-11-07T06:53:46.469Z",
+          "finishedAt": "2026-11-07T06:54:13.703Z",
+          "replyEventIds": [
+            "$_orkmPVabDT1j-qtBkNaObflv0339hwvlSACgDukiJI"
+          ],
+          "sourceAndActualDeliveryVerified": true
+        }
+      ],
+      "actualBotMessages": 5,
+      "messageReviews": [
+        {
+          "eventId": "$vFSCqzDmc6uHEMuD7OrLdMGlsTxg_DUW7UdT6qAL-qU",
+          "room": "project",
+          "sender": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+          "at": "2026-11-07T06:52:02.738Z",
+          "verdict": "accepted-with-limits",
+          "reason": "没有假称自己持有预算或全部测试证据，未定事项留待核对。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$geJyMDs1UzLDODOJeiaUy15Edcz6-zmNr4wMiJKkXeA",
+          "room": "project",
+          "sender": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "at": "2026-11-07T06:52:17.645Z",
+          "verdict": "partial",
+          "reason": "14/15版本自述可核；预算来源及18/12字段仍留未知，未查原17。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$xzq589bG19a2rhSQ_Hwg-OQHyHYHiMrLns-KwmKHWkY",
+          "room": "project",
+          "sender": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "at": "2026-11-07T06:53:44.868Z",
+          "verdict": "partial",
+          "reason": "恢复900和采购18/已用12事实；字段仍待定，仅查14/15便再次撤回原17。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$RERlJBEt6iXHFdTHvLREZOroa2LX-DWcUdcgLg2BEak",
+          "room": "work",
+          "sender": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+          "at": "2026-11-07T06:53:57.533Z",
+          "verdict": "accepted-core-with-proposal-limit",
+          "reason": "区分标签点与胶带归还点；归还给某人是新建议，未证明已约定。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$_orkmPVabDT1j-qtBkNaObflv0339hwvlSACgDukiJI",
+          "room": "work",
+          "sender": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "at": "2026-11-07T06:54:13.835Z",
+          "verdict": "accepted-core-with-proposal-limit",
+          "reason": "撤回邻居三层和胶带架格；交回沈遥及其余不外借是新建议，不是原已确认安排。",
+          "privateBodyOmitted": false
+        }
+      ],
+      "attachments": [
+        {
+          "id": "attachment-e8bd8e74-7ea6-4b58-82f7-4ddd29a48688",
+          "name": "handoff.md",
+          "size": 11437,
+          "sha256": "70bf2e754739cdfedc75e30fb87c9ebcc48411b9263536addcb8f8c6a749c7bd",
+          "eventId": "$xzq589bG19a2rhSQ_Hwg-OQHyHYHiMrLns-KwmKHWkY",
+          "room": "project",
+          "independentCoreDownloadVerified": true
+        }
+      ],
+      "accounting": {
+        "originalReport": {
+          "classificationVersion": 1,
+          "starts": 22,
+          "ended": 22,
+          "successful": 22,
+          "aborted": null,
+          "unfinished": 0
+        },
+        "independentRawClassificationV2": {
+          "classificationVersion": 2,
+          "starts": 22,
+          "ended": 22,
+          "successful": 21,
+          "failed": 0,
+          "truncated": 0,
+          "aborted": 1,
+          "unknownEnded": 0,
+          "unfinished": 0,
+          "models": [
+            "commandcode-goat/deepseek/deepseek-v4.1-flash"
+          ],
+          "byPurpose": {
+            "memory": {
+              "streams": 7,
+              "usage": {
+                "inputTokens": 96822,
+                "outputTokens": 8796,
+                "totalTokens": 111762,
+                "cacheReadTokens": 6144
+              }
+            },
+            "generation": {
+              "streams": 15,
+              "usage": {
+                "inputTokens": 809630,
+                "outputTokens": 15929,
+                "totalTokens": 5930199,
+                "cacheReadTokens": 5104640
+              }
+            }
+          },
+          "observedUsage": {
+            "inputTokens": 906452,
+            "outputTokens": 24725,
+            "totalTokens": 6041961,
+            "cacheReadTokens": 5110784
+          },
+          "unit": "Observed llm/stream lifecycles, including native short-circuit acknowledgements; not verified provider HTTP requests"
+        },
+        "decisions": {
+          "recorded": 17,
+          "observedUsage": {
+            "input_tokens": 488153,
+            "output_tokens": 0
+          },
+          "complete": false,
+          "actualDeltaRecordCountVerified": true
+        },
+        "costComplete": false
+      }
+    },
+    {
+      "name": "platform-natural-source-feedback-02",
+      "reportSha256": "c0dc3632b5d063df3117183752717b82613a05efc8221ffc2be386f518d3db6f",
+      "sourceCommit": "79ae498bbf6cfede961cfdb6643c83046ea433e2",
+      "startedAt": "2026-11-07T07:00:34.600Z",
+      "finishedAt": "2026-11-07T07:03:28.195Z",
+      "status": "completed-awaiting-review",
+      "productHashesMatchFirstRepair": true,
+      "sourceUnchanged": true,
+      "scriptUnchanged": true,
+      "identitiesPreserved": true,
+      "hostExitCode": 0,
+      "originalProtectedFileCount": 23,
+      "originalProtectedCurrentBytesVerified": true,
+      "sourceInputHashes": {
+        "report.json": "c0dc3632b5d063df3117183752717b82613a05efc8221ffc2be386f518d3db6f",
+        "matrix-events.jsonl": "8256b1e2dc082075def41bad01c32152b14a01b2c023a6867f1b3daa3ca2852f",
+        "host/events.jsonl": "4b70690054229df347bceef4aa3c68281ca84e2cd6afe9346ce64cead1a61ef8",
+        "host/calls.jsonl": "ed7773cbeca11217ad683a1e2bf5a9cc6ee30bc98d5928b619e0c4aebd606bd5",
+        "native-final.json": "cb1f1b99ef793dc1fe145444221bf4b16998bc82c76656ccb6582c5d9de9a65a"
+      },
+      "feedback": [
+        {
+          "id": "handoff-original-files-02",
+          "eventId": "$AFgoDdo_IDGqI71qBNIpuaiWV2jHWENiyF7Xy1EYBfI",
+          "roomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+          "senderId": "@zhou_dev:natural-full.local",
+          "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "requestId": "matrix-ae382a5ab63297dba172734d2b161a8c3089aea879495cf696ebf545bdc05222",
+          "replyTo": "$ttshOPAk-IWWgsTYJY7w4oFxnFH6adVGzEXKyhZEnqc",
+          "postedAt": "2026-11-07T07:00:38.286Z",
+          "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "sourceEventId": "$AFgoDdo_IDGqI71qBNIpuaiWV2jHWENiyF7Xy1EYBfI",
+          "sourceSenderId": "@zhou_dev:natural-full.local",
+          "sourceRoomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+          "startedAt": "2026-11-07T07:00:38.536Z",
+          "finishedAt": "2026-11-07T07:02:56.648Z",
+          "replyEventIds": [
+            "$0pRzbVvzRJn24oSj_dWgLTVLcTrELqOHa9-TDB5P-Wg"
+          ],
+          "sourceAndActualDeliveryVerified": true
+        },
+        {
+          "id": "object-source-feedback-02",
+          "eventId": "$q0WY_Z-Gg065sum5dP1zC0jYdOgm3UntlQSbInfPW3Q",
+          "roomId": "!xdKelVojc_xhVyZK6jRGW94YfBftWm5ba5Q-iyyWL50",
+          "senderId": "@shen_yao:natural-full.local",
+          "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "requestId": "matrix-dc854e975221134726c3d59df10f3bb3e37e3121b8d1fab728cc9273c275590e",
+          "replyTo": "$DUt6lRj3eYPlxYb7DlbhyTsbE0yTMsf5fc_WvUPfyg0",
+          "postedAt": "2026-11-07T07:02:57.509Z",
+          "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+          "sourceEventId": "$q0WY_Z-Gg065sum5dP1zC0jYdOgm3UntlQSbInfPW3Q",
+          "sourceSenderId": "@shen_yao:natural-full.local",
+          "sourceRoomId": "!xdKelVojc_xhVyZK6jRGW94YfBftWm5ba5Q-iyyWL50",
+          "startedAt": "2026-11-07T07:02:57.613Z",
+          "finishedAt": "2026-11-07T07:03:07.574Z",
+          "replyEventIds": [
+            "$pZFz0KA-p2SS09v1ajQ2y84DpClgo0nljQvw_CoGBYc"
+          ],
+          "sourceAndActualDeliveryVerified": true
+        }
+      ],
+      "actualBotMessages": 4,
+      "messageReviews": [
+        {
+          "eventId": "$yGUk1NTfiDvZbRXvKBIZ9dQsbtTFww5MtAapCCWmzJw",
+          "room": "project",
+          "sender": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+          "at": "2026-11-07T07:00:58.322Z",
+          "verdict": "partial-peer-update",
+          "reason": "读到原17日志并区分旧fixture；仍将当前人类已明确的字段口径推回待定，未改变最终交付的18口径。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$ADMQVJ5IEuoSU8V6ypjMQNocxI-nxUGMdsNvUS0kLMI",
+          "room": "project",
+          "sender": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "at": "2026-11-07T07:01:27.088Z",
+          "verdict": "accepted-original-file-correction",
+          "reason": "实际按原布局重跑17，区分模块及14/15，确认采购18/已用12。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$0pRzbVvzRJn24oSj_dWgLTVLcTrELqOHa9-TDB5P-Wg",
+          "room": "project",
+          "sender": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "at": "2026-11-07T07:02:56.792Z",
+          "verdict": "accepted-core-with-residual-inaccuracies",
+          "reason": "原17和18/12修正真实；本轮导入失败被倒归为旧撤回原因，且误称旧日志只在群附件。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$pZFz0KA-p2SS09v1ajQ2y84DpClgo0nljQvw_CoGBYc",
+          "room": "work",
+          "sender": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "at": "2026-11-07T07:03:07.699Z",
+          "verdict": "accepted-object-correction",
+          "reason": "只保留借1卷和两组各自安排；归还人/地点取件时商定，未继续补楼层或架格。",
+          "privateBodyOmitted": false
+        }
+      ],
+      "attachments": [
+        {
+          "id": "attachment-2a3c7e64-eefe-491b-8e12-c9e776725f9b",
+          "name": "handoff.md",
+          "size": 12924,
+          "sha256": "aeb6714fefb77ae34efb1b8186789539bb82cbefb79f576105faa0f100ecbdc3",
+          "eventId": "$0pRzbVvzRJn24oSj_dWgLTVLcTrELqOHa9-TDB5P-Wg",
+          "room": "project",
+          "independentCoreDownloadVerified": true
+        }
+      ],
+      "accounting": {
+        "originalReport": {
+          "classificationVersion": 1,
+          "starts": 29,
+          "ended": 29,
+          "successful": 29,
+          "aborted": null,
+          "unfinished": 0
+        },
+        "independentRawClassificationV2": {
+          "classificationVersion": 2,
+          "starts": 29,
+          "ended": 29,
+          "successful": 28,
+          "failed": 0,
+          "truncated": 0,
+          "aborted": 1,
+          "unknownEnded": 0,
+          "unfinished": 0,
+          "models": [
+            "commandcode-goat/deepseek/deepseek-v4.1-flash"
+          ],
+          "byPurpose": {
+            "generation": {
+              "streams": 24,
+              "usage": {
+                "inputTokens": 319230,
+                "outputTokens": 13924,
+                "totalTokens": 11035746,
+                "cacheReadTokens": 10702592
+              }
+            },
+            "memory": {
+              "streams": 5,
+              "usage": {
+                "inputTokens": 69246,
+                "outputTokens": 8134,
+                "totalTokens": 79428,
+                "cacheReadTokens": 2048
+              }
+            }
+          },
+          "observedUsage": {
+            "inputTokens": 388476,
+            "outputTokens": 22058,
+            "totalTokens": 11115174,
+            "cacheReadTokens": 10704640
+          },
+          "unit": "Observed llm/stream lifecycles, including native short-circuit acknowledgements; not verified provider HTTP requests"
+        },
+        "decisions": {
+          "recorded": 13,
+          "observedUsage": {
+            "input_tokens": 414795,
+            "output_tokens": 0
+          },
+          "complete": false,
+          "actualDeltaRecordCountVerified": true
+        },
+        "costComplete": false
+      }
+    },
+    {
+      "name": "platform-natural-source-feedback-03",
+      "reportSha256": "3c5c94a954b5ae8e86f9d87e6c4a2b6af53ccd49210f777c2dfa5bb7dad4616d",
+      "sourceCommit": "390b905087622e7536c969f7c41b255085ce56dd",
+      "startedAt": "2026-11-07T07:09:06.312Z",
+      "finishedAt": "2026-11-07T07:11:10.960Z",
+      "status": "completed-awaiting-review",
+      "productHashesMatchFirstRepair": true,
+      "sourceUnchanged": true,
+      "scriptUnchanged": true,
+      "identitiesPreserved": true,
+      "hostExitCode": 0,
+      "originalProtectedFileCount": 19,
+      "originalProtectedCurrentBytesVerified": true,
+      "sourceInputHashes": {
+        "report.json": "3c5c94a954b5ae8e86f9d87e6c4a2b6af53ccd49210f777c2dfa5bb7dad4616d",
+        "matrix-events.jsonl": "372a55acd5a179378ea227f75a2ca21398e1d3d757c0484bf7991a174ab7db15",
+        "host/events.jsonl": "44756b6373e5aba38b03b5c58421683f246eb9c2df58d8d4d44f03db4bde900c",
+        "host/calls.jsonl": "660fd0ccb0cf375b4e1d36577ce1771f111101a014065e16b8a90844cce917f0",
+        "native-final.json": "4a7da8ff79ab46b009c802c71d0876d1e8da12aa16225b044873fa9c0106497b",
+        "manifest.json": "518beee46b5c3b313ca2519d1241dc22d2ace97ca5a140dcb7ab8633213622aa",
+        "decision-delta.json": "5f71163162d07d057849e88452b04492b445005cebd255fac2ab5e9218f94876"
+      },
+      "feedback": [
+        {
+          "id": "handoff-evidence-only-03",
+          "eventId": "$oSimvnvlPE7MAxfsDYE7zCskBUtKi2h5sZKncIUeggE",
+          "roomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+          "senderId": "@zhou_dev:natural-full.local",
+          "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "requestId": "matrix-4386c758873415a3be29f303b0694ced1eb8d74e4472d565269d09e1e8b4aca9",
+          "replyTo": "$0pRzbVvzRJn24oSj_dWgLTVLcTrELqOHa9-TDB5P-Wg",
+          "postedAt": "2026-11-07T07:09:09.573Z",
+          "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "sourceEventId": "$oSimvnvlPE7MAxfsDYE7zCskBUtKi2h5sZKncIUeggE",
+          "sourceSenderId": "@zhou_dev:natural-full.local",
+          "sourceRoomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+          "startedAt": "2026-11-07T07:09:09.768Z",
+          "finishedAt": "2026-11-07T07:10:40.217Z",
+          "replyEventIds": [
+            "$EPRaKYNPAgqmp7frCEjCI9UfVVe7HbvRdFiWMomjrb0"
+          ],
+          "sourceAndActualDeliveryVerified": true
+        }
+      ],
+      "actualBotMessages": 3,
+      "messageReviews": [
+        {
+          "eventId": "$tvXf6z0TEIBXX8FLj0juPo62FrCA6I0xjfBNM08thec",
+          "room": "project",
+          "sender": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+          "at": "2026-11-07T07:09:37.783Z",
+          "verdict": "accepted-file-check-with-explanation-limit",
+          "reason": "实际读取原磁盘文件和匹配哈希；旧路径原因仍是大概推测，未证明历史因果。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$OSQOU3CVrvebVOfUU8fnZUp7UkXDaqL3H-4CX0sAHvk",
+          "room": "project",
+          "sender": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+          "at": "2026-11-07T07:09:41.867Z",
+          "verdict": "accepted-file-check",
+          "reason": "真实核磁盘原件并复跑17，不修改交接，交给识雨。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$EPRaKYNPAgqmp7frCEjCI9UfVVe7HbvRdFiWMomjrb0",
+          "room": "project",
+          "sender": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "at": "2026-11-07T07:10:40.366Z",
+          "verdict": "accepted-targeted-edit-with-artifact-residual",
+          "reason": "实际查原日志并删错误历史说明；交接第67行仍有未同步工作群更正的胶带架格旧句。",
+          "privateBodyOmitted": false
+        }
+      ],
+      "attachments": [
+        {
+          "id": "attachment-b73a72a4-a23e-4f1f-b680-12254c919314",
+          "name": "handoff.md",
+          "size": 11903,
+          "sha256": "e20aeaeb8578870c2248baa2b9c91e39e2b8f456158c6d99cf6811d1c6b45013",
+          "eventId": "$EPRaKYNPAgqmp7frCEjCI9UfVVe7HbvRdFiWMomjrb0",
+          "room": "project",
+          "independentCoreDownloadVerified": true
+        },
+        {
+          "id": "attachment-449f7276-6f61-4474-b0a7-23fa9fd112b4",
+          "name": "test-log.txt",
+          "size": 2455,
+          "sha256": "5a2bf4d1f6bc9b8bb561c92773abfd7de711726587f5b1f0ddeca6a5ed43f310",
+          "eventId": "$EPRaKYNPAgqmp7frCEjCI9UfVVe7HbvRdFiWMomjrb0",
+          "room": "project",
+          "independentCoreDownloadVerified": true
+        }
+      ],
+      "accounting": {
+        "originalReport": {
+          "classificationVersion": 2,
+          "starts": 20,
+          "ended": 20,
+          "successful": 19,
+          "aborted": 1,
+          "unfinished": 0
+        },
+        "independentRawClassificationV2": {
+          "classificationVersion": 2,
+          "starts": 20,
+          "ended": 20,
+          "successful": 19,
+          "failed": 0,
+          "truncated": 0,
+          "aborted": 1,
+          "unknownEnded": 0,
+          "unfinished": 0,
+          "models": [
+            "commandcode-goat/deepseek/deepseek-v4.1-flash"
+          ],
+          "byPurpose": {
+            "generation": {
+              "streams": 16,
+              "usage": {
+                "inputTokens": 214308,
+                "outputTokens": 11876,
+                "totalTokens": 8329736,
+                "cacheReadTokens": 8103552
+              }
+            },
+            "memory": {
+              "streams": 4,
+              "usage": {
+                "inputTokens": 56448,
+                "outputTokens": 11667,
+                "totalTokens": 68115
+              }
+            }
+          },
+          "observedUsage": {
+            "inputTokens": 270756,
+            "outputTokens": 23543,
+            "totalTokens": 8397851,
+            "cacheReadTokens": 8103552
+          },
+          "unit": "Observed llm/stream lifecycles, including native short-circuit acknowledgements; not verified provider HTTP requests"
+        },
+        "decisions": {
+          "recorded": 9,
+          "observedUsage": {
+            "input_tokens": 352876,
+            "output_tokens": 0
+          },
+          "complete": false,
+          "actualDeltaRecordCountVerified": true
+        },
+        "costComplete": false
+      }
+    },
+    {
+      "name": "platform-natural-source-feedback-04",
+      "reportSha256": "82c4c5ab923e890d1591c5fa25044b04c91fee04b079146371c3e4198119c684",
+      "sourceCommit": "390b905087622e7536c969f7c41b255085ce56dd",
+      "startedAt": "2026-11-07T07:18:20.510Z",
+      "finishedAt": "2026-11-07T07:19:34.130Z",
+      "status": "completed-awaiting-review",
+      "productHashesMatchFirstRepair": true,
+      "sourceUnchanged": true,
+      "scriptUnchanged": true,
+      "identitiesPreserved": true,
+      "hostExitCode": 0,
+      "originalProtectedFileCount": 19,
+      "originalProtectedCurrentBytesVerified": true,
+      "sourceInputHashes": {
+        "report.json": "82c4c5ab923e890d1591c5fa25044b04c91fee04b079146371c3e4198119c684",
+        "matrix-events.jsonl": "90529772c7f5cab1a65269df3545c045c4b7cf6274c8a43e46ceaad96df2b14e",
+        "host/events.jsonl": "1d4b4c951313842645bf80a19f57663caa90dfc24de95a1113a0d3c807165e02",
+        "host/calls.jsonl": "6b52f95ed3a1baeb7bcbbb8ecedc3f5770182d12ef625e78dc8137a96b518906",
+        "native-final.json": "c380052879878408a46676f4a32ef1368af7f9323be48210dfe4719e97f4424b",
+        "manifest.json": "ff436049d5a7a9ec5431050332611ea6e0f1b5ca3b3112df219db9a2688ba1a6",
+        "decision-delta.json": "f788311ede0303fac752e8de8927c9d521268b5932bbf977d93a82c011f81350"
+      },
+      "feedback": [
+        {
+          "id": "handoff-cross-room-correction-04",
+          "eventId": "$5DsLg6jMV7kTxwIvzxxp_-wuhUgclow1YjH4r2t-ps4",
+          "roomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+          "senderId": "@zhou_dev:natural-full.local",
+          "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "requestId": "matrix-32793c7a3daf23cc9eb54a037b6c6bb00b0e53ae3526eef3ca0a99bcbca8c804",
+          "replyTo": "$EPRaKYNPAgqmp7frCEjCI9UfVVe7HbvRdFiWMomjrb0",
+          "postedAt": "2026-11-07T07:18:24.158Z",
+          "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+          "sourceEventId": "$5DsLg6jMV7kTxwIvzxxp_-wuhUgclow1YjH4r2t-ps4",
+          "sourceSenderId": "@zhou_dev:natural-full.local",
+          "sourceRoomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+          "startedAt": "2026-11-07T07:18:24.351Z",
+          "finishedAt": "2026-11-07T07:19:03.460Z",
+          "replyEventIds": [
+            "$m3K6wnPKbV2MRul8-Txjp1mSI9J8WgzxwZFIlXqRyJg"
+          ],
+          "sourceAndActualDeliveryVerified": true
+        }
+      ],
+      "actualBotMessages": 2,
+      "messageReviews": [
+        {
+          "eventId": "$d8dQ_yrvi7p_1RShqDWNKWE8MN2RFwkVirN814Yc5H0",
+          "room": "project",
+          "sender": "@bot-8e2c311a-b894-4385-91ad-b362fe855da5:natural-full.local",
+          "at": "2026-11-07T07:18:34.072Z",
+          "verdict": "accepted-cross-room-source",
+          "reason": "正确引用沈遥工作群原话及事件，区分空白标签架位与胶带未定归还位置。",
+          "privateBodyOmitted": false
+        },
+        {
+          "eventId": "$m3K6wnPKbV2MRul8-Txjp1mSI9J8WgzxwZFIlXqRyJg",
+          "room": "project",
+          "sender": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local",
+          "at": "2026-11-07T07:19:03.564Z",
+          "verdict": "accepted-explicit-derived-document-correction",
+          "reason": "实际更新并重发12048B交接；只改胶带第67行，使用此前已进入原生历史的沈遥原话，标签和版本记录保持。",
+          "privateBodyOmitted": false
+        }
+      ],
+      "attachments": [
+        {
+          "id": "attachment-f3d357a2-ccdb-4118-9b2a-3ef25bd6c86d",
+          "name": "handoff.md",
+          "size": 12048,
+          "sha256": "20880ffc20c59d5a0c6caee2321f8a9ace6da74f86e69a0fb066d9c50d5f7311",
+          "eventId": "$m3K6wnPKbV2MRul8-Txjp1mSI9J8WgzxwZFIlXqRyJg",
+          "room": "project",
+          "independentCoreDownloadVerified": true
+        }
+      ],
+      "accounting": {
+        "originalReport": {
+          "classificationVersion": 2,
+          "starts": 11,
+          "ended": 11,
+          "successful": 10,
+          "aborted": 1,
+          "unfinished": 0
+        },
+        "independentRawClassificationV2": {
+          "classificationVersion": 2,
+          "starts": 11,
+          "ended": 11,
+          "successful": 10,
+          "failed": 0,
+          "truncated": 0,
+          "aborted": 1,
+          "unknownEnded": 0,
+          "unfinished": 0,
+          "models": [
+            "commandcode-goat/deepseek/deepseek-v4.1-flash"
+          ],
+          "byPurpose": {
+            "generation": {
+              "streams": 7,
+              "usage": {
+                "inputTokens": 153741,
+                "outputTokens": 4177,
+                "totalTokens": 3882078,
+                "cacheReadTokens": 3724160
+              }
+            },
+            "memory": {
+              "streams": 4,
+              "usage": {
+                "inputTokens": 58898,
+                "outputTokens": 9703,
+                "totalTokens": 68601
+              }
+            }
+          },
+          "observedUsage": {
+            "inputTokens": 212639,
+            "outputTokens": 13880,
+            "totalTokens": 3950679,
+            "cacheReadTokens": 3724160
+          },
+          "unit": "Observed llm/stream lifecycles, including native short-circuit acknowledgements; not verified provider HTTP requests"
+        },
+        "decisions": {
+          "recorded": 7,
+          "observedUsage": {
+            "input_tokens": 281062,
+            "output_tokens": 0
+          },
+          "complete": false,
+          "actualDeltaRecordCountVerified": true
+        },
+        "costComplete": false
+      }
+    }
+  ],
+  "productSourceHashes": {
+    "src/message-context.mjs": "95bf56d5e1f22c31aa7f96a57a6307f58917de103928c4fdc354089edef02488",
+    "src/native-request.mjs": "35664eef7c2e9defd844097006c3c3388ff829b0a85e2ff5b83faaf3848d0b3d",
+    "memory/native.mjs": "9b270ae09a9f5615e4b94813e612f4c1ca6e62d60a4a318e972878e6f12b207d",
+    "memory/source-query.mjs": "83d0ba540cef7ad351d5554b7e960130bfea0bdf50c4471b7301fd8f500d8d5e",
+    "memory/snapshot-context.mjs": "c120ad700ec2796133a75801b443443845d909e97d7733203e93a585011625f0",
+    "vendor/ds-bot/src/host/parts.js": "99bb81748308116c1c0c5e0d53aabb73ed4200ea7cc6e7db4989c7a919a64acb",
+    "dsh-connect/native-bridge.mjs": "ebe06beff6f3729c12cf6231419439e339dd01f878507a6d298aadf53d3e0bb5",
+    "scripts/memory-visible-host-plugin.mjs": "0458b9371370f6550375ebd488b72c6539229e4b1db17197a0acfa9a49736fca"
+  },
+  "explicitOriginalFiles": [
+    {
+      "originalId": "attachment-6756a94f-40f4-4634-95af-612ba1c38043",
+      "originalEventId": "$ttshOPAk-IWWgsTYJY7w4oFxnFH6adVGzEXKyhZEnqc",
+      "name": "packing.mjs",
+      "sha256": "f40507f0f3cd03752d0697db717e163ae33c2ad3f326ded472ebe462e05e8f73",
+      "uploadedId": "attachment-83289fe7-721b-4bac-b2b6-83ff09ef2257",
+      "bytes": 2401,
+      "actualUploadedBytesMatchOriginal": true
+    },
+    {
+      "originalId": "attachment-1d10e034-e20a-408c-aa74-c4d8d414f939",
+      "originalEventId": "$ttshOPAk-IWWgsTYJY7w4oFxnFH6adVGzEXKyhZEnqc",
+      "name": "packing.test.mjs",
+      "sha256": "3b7fc13704f5555fa97a975ea76bdf938603729521d1f5d57cb55567a99aaf0b",
+      "uploadedId": "attachment-af0e6900-e529-46ba-b8b3-d46b8807d770",
+      "bytes": 4164,
+      "actualUploadedBytesMatchOriginal": true
+    },
+    {
+      "originalId": "attachment-0d121dd1-648f-4fbb-b4ae-3e244a13c94d",
+      "originalEventId": "$ttshOPAk-IWWgsTYJY7w4oFxnFH6adVGzEXKyhZEnqc",
+      "name": "test-log.txt",
+      "sha256": "5a2bf4d1f6bc9b8bb561c92773abfd7de711726587f5b1f0ddeca6a5ed43f310",
+      "uploadedId": "attachment-e4742f51-8f0a-41c1-a450-7569d55f6710",
+      "bytes": 2455,
+      "actualUploadedBytesMatchOriginal": true
+    },
+    {
+      "originalId": "attachment-b8b24211-0791-464c-81e6-1eeb5e1ac2f6",
+      "originalEventId": "$-AwJ6eW2tY-NFf6T1ud_gwvIoPNOfQ4VE1874w_5SKU",
+      "name": "costs-final.json",
+      "sha256": "c073b73a8de1b74358648223e607ae4d17e0eccc49d6f66c182736d6d65ec73e",
+      "uploadedId": "attachment-00cfb683-d503-41fc-be74-b5c4121d444d",
+      "bytes": 77,
+      "actualUploadedBytesMatchOriginal": true
+    }
+  ],
+  "repair084": {
+    "verdict": "accepted-single-explicit-human-repair",
+    "coverage": {
+      "completeCurrentSuite": 15,
+      "originalSuite": 15,
+      "onlyChangedImportAndFixtureRepresentation": true,
+      "changedTestNameAllowed": true,
+      "allAssertionsAndOtherCasesUnchanged": true,
+      "inlineCsvBytesMatchActualOriginalInput": true,
+      "skipped": 0,
+      "todo": 0,
+      "cancelled": 0
+    },
+    "independentExecution": {
+      "guardedNodeFsReadOnly": true,
+      "directoryContainsOnlyThreeDeliveredFiles": true,
+      "tests": 15,
+      "passed": 15,
+      "independentPackingContract": 17
+    },
+    "nativeOwnCleanRun": {
+      "callId": "call_00_63sn75nrt12hugmglcb2ixmv",
+      "time": "2026-11-07T06:50:28.046Z",
+      "copiesExactly": [
+        "packing.mjs",
+        "packing.test.mjs",
+        "packing-tests.txt"
+      ],
+      "csvFilesPresent": 0,
+      "actualOutputInFreshLog": true,
+      "optionalWorkingDirectoryRunClearlyLabelled": true
+    },
+    "identityAndPrivacy": {
+      "humanId": "@zhou_dev:natural-full.local",
+      "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local",
+      "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+      "roomId": "!VP5xS0M2KV4tPNuYKss0zC0yizJQ94grHuTX00orjeg",
+      "sourceEventId": "$S5cvG3C7ZTRHolyDytJWRvBqXvuoBqBWV3HlBLYmWbQ",
+      "replyEventId": "$AcBNkrj1A_sFmzKVtl_X5g_PVjSzOo7oRaDhx7vwPDU",
+      "replyToPreviousFull084": true,
+      "actualDeliveryKind": "direct",
+      "originalIdentitiesAndSessionsPreserved": true
+    },
+    "originalScoreStillFailed": true
+  },
+  "originalSeventeenFilesStillOnDisk": {
+    "purchase-helper/packing.mjs": {
+      "size": 2401,
+      "sha256": "f40507f0f3cd03752d0697db717e163ae33c2ad3f326ded472ebe462e05e8f73"
+    },
+    "purchase-helper/tests/packing.test.mjs": {
+      "size": 4164,
+      "sha256": "3b7fc13704f5555fa97a975ea76bdf938603729521d1f5d57cb55567a99aaf0b"
+    },
+    "purchase-helper/test-log.txt": {
+      "size": 2455,
+      "sha256": "5a2bf4d1f6bc9b8bb561c92773abfd7de711726587f5b1f0ddeca6a5ed43f310"
+    }
+  },
+  "toolProofs": [
+    {
+      "run": "platform-natural-full-repair-01",
+      "callId": "call_00_63sn75nrt12hugmglcb2ixmv",
+      "finding": "仅模块/测试/日志三文件新目录，CSV数0，实际15/15，新日志包含本次结果。",
+      "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+      "callAt": "2026-11-07T06:50:28.046Z",
+      "completedAt": "2026-11-07T06:50:28.315Z",
+      "callSeq": 1421,
+      "resultSeq": 1424
+    },
+    {
+      "run": "platform-natural-source-feedback-01",
+      "callId": "call_00_zhinldycjs2cps66d470nkov",
+      "finding": "human来源检索回原900预算，来源未丢失。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T06:52:19.601Z",
+      "completedAt": "2026-11-07T06:52:19.638Z",
+      "callSeq": 1572,
+      "resultSeq": 1573
+    },
+    {
+      "run": "platform-natural-source-feedback-01",
+      "callId": "call_00_ed4ecuo45yhefe9ajja8uz3m",
+      "finding": "仅重跑purchase-summary与packing-fix的14/15，没有核原purchase-helper17。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T06:52:08.763Z",
+      "completedAt": "2026-11-07T06:52:08.918Z",
+      "callSeq": 1548,
+      "resultSeq": 1551
+    },
+    {
+      "run": "platform-natural-source-feedback-02",
+      "callId": "call_00_7ighqhndsx8ngf5za7wzdyes",
+      "finding": "本轮同层布局真实ERR_MODULE_NOT_FOUND，时间晚于原079和反馈01撤回17。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T07:00:59.752Z",
+      "completedAt": "2026-11-07T07:00:59.815Z",
+      "callSeq": 1683,
+      "resultSeq": 1686
+    },
+    {
+      "run": "platform-natural-source-feedback-02",
+      "callId": "call_00_rv4bjeic2enszcf0vu92xgqj",
+      "finding": "识雨改回原tests子目录后实际17/17，0skip/todo/cancel。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T07:01:10.703Z",
+      "completedAt": "2026-11-07T07:01:10.826Z",
+      "callSeq": 1705,
+      "resultSeq": 1708
+    },
+    {
+      "run": "platform-natural-source-feedback-02",
+      "callId": "call_00_69gwisc92z1wuiwxwrbuia73",
+      "finding": "知秋另一次原17实跑；测试无外部文件依赖。",
+      "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+      "callAt": "2026-11-07T07:01:11.810Z",
+      "completedAt": "2026-11-07T07:01:11.942Z",
+      "callSeq": 1506,
+      "resultSeq": 1509
+    },
+    {
+      "run": "platform-natural-source-feedback-03",
+      "callId": "call_00_dgd9ukcn14ri1kjzfbehv1m0",
+      "finding": "识雨stat/hash原2455B/5a2日志，三个不同目录日志逐个核对。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T07:09:49.147Z",
+      "completedAt": "2026-11-07T07:09:49.253Z",
+      "callSeq": 1878,
+      "resultSeq": 1881
+    },
+    {
+      "run": "platform-natural-source-feedback-03",
+      "callId": "call_00_p3q0vmaskqyyazro9betfz9l",
+      "finding": "知秋查原磁盘路径并再次跑17/17。",
+      "sessionId": "session-b3cdb0df-2378-4da7-b067-82c035dc286b",
+      "callAt": "2026-11-07T07:09:31.480Z",
+      "completedAt": "2026-11-07T07:09:31.670Z",
+      "callSeq": 1554,
+      "resultSeq": 1557
+    },
+    {
+      "run": "platform-natural-source-feedback-03",
+      "callId": "call_00_ehinmiwo8odh4q7esulel371",
+      "finding": "修改交接第0/5节并核11903B/e20a，去错误历史因果和只剩附件段。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T07:10:22.233Z",
+      "completedAt": "2026-11-07T07:10:22.348Z",
+      "callSeq": 1911,
+      "resultSeq": 1914
+    },
+    {
+      "run": "platform-natural-source-feedback-04",
+      "callId": "call_00_aqgddgtdt0l3kn5ztdoz3xmk",
+      "finding": "查交接全部胶带/归还/原格用语，定位第67行旧句。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T07:18:32.471Z",
+      "completedAt": "2026-11-07T07:18:32.496Z",
+      "callSeq": 1958,
+      "resultSeq": 1961
+    },
+    {
+      "run": "platform-natural-source-feedback-04",
+      "callId": "call_00_la3u8k2v9k2jbjehvz39y7e8",
+      "finding": "仅替换胶带归还一行，stat/hash12048B/2088，其他字节未动。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T07:18:40.565Z",
+      "completedAt": "2026-11-07T07:18:40.646Z",
+      "callSeq": 1969,
+      "resultSeq": 1972
+    },
+    {
+      "run": "platform-natural-source-feedback-04",
+      "callId": "call_00_5jcg2tmjicyn2vr1no6nfid6",
+      "finding": "工具记录最新胶带安排，来源引用知秋工作群转述与本次请求；原沈遥原话另见此前原生user/message1829/1830。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T07:18:51.315Z",
+      "completedAt": "2026-11-07T07:18:51.327Z",
+      "callSeq": 1980,
+      "resultSeq": 1981
+    },
+    {
+      "run": "platform-natural-source-feedback-04",
+      "callId": "call_01_3vrsjp2eobppeahlpy5x7cf7",
+      "finding": "复核实际文件大小、哈希和胶带正文。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T07:18:51.327Z",
+      "completedAt": "2026-11-07T07:18:51.352Z",
+      "callSeq": 1982,
+      "resultSeq": 1985
+    },
+    {
+      "run": "platform-natural-source-feedback-04",
+      "callId": "call_00_flc0oq4gyvrkt0azzuhwwjo3",
+      "finding": "present新交接，随后实际项目群Matrix交付。",
+      "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+      "callAt": "2026-11-07T07:18:56.447Z",
+      "completedAt": "2026-11-07T07:18:56.453Z",
+      "callSeq": 1993,
+      "resultSeq": 1995
+    }
+  ],
+  "handoff03": {
+    "size": 11903,
+    "sha256": "e20aeaeb8578870c2248baa2b9c91e39e2b8f456158c6d99cf6811d1c6b45013",
+    "wrongHistoricalCausesRemoved": true,
+    "onlyMatrixCopyClaimRemoved": true,
+    "budgetAndPurchasedVsUsedPreserved": true,
+    "distinct17And14And15VersionsPreserved": true,
+    "verdict": "targeted-version-history-edit-accepted-with-separate-remaining-tape-error",
+    "remainingArtifactIssue": {
+      "eventId": "$EPRaKYNPAgqmp7frCEjCI9UfVVe7HbvRdFiWMomjrb0",
+      "name": "handoff.md",
+      "line": 67,
+      "text": "还回来放回西侧架子原格",
+      "finding": "原无胶带架格来源；工作群已纠正，派生交接旧句未同步。",
+      "laterCorrectedIn": "platform-natural-source-feedback-04"
+    }
+  },
+  "handoff04": {
+    "size": 12048,
+    "sha256": "20880ffc20c59d5a0c6caee2321f8a9ace6da74f86e69a0fb066d9c50d5f7311",
+    "onlyChangedLine": 67,
+    "onlyTapeLineChanged": true,
+    "originalHumanEventId": "$q0WY_Z-Gg065sum5dP1zC0jYdOgm3UntlQSbInfPW3Q",
+    "originalHumanRoomId": "!xdKelVojc_xhVyZK6jRGW94YfBftWm5ba5Q-iyyWL50",
+    "originalHumanSenderId": "@shen_yao:natural-full.local",
+    "originalHumanPreviouslyExposedInNativeSession": {
+      "run": "platform-natural-source-feedback-02",
+      "userMessageSeq": 1829,
+      "knowledgeFrameSeq": 1830
+    },
+    "newRawSourceQueryIn04": false,
+    "tapeReturnCorrected": true,
+    "labelLocationPreserved": true,
+    "versionTablesBudgetBoxesAndOtherTextByteForBytePreserved": true,
+    "eventId": "$m3K6wnPKbV2MRul8-Txjp1mSI9J8WgzxwZFIlXqRyJg",
+    "verdict": "accepted-explicit-cross-room-derived-document-correction"
+  },
+  "limits": [
+    "Seven explicit feedback messages in the existing home are not a fresh complete96-message run on the candidate source.",
+    "First autonomous version lookup failed; real original attachments and explicit path feedback were needed.",
+    "The second core correction contained false historical explanations later removed by targeted feedback.",
+    "A later correct work-room response did not automatically update the old derived handoff; an explicit fourth source feedback was needed.",
+    "03 peer path-cause guess did not prove historical causality.",
+    "04 used already-exposed native original words, not a new raw_source_query; it proves normal cross-room history reuse and a targeted file correction.",
+    "Background memory abort usage is preserved; normal completion and aborted are separate. Invoice totals and provider HTTP completeness remain unknown.",
+    "Reused live homes/bridge state remain mutable; original protected reports/ledgers/snapshots define the historical boundary."
+  ],
+  "accountingTotals": {
+    "nativeStreams": {
+      "starts": 91,
+      "ended": 91,
+      "successful": 86,
+      "aborted": 5,
+      "failed": 0,
+      "truncated": 0,
+      "unknownEnded": 0,
+      "unfinished": 0
+    },
+    "byPurpose": {
+      "generation": 70,
+      "memory": 21
+    },
+    "observedUsage": {
+      "inputTokens": 2399827,
+      "outputTokens": 89176,
+      "totalTokens": 34175275,
+      "cacheReadTokens": 31686272
+    },
+    "decisions": {
+      "recorded": 46,
+      "observedUsage": {
+        "input_tokens": 1536886,
+        "output_tokens": 0
+      }
+    },
+    "costComplete": false
+  }
+}
