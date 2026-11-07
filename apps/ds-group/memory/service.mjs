@@ -2,7 +2,8 @@ import { MemoryStore, sourceId, identityId, canonicalIdentity, canonical, sha } 
 import { OmbreBackend } from './ombre.mjs';
 import { assembleAttentionView, memoryProfiles, memoryProfile, reviewPacket } from './views.mjs';
 import { prepareReviewProposal, validateReviewProposal } from './review.mjs';
-import { sourceUse, memoryUse, pendingRequests } from './observation-policy.mjs';
+import { sourceUse, memoryUse, pendingRequests, sourceWorkContext } from './observation-policy.mjs';
+import { queryObservedSources } from './source-query.mjs';
 import { join } from 'node:path';
 
 export class MemoryService {
@@ -92,6 +93,8 @@ export class MemoryService {
     const account = id => id.startsWith(`${transport}:`) ? id : identityId(transport, id);
     const authorId = account(sender.id);
     const members = context.members || context.participants || [];
+    const conversationKind = context.room?.kind === 'direct' || event.conversationKind === 'direct' || source.conversationKind === 'direct'
+      || members.length > 0 && members.length <= 2 ? 'direct' : members.length > 2 ? 'group' : 'unknown';
     for (const member of [...members, sender]) {
       if (!member.id) continue;
       this.store.contact({ id: account(member.id), name: member.name || member.id, kind: member.kind || 'human', ownerId: member.ownerId,
@@ -115,6 +118,7 @@ export class MemoryService {
     if (source.retractsEventId) {
       const targetId = sourceId(transport, roomId, source.retractsEventId), old = this.store.source(targetId);
       notice = this.store.observe({ id, body: '', authorId, authorKind: sender.kind || 'unknown', transport, roomId,
+        conversationKind, roomName: context.room?.name || null,
         eventId: event.eventId, eventKind: 'redaction-notice', targetEventId: source.retractsEventId, targetSourceId: targetId,
         timestamp: source.timestamp ?? event.timestamp ?? this.store.clock() });
       const key = `redaction:${targetId}:${event.eventId}`, applied = this.store.getMeta(key);
@@ -141,6 +145,7 @@ export class MemoryService {
         } else observed = this.store.observe({ ...head, revision: head.revision + 1, body: event.body || '', authorKind: sender.kind || head.authorKind,
           contentUnavailable: false, originalContentRecovered: true, withdrawn: true });
       } else observed = this.store.observe({ id, body: event.body || '', authorId, authorKind: sender.kind || 'human', roomId,
+        conversationKind, roomName: context.room?.name || null,
         transport, eventId: event.eventId, timestamp: source.timestamp ?? event.timestamp ?? this.store.clock(),
         replyTo: source.replyTo || context.replyTo || null, relay: source.relay || null,
         threadRootId: source.threadRootId || null, projectIds: source.projectIds || context.projectIds || [],
@@ -157,7 +162,7 @@ export class MemoryService {
     this.store.observeFor(botId, sourceRefs);
     const scope = roomId ? `room:${roomId}` : 'own';
     const current = { botId, ...(sessionId ? { sessionId } : {}), scope, roomId, transport, authorId, sourceRefs, timestamp: observed.timestamp,
-      room: context.room, threadRootId: source.threadRootId || null, history: context.history, projectIds: source.projectIds || context.projectIds || [],
+      room: context.room, conversationKind, threadRootId: source.threadRootId || null, history: context.history, projectIds: source.projectIds || context.projectIds || [],
       contextSources: [...new Map(contextRefs.map(ref => [ref.id, ref])).values()].map(ref => ({ ...ref, eventId: this.store.source(ref.id, ref.revision)?.eventId,
         authorId: this.store.source(ref.id, ref.revision)?.authorId })) };
     if (contextual) return current;
@@ -197,6 +202,7 @@ export class MemoryService {
     return this.attentionView(botId, { ...options, sessionId, context: current });
   }
   attentionView(botId, options = {}) { return assembleAttentionView(this, botId, options); }
+  querySources(botId, options = {}) { return queryObservedSources(this, botId, options); }
   sourceUse(botId, ref, context = this.current(botId), options) { return sourceUse(this.store, botId, ref, context, options); }
   memoryUse(botId, row, context = this.current(botId)) { return memoryUse(this.store, botId, row, context); }
   pendingRequests(botId, context = this.current(botId)) { return pendingRequests(this.store, botId, context); }
@@ -231,6 +237,7 @@ export class MemoryService {
     const current = this.current(botId, sessionId); if (!current) return;
     const source = this.store.observe({ id: sourceId('tool', sessionId, callId), body, transport: 'tool', eventId: callId,
       authorId: `tool:${name}`, authorKind: 'tool', roomId: current.roomId, timestamp: timestamp || this.store.clock(),
+      conversationKind: current.conversationKind || 'unknown', roomName: current.room?.name || null,
       originRefs: current.sourceRefs, toolName: name });
     const ref = { id: source.id, revision: source.revision };
     this.store.observeFor(botId, [ref]);
@@ -350,7 +357,8 @@ export class MemoryService {
     if (!this.sourceUse(botId, { id, revision }, context).allowed) throw new Error('MEMORY_SOURCE_PENDING_REQUEST');
     const source = this.store.source(id, revision); if (!source) throw new Error('SOURCE_NOT_FOUND');
     const head = this.store.source(id);
-    return { ...source, currentRevision: head.revision, derivation: head.withdrawn ? 'source-withdrawn' : source.revision !== head.revision ? 'source-revised' : 'current' };
+    return { ...source, currentRevision: head.revision, derivation: head.withdrawn ? 'source-withdrawn' : source.revision !== head.revision ? 'source-revised' : 'current',
+      workDisposition: sourceWorkContext(this.store, botId, { id, revision }, context) };
   }
   describe(row) {
     return { id: row.id, revision: row.revision, text: row.text, botId: row.botId, scope: row.scope,

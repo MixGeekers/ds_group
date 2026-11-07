@@ -82,6 +82,22 @@ test('a source replay can add a trusted reservation without changing bytes or al
   assert.equal(memory.store.source(first.sourceRefs[0].id).revision, 1);
 }));
 
+test('a same-cursor trusted peer replay can upgrade its disposition without changing source bytes or parent admission', async () => withMemory(async memory => {
+  const parent = event('parent', '已接纳的工作');
+  memory.ingest('a', parent, { sessionId: 'parent-session' });
+  const parentRef = memory.current('a').sourceRefs[0], admission = memory.store.getMeta(`admitted-source:a:${parentRef.id}`);
+  const peer = event('peer', '真实同行回执');
+  const options = { streamId: 'trusted-stream', cursor: 1, sourceDispositions: { '$peer': { kind: 'pending-request' } } };
+  const first = memory.observe('a', peer, options);
+  assert.equal(memory.sourceUse('a', first.sourceRefs[0]).allowed, false);
+  const replay = memory.observe('a', peer, { ...options, sourceDispositions: { '$peer': { kind: 'task-update', forEventId: '$parent' } } });
+  assert.equal(replay.duplicate, true); assert.deepEqual(replay.sourceRefs, first.sourceRefs);
+  assert.equal(memory.sourceUse('a', first.sourceRefs[0], memory.current('a'), { raw: true }).allowed, true);
+  assert.equal(memory.store.source(first.sourceRefs[0].id).body, peer.event.body);
+  assert.equal(memory.store.source(first.sourceRefs[0].id).revision, 1);
+  assert.deepEqual(memory.store.getMeta(`admitted-source:a:${parentRef.id}`), admission);
+}));
+
 test('task updates require the admitted exact parent and trusted cross-room updates remain usable', async () => withMemory(async memory => {
   memory.ingest('a', event('current', '当前项目工作'), { sessionId: 's' });
   observe(memory, 'a', event('peer', '队友回信中的有效当前更新', '!peer:test'), 'task-update', '$current');

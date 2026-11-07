@@ -29,6 +29,11 @@ test('native memory installs with DSH value schemas and enforces every basis ref
     }
     assert.ok(rt.teamTools.some(tool => tool.name === 'review_memory'));
     assert.ok(rt.teamTools.some(tool => tool.name === 'memory_source'));
+    const raw = rt.teamTools.find(tool => tool.name === 'raw_source_query');
+    assert.ok(raw);
+    assert.deepEqual(raw.parameters.required, ['query']);
+    assert.deepEqual(validateJsonSchemaValue(raw.parameters, { query: 'project-file.json', limit: 3, includeDirect: true }), []);
+    await assert.rejects(raw.execute({ query: 'project-file.json', limit: 1.5 }, {}), error => error instanceof ToolArgsError);
   } finally {
     for (const cleanup of cleanups.reverse()) await cleanup();
     await rm(home, { recursive: true });

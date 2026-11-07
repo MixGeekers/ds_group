@@ -128,7 +128,7 @@ function bounded(base, candidates, budgetChars) {
   for (const key of Object.keys(candidates)) view[key] = [];
   // Interleave high-value sections so a large fact does not hide a fresh human
   // correction or every source pointer. A skipped item is counted explicitly.
-  const order = ['currentClaims', 'recentSources', 'pendingRequests', 'changes', 'people', 'preferences', 'projectFacts', 'speakerFacts', 'memoryPointers', 'pendingQuestions', 'historyGaps'];
+  const order = ['currentClaims', 'recentSources', 'relatedSources', 'pendingRequests', 'changes', 'people', 'preferences', 'projectFacts', 'speakerFacts', 'memoryPointers', 'pendingQuestions', 'historyGaps'];
   const maximum = Math.max(0, ...Object.values(candidates).map(rows => rows.length));
   for (let index = 0; index < maximum; index++) for (const key of order) {
     const item = candidates[key]?.[index]; if (!item) continue;
@@ -163,6 +163,12 @@ export function assembleAttentionView(memory, botId, options = {}) {
     ...(source.eventKind === 'redaction-notice' ? { targetEventId: source.targetEventId, targetSourceId: source.targetSourceId } : {}),
     role: source.eventKind === 'redaction-notice' ? 'source-retraction-notice' : source.eventKind === 'unverified-edit'
       ? 'unverified-edit-relation-not-target-authority' : 'original-evidence-not-an-extracted-fact' }));
+  const related = memory.querySources(botId, { query: focus.query,
+    seedTexts: [focus.current.room?.name, focus.current.room?.topic,
+      ...current.filter(row => row.scope === `room:${focus.roomId}`).slice(0, 2).map(row => row.text),
+      ...raw.filter(source => source.roomId === focus.roomId && !(focus.current.sourceRefs || []).some(ref => ref.id === source.id)).slice(0, 2).map(source => source.body)].filter(Boolean),
+    roomId: focus.roomId, context: focus.current, automatic: true, onlyOtherRooms: true,
+    projectIds: [...focus.projects], subjectIds: [...focus.subjects], limit: 3, bodyChars: 650, budgetChars: 5000 });
   const changes = ranked.filter(item => !['current', 'pending'].includes(store.derivation(item.row))).slice(0, 12).map(({ row }) => ({
     ...claimView(memory, row, current), text: short(row.text, 400), truncated: row.text.length > 400,
     supersededBy: row.supersededBy || null, requiresReview: true, basis: store.basisStatus(row),
@@ -174,7 +180,7 @@ export function assembleAttentionView(memory, botId, options = {}) {
   const queued = memory.pendingRequests(botId, context);
   const version = sha(canonical({ botId, roomId: focus.roomId, query: focus.query, watermarks,
     claims: claims.map(row => [row.id, row.revision, row.conflicts]), sources: recentSources.map(row => [row.id, row.revision]), changes,
-    subjects: [...focus.subjects], projects: [...focus.projects], pendingQuestions: options.pendingQuestions || [], pendingRequests: queued }));
+    relatedSources: related.version, subjects: [...focus.subjects], projects: [...focus.projects], pendingQuestions: options.pendingQuestions || [], pendingRequests: queued }));
   const base = { version, schemaVersion: 2, botId, sessionId: focus.current.sessionId, transport: focus.current.transport,
     self: { nativeBotId: botId, ...(options.self?.matrixId ? { matrixId: options.self.matrixId } : {}), ...(options.self?.name ? { name: short(options.self.name, 256) } : {}) }, scope: focus.roomId ? `room:${focus.roomId}` : 'own',
     roomId: focus.roomId || null, threadRootId: options.threadRootId || focus.current.threadRootId || null,
@@ -184,7 +190,8 @@ export function assembleAttentionView(memory, botId, options = {}) {
     knowledgeBoundary: 'This is this Bot\'s source-attributed knowledge. Room scope is applicability, not proof that every member knows or agrees. Missing evidence is unknown. Task completion and delivery require the task/delivery runtime, not a memory summary.',
     selection: { eligibleClaims: ranked.length, currentClaims: current.length, knownSources: sources.length,
       strategy: 'identity-project-query-validity-changes', wholeHistoryLoaded: false,
-      workBoundClaimsOmitted: retainedRows.length - allRows.length },
+      workBoundClaimsOmitted: retainedRows.length - allRows.length,
+      relatedSourceCandidates: related.totalRelevant, relatedSourcesOmitted: related.budget.omitted },
     ...(options.workView && JSON.stringify(options.workView).length < budgetChars / 4 ? { workView: { providedBy: 'caller-runtime', data: options.workView } }
       : options.workView ? { workViewOmitted: 'runtime view exceeds memory context budget' } : {}),
   };
@@ -203,7 +210,7 @@ export function assembleAttentionView(memory, botId, options = {}) {
     && (!focus.roomId || source.roomId === focus.roomId)).slice(-4)) defaultGaps.push({ kind: 'unavailable-redaction-target',
       roomId: source.roomId, targetEventId: source.targetEventId, sourceRef: { id: source.id, revision: source.revision } });
   if (focus.current.history?.earlierMessagesOmitted) defaultGaps.push({ kind: 'earlier-messages', count: focus.current.history.earlierMessagesOmitted });
-  return bounded(base, { currentClaims: claims, recentSources, changes, people,
+  return bounded(base, { currentClaims: claims, recentSources, relatedSources: related.entries, changes, people,
     preferences: claims.filter(isPreference), projectFacts: claims.filter(row => focus.projects.has(row.subjectId) || row.projectIds.some(id => focus.projects.has(id))),
     speakerFacts: eligible.filter(row => row.subjectId === focus.current.authorId && claims.some(claim => claim.id === row.id)).map(row => claims.find(claim => claim.id === row.id)),
     memoryPointers: claims.filter(row => row.subjectId !== focus.current.authorId).map(({ id, revision, subjectId, predicate, scope }) => ({ id, revision, subjectId, predicate, scope })),
@@ -247,12 +254,22 @@ export function reviewPacket(memory, botId, options = {}) {
     .map((row, index) => ({ row, index, score: scoreOf(row, focus, memory.store) })).filter(item => item.score > 0), memory.store);
   const selectedMemories = ranked.slice(0, limit(options.limitMemories, 24, 40)).map(({ row }) => row);
   const cited = new Set(selectedMemories.flatMap(row => row.sourceRefs.map(ref => ref.id)));
-  const selectedSources = sources.filter(source => source.derivation === 'current' && (!focus.roomId || source.roomId === focus.roomId || cited.has(source.id)))
+  const related = memory.querySources(botId, { query: focus.query,
+    seedTexts: [focus.current.room?.name, focus.current.room?.topic,
+      ...selectedMemories.filter(row => row.scope === `room:${focus.roomId}`).slice(0, 2).map(row => row.text),
+      ...sources.filter(source => source.roomId === focus.roomId && source.derivation === 'current'
+        && memory.sourceUse(botId, source, focus.current, { raw: true }).allowed
+        && !(focus.current.sourceRefs || []).some(ref => ref.id === source.id)).slice(-2).map(source => source.body)].filter(Boolean),
+    roomId: focus.roomId, context: focus.current, onlyOtherRooms: true, projectIds: [...focus.projects], subjectIds: [...focus.subjects], limit: 3, bodyChars: 800, budgetChars: 6000 });
+  const relatedIds = new Set(related.entries.map(source => source.id));
+  const selectedSources = sources.filter(source => source.derivation === 'current' && (!focus.roomId || source.roomId === focus.roomId || cited.has(source.id) || relatedIds.has(source.id)))
     .map(source => ({ source, score: (focus.subjects.has(source.authorId) ? 60 : 0) + (cited.has(source.id) ? 40 : 0)
+      + (relatedIds.has(source.id) ? 80 : 0)
       + (source.roomId === focus.roomId ? 20 : 0) + (focus.projects.has(canonicalIdentity(source.roomId)) || source.projectIds?.some(id => focus.projects.has(id)) ? 60 : 0)
       + lexical(source.body, focus.terms) * 5 })).filter(item => item.score > 0 || !focus.subjects.size && !focus.projects.size && !focus.query)
     .sort((a,b) => b.score - a.score || b.source.timestamp - a.source.timestamp || (b.source.sequence || 0) - (a.source.sequence || 0))
-    .slice(0, limit(options.limitSources, 24, 40)).map(({ source }) => ({ ...source, body: short(source.body, 2400), truncated: source.body.length > 2400 }));
+    .slice(0, limit(options.limitSources, 24, 40)).map(({ source }) => ({ ...source, body: short(source.body, 2400), truncated: source.body.length > 2400,
+      ...(relatedIds.has(source.id) ? { crossRoomEvidence: related.entries.find(entry => entry.id === source.id) } : {}) }));
   const packet = { botId, purpose: 'bounded-on-demand-understanding-review', query: focus.query,
     subjectIds: [...focus.subjects], projectIds: [...focus.projects], sources: [], existingMemories: [], historicalEvidence: [],
     pendingRequests: memory.pendingRequests(botId).slice(0, 16),
