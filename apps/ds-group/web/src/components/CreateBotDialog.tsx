@@ -60,12 +60,12 @@ export function CreateBotDialog({ open, api, session, onCreated, onClose }: Crea
     <div className="dialog-scroll-region">
       <p className="muted">{t("nativeHelp")}</p>
       {error && <p role="alert" className="node-error">{error}</p>}
-      {!bots.length && <p className="muted">{t("nativeEmpty")}</p>}
+      {!bots.length && <div className="bot-node-help"><h3><Icon name="server" />{t("nodeConnection")}</h3><p>{t("nativeEmpty")}</p><p>{t("nodeConnectionHelp")}</p></div>}
       <div className="space-list" role="radiogroup" aria-label={t("nativeBots")}>
         {bots.map(bot => <label className="space-card" key={`${bot.hostId}/${bot.id}`}>
           <input type="radio" name="native-bot" value={`${bot.hostId}/${bot.id}`} checked={selected === `${bot.hostId}/${bot.id}`}
             disabled={busy || !bot.available || !!bot.botId} onChange={event => setSelected(event.target.value)} />
-          <strong> {bot.name}</strong>{bot.main && <span> · Main Bot</span>}
+          <strong> {bot.name}</strong>
           <p className="muted">{bot.role} · {bot.hostName}</p>
           <small>{bot.model}</small>
           <p className="muted">{t(bot.botId ? "nativeAdded" : bot.available ? "nativeReady" : "nativeOffline")}</p>

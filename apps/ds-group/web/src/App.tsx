@@ -205,6 +205,7 @@ export default function App({
   const [rolesOpen, setRolesOpen] = useState(false);
   const [spacesOpen, setSpacesOpen] = useState(false);
   const [botsOpen, setBotsOpen] = useState(false);
+  const [botsSelection, setBotsSelection] = useState<string | null>(null);
   const [roomDialog, setRoomDialog] = useState<"create" | "invite" | null>(
     null,
   );
@@ -358,6 +359,7 @@ export default function App({
     setSettingsTab(null);
     setCreateBotOpen(false);
     setBotsOpen(false);
+    setBotsSelection(null);
     setSpacesOpen(false);
     setLoginError("");
     setLoginRateLimitUntil(null);
@@ -1292,7 +1294,7 @@ export default function App({
         onLogin={openLogin}
         onCreateRoom={() => (session ? setRoomDialog("create") : openLogin())}
         onCreateBot={() => (session ? setCreateBotOpen(true) : openLogin())}
-        onManageBots={() => (session ? setBotsOpen(true) : openLogin())}
+        onManageBots={() => { setBotsSelection(null); if (session) setBotsOpen(true); else openLogin(); }}
         onInvite={() => (session ? setRoomDialog("invite") : openLogin())}
         onInbox={() => (session ? setInboxOpen(true) : openLogin())}
         onNotifications={() =>
@@ -1463,6 +1465,8 @@ export default function App({
         botStatus={
           status?.nodes.find((node) => node.botId === member?.id)?.status
         }
+        owner={participants.find(person => person.id === member?.ownerId)}
+        onManageBot={(id) => { setMember(null); setBotsSelection(id); setBotsOpen(true); }}
         onClose={() => setMember(null)}
         onDirect={(id) => {
           setMember(null);
@@ -1528,6 +1532,7 @@ export default function App({
         rooms={spaces.flatMap((space) => roomsInSpace(allRooms, space))}
         participants={participants}
         status={status}
+        initialBotId={botsSelection}
         session={session}
         onClose={() => setBotsOpen(false)}
         onCreate={() => {

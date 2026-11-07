@@ -11,7 +11,8 @@ import { newRequestId } from "../identifiers";
 import { useTranslation } from "../locale";
 import { Icon } from "./Icons";
 import { dialogMessages } from "../locales/dialogs";
-import { botMessages } from "../locales/bots";
+import { kernelMessages } from "../locales/kernel";
+import { connectionLabel } from "../bot-kernel";
 import type { Api, Participant, Role, Room, Session } from "../types";
 
 function useDialog(open: boolean) {
@@ -286,6 +287,8 @@ interface MemberDialogProps {
   room: Room | null;
   roles: Role[];
   botStatus?: string;
+  owner?: Participant;
+  onManageBot?(id: string): void;
   onDirect(id: string): void;
   onMention(member: Participant): void;
   onClose(): void;
@@ -296,13 +299,15 @@ export function MemberDialog({
   session,
   room,
   roles,
-  botStatus = "offline",
+  botStatus,
+  owner,
+  onManageBot,
   onDirect,
   onMention,
   onClose,
 }: MemberDialogProps) {
   const t = useTranslation(dialogMessages);
-  const botText = useTranslation(botMessages);
+  const kernelText = useTranslation(kernelMessages);
   const dialog = useDialog(member !== null);
   const membership = member
     ? roles.filter((role) => role.memberIds.includes(member.id))
@@ -340,26 +345,11 @@ export function MemberDialog({
       <p id="member-dialog-id">{member?.id}</p>
       {member?.kind === "bot" && (
         <p className="bot-connection-status">
-          {botText(
-            ["online", "idle", "ready", "connected"].includes(botStatus)
-              ? "online"
-              : [
-                    "running",
-                    "thinking",
-                    "busy",
-                    "processing",
-                    "starting",
-                  ].includes(botStatus)
-                ? "busy"
-                : ["error", "failed", "unavailable"].includes(botStatus)
-                  ? "unavailable"
-                  : "offline",
-          )}
+          {kernelText(connectionLabel(botStatus))}
         </p>
       )}
-      {member?.kind === "bot" && member.ownerId === session?.user_id && (
-        <p className="bot-connection-help">{botText("connectInDsh")}</p>
-      )}
+      {member?.kind === "bot" && member.ownerId && <p className="bot-profile-owner">{kernelText("owner")} · {owner?.name ?? member.ownerId}<small className="member-full-id">{owner?.name && member.ownerId}</small></p>}
+      {member?.kind === "bot" && member.ownerId === session?.user_id && onManageBot && <Button id="member-bot-settings" variant="ghost" type="button" onClick={() => onManageBot(member.id)}><Icon name="gear" />{kernelText("settings")}</Button>}
       <div id="member-dialog-roles" className="member-role-list">
         {membership.map((role) => (
           <span

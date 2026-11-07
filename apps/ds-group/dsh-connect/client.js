@@ -9,9 +9,25 @@ window.__ModuleLoader__.load({
     const localeNamespace = 'dscord.connection';
     const statusKeys = { offline: 'statusOffline', connecting: 'statusConnecting', online: 'statusOnline', error: 'statusError' };
     const zh = {
-      nativeBots: '本机原生 Bot', nativeHelp: '让 Main Bot 创建并配置伙伴，再把已有 Bot 加入服务器。它们仍可在 DS Bot 中正常使用。',
-      nativeEmpty: '请在原生 DS Bot 中让 Main Bot 创建伙伴，然后刷新。', attach: '加入服务器', bind: '绑定已有 Bot',
-      chooseNative: '选择本机 Bot', nativeBound: '已绑定', nativeLifecycle: '断开只关闭 DSCord 连接。本地 Bot、记忆和后台任务继续由 DSH 运行。',
+      nativeBots: '此节点的 Bot', nativeHelp: 'Bot 使用 DSCord 自有内核，在自己的节点保留身份、上下文、记忆和工作。创建后可加入聊天服务器。',
+      nativeEmpty: '此节点尚无 Bot，可以在这里创建。', attach: '加入服务器', bind: '绑定已有 Bot',
+      chooseNative: '选择本机 Bot', nativeBound: '已加入', nativeLifecycle: '断开只关闭服务器连接，Bot 的本地对话、记忆和工作继续保留。',
+      newBot: '创建 Bot', createLocal: '创建到此节点', creatingLocal: '正在创建…', botName: '名称', botRole: '职责或介绍',
+      localCreated: 'Bot 已创建，可将它加入服务器。', settings: 'Bot 设置', stableIdentity: '本机稳定身份', back: '返回 Bot 列表',
+      participation: '参与方式', mention: '点名回应', shadow: '安静观察', natural: '自然参与',
+      mentionHelp: '被 @ 或收到私聊时回应。', shadowHelp: '观察对话并形成判断，暂不主动发言。', naturalHelp: '判断什么时候补充、等待或继续倾听。',
+      saveParticipation: '保存参与方式', participationSaved: '参与方式已保存', participationPending: '已保存，节点将在下次同步时应用。',
+      listening: '正在倾听', waiting: '正在等待', working: '正在工作', speaking: '准备发言', unknown: '未知',
+      waitHelp: '倾听和等待都是正常参与状态。', decisionTitle: '参与判断服务', decisionApiKey: '判断服务 API key',
+      decisionKeyHelp: '仅在此节点私有保存。已保存的 key 不会回显，留空保留现有值。', enableDecision: '启用自然参与判断', saveDecision: '保存判断服务',
+      configured: '已配置', notConfigured: '未配置', available: '可用', availabilityUnknown: '可用状态未知', decisionSaved: '判断服务已保存',
+      serviceUnavailable: '不可用', limitedMemory: '此视图仅覆盖这个 Bot 观察到的内容。', shortenedMemory: '此视图已裁剪，可缩小搜索范围。',
+      memory: '来源记忆', people: '人物', projects: '项目', memorySearch: '搜索人物或项目', search: '搜索',
+      noMemory: '没有匹配的记忆记录。', memoryHelp: '每个 Bot 保留自己的认识。来源范围不表示所有成员都知道或认同。',
+      currentClaims: '当前陈述', preferences: '偏好', projectFacts: '项目事实', changes: '已变化或历史陈述', sources: '来源',
+      statement: '陈述', proposal: '提议', confirmed: '已确认', uncertain: '待确认', stated: '直接陈述', reported: '转述', observation: '观察', inference: '推断', legacy: '历史导入',
+      conflicts: '存在未解决冲突', noSources: '此记录没有可展示的来源详情。', loadingKernel: '正在读取节点状态…', keyPrivate: '凭据只保留在此节点。',
+      signInToAttach: '登录服务器后可加入 Bot。', kernelConflict: '此节点正在运行旧 Bot 内核。请先停止旧插件，按迁移说明启用 DSCord。',
       serverPolicyDenied: '此服务器未允许所选模型，请选择获准模型或联系管理员。',
       serverOutputLimit: '模型输出上限超过服务器额度，请检查节点与服务器的配置。',
       model: '模型', noModel: '请先在 DSH 中配置模型', saveModel: '保存选择',
@@ -30,15 +46,31 @@ window.__ModuleLoader__.load({
       openWeb: '打开网页', refresh: '刷新', readStatus: '正在读取连接状态…',
       runtimeUnavailable: 'Bot 运行环境暂不可用', account: '当前账号',
       logout: '退出登录', loggingOut: '正在退出…', myBots: '我的 Bot',
-      emptyBots: '尚未连接 Bot，请从本机团队中选择。', configDirectory: '本机配置目录',
+      emptyBots: '尚未连接 Bot，请从此节点的 Bot 中选择。', configDirectory: '本机配置目录',
       requestHttp: 'DSH 请求失败（HTTP {status}）', requestFailed: '操作失败，请重试',
       invalidStatus: 'DSH 返回的连接状态不完整', requestTimeout: '请求超时，请刷新连接状态',
       connectionUnavailable: '无法连接 DSH，请检查宿主是否正在运行',
     };
     const en = {
-      nativeBots: 'Local native Bots', nativeHelp: 'Ask your Main Bot to create and configure teammates, then add existing Bots to this server. Keep using them in DS Bot.',
-      nativeEmpty: 'Ask the Main Bot in DS Bot to create teammates, then refresh.', attach: 'Add to server', bind: 'Bind existing Bot',
-      chooseNative: 'Choose a local Bot', nativeBound: 'Linked', nativeLifecycle: 'Disconnecting closes the DSCord connection. DSH keeps the local Bot, memory and background tasks running.',
+      nativeBots: 'Bots on this node', nativeHelp: 'Bots use the DSCord kernel and keep their identity, context, memory and work on their own node. Create one here, then add it to a chat server.',
+      nativeEmpty: 'There are no Bots on this node yet. Create one here.', attach: 'Add to server', bind: 'Bind existing Bot',
+      chooseNative: 'Choose a local Bot', nativeBound: 'Added', nativeLifecycle: 'Disconnecting closes the server connection. The Bot keeps its local chats, memory and work.',
+      newBot: 'Create Bot', createLocal: 'Create on this node', creatingLocal: 'Creating…', botName: 'Name', botRole: 'Role or introduction',
+      localCreated: 'Bot created. You can now add it to the server.', settings: 'Bot settings', stableIdentity: 'Stable local identity', back: 'Back to Bots',
+      participation: 'Participation', mention: 'When mentioned', shadow: 'Observe quietly', natural: 'Join naturally',
+      mentionHelp: 'Respond to mentions and direct messages.', shadowHelp: 'Observe and form judgments, while holding back proactive replies.', naturalHelp: 'Decide when to contribute, wait, or keep listening.',
+      saveParticipation: 'Save participation', participationSaved: 'Participation saved', participationPending: 'Saved. The node will apply this at its next update.',
+      listening: 'Listening', waiting: 'Waiting', working: 'Working', speaking: 'Speaking', unknown: 'Unknown',
+      waitHelp: 'Listening and waiting are normal participation states.', decisionTitle: 'Participation service', decisionApiKey: 'Decision service API key',
+      decisionKeyHelp: 'Stored privately on this node. Saved keys are never shown; leave blank to keep the current key.', enableDecision: 'Enable natural participation decisions', saveDecision: 'Save participation service',
+      configured: 'Configured', notConfigured: 'Not configured', available: 'Available', availabilityUnknown: 'Availability unknown', decisionSaved: 'Participation service saved',
+      serviceUnavailable: 'Unavailable', limitedMemory: 'This view covers only what this Bot has observed.', shortenedMemory: 'This view was shortened. Refine your search to focus it.',
+      memory: 'Source memory', people: 'People', projects: 'Projects', memorySearch: 'Search people or projects', search: 'Search',
+      noMemory: 'No matching memory records.', memoryHelp: 'Each Bot has its own view. A shared source scope does not mean everyone knows or agrees with it.',
+      currentClaims: 'Current claims', preferences: 'Preferences', projectFacts: 'Project facts', changes: 'Changed or historical claims', sources: 'Sources',
+      statement: 'Statement', proposal: 'Proposal', confirmed: 'Confirmed', uncertain: 'Uncertain', stated: 'Direct statement', reported: 'Reported', observation: 'Observation', inference: 'Inference', legacy: 'Legacy record',
+      conflicts: 'Unresolved conflict', noSources: 'No source details are available for this record.', loadingKernel: 'Loading node status…', keyPrivate: 'Credentials stay on this node.',
+      signInToAttach: 'Sign in to a server to add your Bot.', kernelConflict: 'An older Bot kernel is running on this node. Stop its plugin and follow the migration instructions to enable DSCord.',
       serverPolicyDenied: 'This server does not allow the selected model. Choose an allowed model or contact its administrator.',
       serverOutputLimit: 'The model output limit exceeds this server’s budget. Check the node and server configuration.',
       model: 'Model', noModel: 'Configure a model in DSH first', saveModel: 'Save selection',
@@ -57,7 +89,7 @@ window.__ModuleLoader__.load({
       openWeb: 'Open website', refresh: 'Refresh', readStatus: 'Loading connection status…',
       runtimeUnavailable: 'The Bot runtime is currently unavailable', account: 'Current account',
       logout: 'Sign out', loggingOut: 'Signing out…', myBots: 'My Bots',
-      emptyBots: 'No Bots yet. Create one on the server website.', configDirectory: 'Local configuration directory',
+      emptyBots: 'No connected Bots. Choose from the Bots on this node.', configDirectory: 'Local configuration directory',
       requestHttp: 'DSH request failed (HTTP {status})', requestFailed: 'The operation failed. Please try again.',
       invalidStatus: 'DSH returned incomplete connection status', requestTimeout: 'The request timed out. Refresh the connection status.',
       connectionUnavailable: 'Cannot reach DSH. Check that the host is running.',
@@ -142,6 +174,35 @@ body[data-ds-dark-theme] .dscord-connect {
 .dscord-connect .dc-model-form select { max-width: 100%; text-overflow: ellipsis; }
 .dscord-connect .dc-model-form button { min-height: 42px; }
 .dscord-connect .dc-model-info { margin-top: 7px; font-size: 13px; overflow-wrap: anywhere; }
+.dscord-connect .dc-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.dscord-connect .dc-section-heading h2 { margin: 0; }
+.dscord-connect .dc-create { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--dc-line); }
+.dscord-connect .dc-create .dc-field { margin-bottom: 12px; }
+.dscord-connect .dc-create > summary,.dscord-connect .dc-private > summary { cursor: pointer; font-weight: 600; }
+.dscord-connect .dc-create form { margin-top: 14px; }
+.dscord-connect .dc-local-settings { margin-top: 18px; }
+.dscord-connect .dc-local-settings h3 { margin: 20px 0 10px; font-size: 15px; }
+.dscord-connect .dc-local-settings .dc-field { margin-bottom: 12px; }
+.dscord-connect .dc-mode-options { display: grid; gap: 8px; margin: 12px 0; border: 0; padding: 0; }
+.dscord-connect .dc-mode-option { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--dc-line); border-radius: 8px; cursor: pointer; }
+.dscord-connect .dc-mode-option input { margin-top: 4px; flex: 0 0 auto; accent-color: var(--dc-accent); }
+.dscord-connect .dc-mode-option:has(input:checked) { border-color: var(--dc-accent); }
+.dscord-connect .dc-mode-option strong,.dscord-connect .dc-mode-option small { display: block; }
+.dscord-connect .dc-mode-option small { margin-top: 3px; color: var(--dc-muted); }
+.dscord-connect .dc-private { padding-top: 18px; margin-top: 20px; border-top: 1px solid var(--dc-line); }
+.dscord-connect .dc-private .dc-field { margin-top: 12px; }
+.dscord-connect .dc-check { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+.dscord-connect .dc-check input { accent-color: var(--dc-accent); }
+.dscord-connect .dc-memory { padding-top: 16px; border-top: 1px solid var(--dc-line); margin-top: 20px; }
+.dscord-connect .dc-memory-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-block: 12px; }
+.dscord-connect .dc-memory-filter select { width: auto; flex: 0 1 140px; }
+.dscord-connect .dc-memory-filter input { min-width: 0; flex: 1 1 150px; }
+.dscord-connect .dc-memory-list { display: grid; gap: 8px; }
+.dscord-connect .dc-memory-item { border: 1px solid var(--dc-line); border-radius: 8px; padding: 12px; margin: 8px 0; overflow-wrap: anywhere; }
+.dscord-connect .dc-memory-item p { white-space: pre-wrap; margin-bottom: 8px; }
+.dscord-connect .dc-memory-item details { margin-top: 8px; color: var(--dc-muted); font-size: 12px; }
+.dscord-connect .dc-memory-item li { margin-block: 8px; overflow-wrap: anywhere; }
+.dscord-connect .dc-memory-label { display: inline-block; font-size: 12px; color: var(--dc-muted); border: 1px solid var(--dc-line); border-radius: 4px; padding: 1px 5px; margin: 0 5px 6px 0; }
 @media (max-width: 640px) {
   .dscord-connect .dc-model-form { flex-wrap: wrap; }
   .dscord-connect .dc-model-form .dc-field { flex-basis: 100%; }
@@ -177,8 +238,8 @@ body[data-ds-dark-theme] .dscord-connect {
         for (const listener of listeners) listener();
       }
 
-      async function request(action, payload, controller) {
-        const timeoutMs = ['status', 'login'].includes(action) ? 30_000 : 300_000;
+      async function request(action, payload, controller, connectionState = true) {
+        const timeoutMs = ['status', 'login', 'kernel-state', 'memory-profile'].includes(action) ? 30_000 : 300_000;
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
         try {
           const response = await fetch('api/dscord', {
@@ -193,11 +254,11 @@ body[data-ds-dark-theme] .dscord-connect {
           if (!result.ok) {
             const modelErrors = { MODEL_POLICY_DENIED: 'serverPolicyDenied', MODEL_OUTPUT_LIMIT: 'serverOutputLimit', MISSING_CREDENTIAL: 'missingCredential', INVALID_REASONING_EFFORT: 'invalidEffort',
               INVALID_OUTPUT_LIMIT: 'invalidOutput', INVALID_MODEL: 'modelUnavailable', MODEL_UNAVAILABLE: 'modelUnavailable',
-              MODEL_PROVIDER_UNAVAILABLE: 'modelUnavailable', MODEL_PROFILE_INVALID: 'providerInvalid' };
+              MODEL_PROVIDER_UNAVAILABLE: 'modelUnavailable', MODEL_PROFILE_INVALID: 'providerInvalid', DSCORD_KERNEL_CONFLICT: 'kernelConflict' };
             const key = modelErrors[result.error?.code];
             throw key ? clientError(key) : result.error?.message ? new Error(result.error.message) : clientError('requestFailed');
           }
-          if (!result.value || !Array.isArray(result.value.bots)) throw clientError('invalidStatus');
+          if (!result.value || connectionState && !Array.isArray(result.value.bots)) throw clientError('invalidStatus');
           return result.value;
         } catch (error) {
           if (error.name === 'AbortError') throw clientError('requestTimeout');
@@ -260,7 +321,8 @@ body[data-ds-dark-theme] .dscord-connect {
             action = 'connect';
           }
           const value = await request(action, payload, controller);
-          publish({ value, error: null, errorTranslation: null, notice: action === 'save-model' ? 'savedModel' : null });
+          publish({ value, error: null, errorTranslation: null, notice: action === 'save-model' ? 'savedModel' : action === 'create-native' ? 'localCreated' : null });
+          return value;
         } catch (error) {
           errorSource = 'action';
           publish({ error: error.message, errorTranslation: error.translation || null });
@@ -294,6 +356,8 @@ body[data-ds-dark-theme] .dscord-connect {
         login: (serverUrl, user, password) => mutate('login', { serverUrl, user, password }),
         logout: () => mutate('logout'),
         saveModel: (botId, selection) => mutate('save-model', { botId, selection }),
+        createNative: payload => mutate('create-native', payload),
+        kernel: (action, payload = {}, controller = new AbortController()) => request(action, payload, controller, false),
         attach: (nativeBotId, botId) => mutate('attach', { nativeBotId, ...(botId ? { botId } : {}) }),
         connect: botId => mutate('connect', { botId }),
         disconnect: botId => mutate('disconnect', { botId }),
@@ -369,6 +433,177 @@ body[data-ds-dark-theme] .dscord-connect {
         pending && h('p', { className: 'dc-model-info', role: 'status' }, t('modelPending')));
     }
 
+    function CreateLocalBot({ connection, state, t }) {
+      const catalog = state.value?.models;
+      const models = (catalog?.providers || []).flatMap(provider => provider.models);
+      const [model, setModel] = React.useState(catalog?.defaultSelection?.model || '');
+      const disabled = Boolean(state.busy);
+      return h('details', { className: 'dc-create' }, h('summary', null, t('newBot')),
+        h('form', { onSubmit: async event => {
+          event.preventDefault();
+          const form = event.currentTarget;
+          const name = form.elements.namedItem('botName').value.trim();
+          if (!name || !models.some(item => item.model === model)) return;
+          const role = form.elements.namedItem('botRole').value.trim();
+          const value = await connection.createNative({ name, role, model });
+          if (value) form.reset();
+        } },
+          h('label', { className: 'dc-field' }, t('botName'), h(Input, { name: 'botName', required: true, maxLength: 80, disabled, autoComplete: 'off' })),
+          h('label', { className: 'dc-field' }, t('botRole'), h(Input, { name: 'botRole', maxLength: 1000, disabled, autoComplete: 'off' })),
+          h('label', { className: 'dc-field' }, t('model'), h('select', { name: 'localModel', required: true, value: model, onChange: event => setModel(event.target.value), disabled },
+            h('option', { value: '' }, t('noModel')), ...models.map(item => h('option', { key: item.model, value: item.model, disabled: item.needsKey === true }, item.name || item.model)))),
+          h(Button, { type: 'submit', variant: 'primary', disabled: disabled || !models.some(item => item.model === model && !item.needsKey) }, t(state.busy?.action === 'create-native' ? 'creatingLocal' : 'createLocal'))));
+    }
+
+    function DecisionProviderForm({ connection, provider, onSaved, t }) {
+      const [busy, setBusy] = React.useState(false);
+      const [feedback, setFeedback] = React.useState(null);
+      const [enabled, setEnabled] = React.useState(provider?.enabled !== false);
+      React.useEffect(() => { setEnabled(provider?.enabled !== false); }, [provider?.enabled]);
+      return h('details', { className: 'dc-private' }, h('summary', null, t('decisionTitle')),
+        h('p', { className: 'dc-muted dc-model-info' }, provider ? `${t(provider.configured ? 'configured' : 'notConfigured')} · ${t(provider.available === true ? 'available' : provider.available === false ? 'serviceUnavailable' : 'availabilityUnknown')}` : t('unknown')),
+        provider?.model && h('p', { className: 'dc-muted dc-model-info' }, provider.model),
+        h('form', { onSubmit: async event => {
+          event.preventDefault();
+          const fields = event.currentTarget.elements;
+          const input = fields.namedItem('decisionApiKey');
+          const apiKey = input.value.trim();
+          input.value = '';
+          setBusy(true); setFeedback(null);
+          try {
+            const next = await connection.kernel('save-decision-provider', { enabled, ...(apiKey ? { apiKey } : {}) });
+            onSaved(next); setFeedback({ ok: true });
+          } catch (error) { setFeedback({ error: error.message }); }
+          finally { setBusy(false); }
+        } },
+          h('label', { className: 'dc-field' }, t('decisionApiKey'), h(Input, { name: 'decisionApiKey', type: 'password', autoComplete: 'new-password', disabled: busy, spellCheck: false, autoCapitalize: 'none' })),
+          h('p', { className: 'dc-muted dc-model-info' }, t('decisionKeyHelp')),
+          h('label', { className: 'dc-check' }, h('input', { name: 'enabled', type: 'checkbox', checked: enabled, onChange: event => setEnabled(event.target.checked), disabled: busy }), t('enableDecision')),
+          h(Button, { type: 'submit', variant: 'outline', disabled: busy }, t('saveDecision'))),
+        feedback && h('p', { role: feedback.error ? 'alert' : 'status', className: feedback.error ? 'dc-error dc-model-info' : 'dc-model-info' }, feedback.error || t('decisionSaved')));
+    }
+
+    function LocalSourceMemory({ connection, nativeBotId, t }) {
+      const [kind, setKind] = React.useState('person');
+      const [query, setQuery] = React.useState('');
+      const [request, setRequest] = React.useState({ kind: 'person' });
+      const [result, setResult] = React.useState(null);
+      const [error, setError] = React.useState(null);
+      const [loading, setLoading] = React.useState(false);
+      React.useEffect(() => {
+        const controller = new AbortController();
+        setLoading(true); setError(null); setResult(null);
+        void connection.kernel('memory-profile', { nativeBotId, ...request }, controller).then(value => {
+          if (!controller.signal.aborted) setResult(value);
+        }).catch(reason => { if (!controller.signal.aborted) setError(reason.message); })
+          .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+        return () => controller.abort();
+      }, [connection, nativeBotId, request]);
+      const sourceList = sources => h('ul', null, ...sources.map(source => h('li', { key: `${source.id}/${source.revision || ''}` },
+        h('strong', null, source.authorId || source.authorKind || t('unknown')),
+        source.roomId && h('p', null, source.roomId),
+        source.timestamp != null && h('p', null, new Date(source.timestamp).toLocaleString()),
+        h('small', null, source.eventId || source.id))));
+      const view = result?.view;
+      return h('section', { className: 'dc-memory', 'aria-label': t('memory') }, h('h3', null, t('memory')),
+        h('form', { className: 'dc-memory-filter', onSubmit: event => { event.preventDefault(); setRequest({ kind, ...(query.trim() ? { query: query.trim() } : {}) }); } },
+          h('select', { 'aria-label': t('memory'), value: kind, onChange: event => { setKind(event.target.value); setRequest({ kind: event.target.value }); } },
+            h('option', { value: 'person' }, t('people')), h('option', { value: 'project' }, t('projects'))),
+          h(Input, { 'aria-label': t('memorySearch'), placeholder: t('memorySearch'), value: query, onChange: event => setQuery(event.target.value) }),
+          h(Button, { type: 'submit', variant: 'outline', disabled: loading }, t('search'))),
+        loading && h('p', { role: 'status', className: 'dc-muted' }, t('loadingKernel')),
+        error && h('p', { role: 'alert', className: 'dc-error' }, error),
+        result?.items && h('div', { className: 'dc-memory-list' },
+          !result.items.length && h('p', { className: 'dc-muted' }, t('noMemory')),
+          ...result.items.map(item => h(Button, { key: item.id, variant: 'outline', onClick: () => setRequest({ kind, id: item.id }) }, item.name || item.id))),
+        view && h('div', null,
+          h('h3', null, result.identity?.name || result.id), h('p', { className: 'dc-bot-id' }, result.id),
+          ...['currentClaims', 'preferences', 'projectFacts', 'changes'].filter(key => view[key]?.length).map(key => h('section', { key }, h('h3', null, t(key)),
+            ...view[key].map(item => h('article', { className: 'dc-memory-item', key: `${item.id}/${item.revision || ''}` },
+              item.claimState && h('span', { className: 'dc-memory-label' }, t(item.claimState)), item.kind && h('span', { className: 'dc-memory-label' }, t(item.kind)),
+              h('p', null, item.text), item.saidBy && h('p', { className: 'dc-muted' }, item.saidBy), item.scope && h('p', { className: 'dc-muted' }, item.scope),
+              item.conflicts?.length > 0 && h('p', { className: 'dc-muted' }, t('conflicts')),
+              h('details', null, h('summary', null, t('sources')), item.sources?.length ? sourceList(item.sources) : h('p', null, t('noSources')), h('small', null, item.id)))))),
+          !['currentClaims', 'preferences', 'projectFacts', 'changes'].some(key => view[key]?.length) && h('p', { className: 'dc-muted' }, t('noMemory')),
+          view.historyGaps?.length > 0 && h('p', { className: 'dc-muted dc-model-info' }, t('limitedMemory')),
+          Object.values(view.budget?.omitted || {}).some(count => count > 0) && h('p', { className: 'dc-muted dc-model-info' }, t('shortenedMemory'))),
+        h('p', { className: 'dc-muted dc-model-info' }, t('memoryHelp')));
+    }
+
+    function LocalBotSettings({ bot, connection, t, onBack }) {
+      const [kernel, setKernel] = React.useState(null);
+      const [mode, setMode] = React.useState('');
+      const [loading, setLoading] = React.useState(true);
+      const [busy, setBusy] = React.useState(false);
+      const [error, setError] = React.useState(null);
+      const [feedback, setFeedback] = React.useState(null);
+      const [revision, setRevision] = React.useState(0);
+      React.useEffect(() => {
+        const controller = new AbortController();
+        setLoading(true); setError(null); setKernel(null);
+        void connection.kernel('kernel-state', { nativeBotId: bot.id }, controller).then(value => {
+          if (!controller.signal.aborted) { setKernel(value); setMode(value.attention?.mode || ''); }
+        }).catch(reason => { if (!controller.signal.aborted) setError(reason.message); })
+          .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+        return () => controller.abort();
+      }, [connection, bot.id, revision]);
+      const activity = kernel?.attention?.activity || kernel?.attention?.status;
+      return h('section', { className: 'dc-local-settings', 'aria-label': t('settings') },
+        h(Button, { variant: 'outline', disabled: busy, onClick: onBack }, t('back')),
+        h('h3', null, bot.name), h('p', { className: 'dc-bot-id' }, `${t('stableIdentity')} · ${bot.id}`),
+        loading && h('p', { role: 'status', className: 'dc-muted' }, t('loadingKernel')),
+        error && h('p', { role: 'alert', className: 'dc-error' }, error),
+        kernel && h('p', { className: 'dc-model-info' }, t(['listening', 'waiting', 'working', 'speaking'].includes(activity) ? activity : 'unknown')),
+        h('p', { className: 'dc-muted dc-model-info' }, t('waitHelp')),
+        h('h3', null, t('participation')),
+        h('form', { onSubmit: async event => {
+          event.preventDefault(); setBusy(true); setFeedback(null);
+          try {
+            const receipt = await connection.kernel('attention-update', { nativeBotId: bot.id, mode });
+            setFeedback({ ok: true, pending: receipt.status === 'pending' }); setRevision(value => value + 1);
+          } catch (reason) { setFeedback({ error: reason.message }); }
+          finally { setBusy(false); }
+        } },
+          h('fieldset', { className: 'dc-mode-options', disabled: busy || loading || !kernel }, h('legend', { className: 'dc-muted' }, t('participation')),
+            ...['mention', 'shadow', 'natural'].map(value => h('label', { className: 'dc-mode-option', key: value },
+              h('input', { type: 'radio', name: 'participationMode', value, checked: mode === value, onChange: () => setMode(value) }), h('span', null, h('strong', null, t(value)), h('small', null, t(`${value}Help`)))))),
+          h(Button, { type: 'submit', variant: 'primary', disabled: busy || loading || !kernel || !mode || mode === kernel.attention?.mode }, t('saveParticipation'))),
+        feedback && h('p', { role: feedback.error ? 'alert' : 'status', className: feedback.error ? 'dc-error dc-model-info' : 'dc-model-info' }, feedback.error || t(feedback.pending ? 'participationPending' : 'participationSaved')),
+        h(LocalSourceMemory, { connection, nativeBotId: bot.id, t }));
+    }
+
+    function LocalKernelPanel({ connection, state, t }) {
+      const [selected, setSelected] = React.useState(null);
+      const [provider, setProvider] = React.useState(null);
+      const [error, setError] = React.useState(null);
+      React.useEffect(() => {
+        const controller = new AbortController();
+        void connection.kernel('kernel-state', {}, controller).then(value => {
+          if (!controller.signal.aborted) { setProvider(value.decisionProvider || null); setError(null); }
+        }).catch(reason => { if (!controller.signal.aborted) setError(reason.message); });
+        return () => controller.abort();
+      }, [connection]);
+      const value = state.value;
+      const detail = value.nativeBots?.find(bot => bot.id === selected);
+      return h('section', { className: 'dc-panel', 'aria-label': t('nativeBots') },
+        h('h2', null, t('nativeBots')), h('p', { className: 'dc-muted' }, t('nativeHelp')),
+        error && h('p', { role: 'alert', className: 'dc-error dc-model-info' }, error),
+        detail ? h(LocalBotSettings, { key: detail.id, bot: detail, connection, t, onBack: () => setSelected(null) }) : h(React.Fragment, null,
+          h('ul', { className: 'dc-bots' }, ...(value.nativeBots || []).map(bot => {
+            const bound = value.bots.some(link => link.nativeBotId === bot.id);
+            return h('li', { key: bot.id, className: 'dc-bot' },
+              h('div', { className: 'dc-bot-copy' }, h('strong', null, bot.name), h('p', { className: 'dc-bot-id' }, bot.id), bot.role && h('p', { className: 'dc-muted' }, bot.role)),
+              h('div', { className: 'dc-toolbar' }, h(Button, { variant: 'outline', disabled: Boolean(state.busy), onClick: () => setSelected(bot.id) }, t('settings')),
+                h(Button, { variant: 'outline', disabled: Boolean(state.busy) || bound || !bot.model || !value.user,
+                  onClick: () => void connection.attach(bot.id) }, t(bound ? 'nativeBound' : 'attach'))));
+          })),
+          !value.nativeBots?.length && h('p', { className: 'dc-muted dc-model-info' }, t('nativeEmpty')),
+          !value.user && h('p', { className: 'dc-muted dc-model-info' }, t('signInToAttach')),
+          h(CreateLocalBot, { connection, state, t })),
+        h(DecisionProviderForm, { connection, provider, onSaved: setProvider, t }),
+        h('p', { className: 'dc-muted dc-model-info' }, t('nativeLifecycle')));
+    }
+
     function BotRow({ bot, connection, state, t }) {
       const [nativeId, setNativeId] = React.useState('');
       const needsBinding = state.value?.nativeMode && !bot.nativeBotId;
@@ -427,24 +662,13 @@ body[data-ds-dark-theme] .dscord-connect {
           state.loading && h('p', { role: 'status', className: 'dc-muted' }, t('readStatus')),
           runtimeError && h('p', { role: 'status', className: 'dc-notice dc-error' }, value.runtime.message || t('runtimeUnavailable')),
           !state.loading && !value?.user && h(LoginForm, { key: value?.serverUrl || 'login', connection, state, t }),
+          value?.nativeMode && h(LocalKernelPanel, { connection, state, t }),
           value?.user && h(React.Fragment, null,
             h('section', { className: 'dc-panel dc-account', 'aria-label': t('account') },
               h('div', null,
                 h('p', { className: 'dc-account-name' }, value.user.name || value.user.id),
                 h('p', { className: 'dc-server' }, value.serverUrl)),
               h(Button, { variant: 'outline', type: 'button', disabled: Boolean(state.busy), onClick: () => void connection.logout() }, t(state.busy?.action === 'logout' ? 'loggingOut' : 'logout'))),
-            value.nativeMode && h('section', { className: 'dc-panel', 'aria-label': t('nativeBots') },
-              h('h2', null, t('nativeBots')), h('p', { className: 'dc-muted' }, t('nativeHelp')),
-              h('ul', { className: 'dc-bots' }, (value.nativeBots || []).map(bot => {
-                const bound = value.bots.some(link => link.nativeBotId === bot.id);
-                return h('li', { key: bot.id, className: 'dc-bot' },
-                  h('div', null, h('strong', null, bot.name), bot.main && h('span', null, ' · Main Bot'),
-                    h('p', { className: 'dc-muted' }, `${bot.role || ''} · ${bot.model || t('noModel')}`)),
-                  h(Button, { variant: 'outline', disabled: Boolean(state.busy) || bound || !bot.model,
-                    onClick: () => void connection.attach(bot.id) }, t(bound ? 'nativeBound' : 'attach')));
-              })),
-              !value.nativeBots?.length && h('p', { className: 'dc-muted' }, t('nativeEmpty')),
-              h('p', { className: 'dc-muted' }, t('nativeLifecycle'))),
             h('section', { className: 'dc-panel', 'aria-label': t('myBots') },
               h('h2', null, t('myBots')),
               value.bots.length === 0
@@ -463,8 +687,7 @@ body[data-ds-dark-theme] .dscord-connect {
       ctx.effect(() => ctx.locale.register(localeNamespace, { zh, en }), 'dscord: dictionaries');
       const t = ctx.locale.bind(localeNamespace);
       const connection = createConnectionModel(t);
-      // The packaged client supplies the unchanged native DS-Bot factory. An
-      // independently installed DS-Bot keeps ownership of its own normal UI.
+      // The bundled Bot workspace shares DSCord's kernel API and identities.
       if (typeof dscordNativeFactory === 'function') {
         let mounted = false;
         const unsubscribe = connection.subscribe(() => {
@@ -481,8 +704,7 @@ body[data-ds-dark-theme] .dscord-connect {
       ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
         name: 'sidebar.panellist', id: panelId, label: () => t('title'), locale: localeNamespace, order: 20,
       }, SidebarIcon));
-      // DS-Bot owns its sidebar in Bot mode. Use its registered return action
-      // to switch modes, keeping both the native team UI and DSH panels intact.
+      // Keep a return action available from the local Bot workspace.
       function NativeShortcutButton({ face }) {
         const mode = React.useSyncExternalStore(face.hooks.surface.subscribe, () => face.hooks.surface.getSnapshot().mode);
         if (mode !== 'bot') return null;
