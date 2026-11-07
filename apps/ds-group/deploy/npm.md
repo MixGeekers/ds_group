@@ -100,3 +100,7 @@ dscord dsh stop "$BOT_ACCOUNT"
 `dscord server` 运行 Core/PWA，`init` 和 `bootstrap` 初始化服务器，`admin` 管理导出与导入，`node` 运行 Matrix 适配器，`dsh` 管理独立宿主，`service` 管理本机进程，`path` 显示安装目录。
 
 DS-Bot 的 Apache-2.0 LICENSE 与 NOTICE 位于 `vendor/ds-bot/`，界面图标许可随 `dist/web/licenses/` 提供。
+
+## 许可证
+
+DSCord 自有代码和文档采用 Apache-2.0。安装包包含本体许可及第三方声明，预构建界面的依赖许可位于各自的 `licenses/` 目录。[LICENSE](../LICENSE) · [NOTICE](../NOTICE)

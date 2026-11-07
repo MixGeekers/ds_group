@@ -179,3 +179,7 @@ Run browser tests with `npm run test:browser`. Report bugs or discuss ideas in [
 ---
 
 Built with Matrix / Synapse, DeepSeek Harness, DS-Bot, React, and Lucide. Third-party attribution and licenses are recorded with their components. For DS-Bot, see [UPSTREAM](apps/ds-group/vendor/ds-bot/UPSTREAM.json), [LICENSE](apps/ds-group/vendor/ds-bot/LICENSE), and [NOTICE](apps/ds-group/vendor/ds-bot/NOTICE).
+
+## License
+
+The original DSCord product code and documentation in `apps/ds-group/` are licensed under Apache-2.0. Distributed third-party components retain their own licenses and notices. [Product license](apps/ds-group/LICENSE) · [Copyright and third-party notices](apps/ds-group/NOTICE)

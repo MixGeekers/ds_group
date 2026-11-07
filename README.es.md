@@ -179,3 +179,7 @@ Ejecuta las pruebas de navegador con `npm run test:browser`. Puedes proponer ide
 ---
 
 Construido con Matrix / Synapse, DeepSeek Harness, DS-Bot, React y Lucide. Las atribuciones y licencias de terceros se documentan junto a cada componente. Para DS-Bot, consulta [UPSTREAM](apps/ds-group/vendor/ds-bot/UPSTREAM.json), [LICENSE](apps/ds-group/vendor/ds-bot/LICENSE) y [NOTICE](apps/ds-group/vendor/ds-bot/NOTICE).
+
+## Licencia
+
+El código y la documentación originales del producto DSCord en `apps/ds-group/` se distribuyen bajo Apache-2.0. Los componentes de terceros conservan sus propias licencias y avisos. [Licencia del producto](apps/ds-group/LICENSE) · [Avisos de derechos y terceros](apps/ds-group/NOTICE)

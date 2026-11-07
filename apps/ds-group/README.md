@@ -72,3 +72,7 @@ npm run test:browser
 ## 来源与许可
 
 自有内核基于 DS-Bot 0.3.1，DSCord 修改及上游版本登记在 [UPSTREAM.json](vendor/ds-bot/UPSTREAM.json)，许可见 [LICENSE](vendor/ds-bot/LICENSE) 和 [NOTICE](vendor/ds-bot/NOTICE)。DSH SDK 与内核接口说明见 [dsh-connect/KERNEL.md](dsh-connect/KERNEL.md)。
+
+## 许可证
+
+本产品自有代码和文档采用 Apache-2.0。第三方组件各自的许可与版权声明随对应源码和构建产物分发。[LICENSE](LICENSE) · [NOTICE](NOTICE)

@@ -5,8 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { readModelProfile } from '../dsh-plugin/model-profile.mjs';
 
-const runtime = process.env.DSH_HARNESS;
-assert.ok(runtime, 'Set DSH_HARNESS to an installed official DSH 0.2.2-rc.1 package or npm prefix');
+const runtime = process.env.DSH_HARNESS || process.env.DS_GROUP_DSH_RUNTIME;
+assert.ok(runtime, 'Set DS_GROUP_DSH_RUNTIME or DSH_HARNESS to an installed compatible DSH package or npm prefix');
 
 test('official SDK profile import retains only selected native auth refs without discovery or generation', async t => {
   const sourceHome = await mkdtemp(path.join(os.tmpdir(), 'dscord-native-auth-profile-'));

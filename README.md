@@ -189,3 +189,7 @@ npm run build
 ---
 
 基于 Matrix / Synapse、DeepSeek Harness、DS-Bot、React 与 Lucide 构建。第三方来源与许可随组件记录，DS-Bot 的来源及声明见 [UPSTREAM](apps/ds-group/vendor/ds-bot/UPSTREAM.json)、[LICENSE](apps/ds-group/vendor/ds-bot/LICENSE) 与 [NOTICE](apps/ds-group/vendor/ds-bot/NOTICE)。
+
+## 许可证
+
+DSCord 产品的自有代码和文档位于 `apps/ds-group/`，采用 Apache-2.0。随产品分发的第三方组件保留各自的许可证与声明。[产品许可证](apps/ds-group/LICENSE) · [版权与第三方声明](apps/ds-group/NOTICE)
