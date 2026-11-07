@@ -1,0 +1,484 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T06:42:38.529Z",
+  "level": "real-dsh-local-scripted-provider",
+  "dshVersion": "0.2.2-rc.1",
+  "status": "passed",
+  "remoteModelCalls": 0,
+  "checks": [
+    "restoredLegacyRequestViewsProjectWithoutChangingOriginalEventsOrReplayHistory",
+    "oneActiveSnapshotAcrossHumanBotAndToolSteps",
+    "firstRequestUsesItsActualClaimedAuthorAndRoom",
+    "realReadToolPairAndOriginalSpeakersRetained",
+    "sameNativeSessionColdRestoreWithUnchangedRawSnapshotEvents",
+    "manualCheckpointPrunesOldHomeSnapshotsBeforeItsFirstNewTurn",
+    "checkpointRestoreRetainsOriginalHumanToolAndDelegationEvents",
+    "nativeAutomaticPressureCompactionRetainsOneCurrentFrameAndTheSameSession",
+    "explicitPartTransferAndColdRestoreKeepHeldOriginalBodyAuthorAndRoom",
+    "normalNativeBridgePublishesOnlyTheRuntimeFrameAndPreservesLiteralHumanText"
+  ],
+  "sourceHashes": {
+    "memory/native.mjs": "c136df5b775bdb016d6bc5d222a98a100fc49a0a2f8b5dfef231f80e6d7374a2",
+    "memory/snapshot-context.mjs": "c120ad700ec2796133a75801b443443845d909e97d7733203e93a585011625f0",
+    "src/native-request.mjs": "35664eef7c2e9defd844097006c3c3388ff829b0a85e2ff5b83faaf3848d0b3d",
+    "src/message-context.mjs": "95bf56d5e1f22c31aa7f96a57a6307f58917de103928c4fdc354089edef02488",
+    "dsh-connect/native-team.mjs": "1d0374a23861dd8b26d196cd7b6f0686797e86db0e0f1b7837b639d73748bd35",
+    "vendor/ds-bot/src/host/parts.js": "99bb81748308116c1c0c5e0d53aabb73ed4200ea7cc6e7db4989c7a919a64acb",
+    "dsh-plugin/runtime-dependencies.json": "a72a7c7d232a357947c1c6c2fcebe3ca761891605d8bbcb6807056f677aa1fee",
+    "tests/fixtures/memory-snapshot-host.mjs": "5d4286263f86db98a76be143c915ab725b08fe9fae06ef63d501d3fe652e4119",
+    "tests/memory-snapshot.runtime.mjs": "6095d9a97169cf758fd22d1462e48c72f999a7a0918273c90644f580c10501f0"
+  },
+  "limitations": [
+    "A continuing external CLI may retain previously submitted text in its own private history; this verifies native derived requests and fresh CLI replay.",
+    "Scripted provider output proves request composition and lifecycle, not remote model reasoning quality."
+  ],
+  "botId": "session-c220d79d-2657-45ec-b53b-328ca74450c6",
+  "contextEstimates": {
+    "beforeManualCheckpoint": 141804,
+    "afterManualCheckpoint": 20206,
+    "beforeAutomaticCheckpoint": 121837,
+    "afterAutomaticCheckpoint": 21715
+  },
+  "finalSnapshotSource": {
+    "roomId": "!south:snapshot.local",
+    "authorId": "matrix:@bob:snapshot.local",
+    "speaker": {
+      "id": "matrix:@bob:snapshot.local",
+      "name": "@bob:snapshot.local",
+      "kind": "human",
+      "aliases": [
+        "@bob:snapshot.local"
+      ],
+      "aliasesTruncated": false
+    }
+  },
+  "rawSnapshotCount": 59,
+  "retirementCount": 57,
+  "nativeSessionId": "session-c220d79d-2657-45ec-b53b-328ca74450c6",
+  "transferredSessionId": "session-d008e774-1a32-44f2-aff0-ac596a147e95",
+  "calls": [
+    {
+      "index": 1,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 6,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": false,
+      "hasHumanTwo": false,
+      "snapshots": [
+        {
+          "chars": 2950,
+          "sha256": "b0a86c689aabce5459ef51e2a217575e43f98f7fd15859f8575b7002a272d000",
+          "authorId": "matrix:@alice:snapshot.local",
+          "roomId": "!north:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_e7d236919932b79ad2f5931762f48235cd60d594a6ebdd95688779c19a18ef50",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 2,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 10,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": false,
+      "snapshots": [
+        {
+          "chars": 4086,
+          "sha256": "c9a69d4a44be9b740a140bbb8daead5c028586558cedbbe25ace4db3a8759057",
+          "authorId": "native:session-cb7bb7b1-fbbc-452e-b8cc-9bb13cedde91",
+          "roomId": null,
+          "sourceRefs": [
+            {
+              "id": "source_e2762357cda2ab0ccb632befeff3f01b334ef17e4d891f2a4108035a6d317e1c",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 3,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 12,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 2931,
+          "sha256": "5fbc7de7cd138e15106eb26fb02b6cd449c0871c4f0dabbb0fff7cb56da685d9",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_1c4bd0d50ce2e7dfe9d8965d0ec27020ee2a7e63cd9bf60b6560d3409e6c4b2c",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 4,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 14,
+      "toolResults": [
+        "<path>/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-surface-dDoyTB/workspace/evidence.txt</path>\n<type>file</type>\n<content>\n1: tool-file-history-proof\n\n(End of file - total 1 lines)\n</content>"
+      ],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 3709,
+          "sha256": "58e502f5e7c1b1aa5748b40a26530dd18db8c26bc31a2c65752e1ad0c082c53f",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_1c4bd0d50ce2e7dfe9d8965d0ec27020ee2a7e63cd9bf60b6560d3409e6c4b2c",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 5,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 16,
+      "toolResults": [
+        "<path>/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-surface-dDoyTB/workspace/evidence.txt</path>\n<type>file</type>\n<content>\n1: tool-file-history-proof\n\n(End of file - total 1 lines)\n</content>"
+      ],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 3925,
+          "sha256": "7a7b5ced40d835a4aa46a586649adb667fdcb09da24648acdb55867f548ca833",
+          "authorId": "matrix:@alice:snapshot.local",
+          "roomId": "!north:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_01dbef92a17635fc435bfeaaa94426141d7afe59e578353521754418a56bad30",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 6,
+      "checkpoint": true,
+      "steward": false,
+      "messageCount": 19,
+      "toolResults": [
+        "<path>/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-surface-dDoyTB/workspace/evidence.txt</path>\n<type>file</type>\n<content>\n1: tool-file-history-proof\n\n(End of file - total 1 lines)\n</content>"
+      ],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 9018,
+          "sha256": "7df11fbbd17cd8cf762dfff99ef260efd9ec21aabe15fca1bd549234698db7d9",
+          "seed": 52
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 7,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 7,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 4087,
+          "sha256": "e6242d74d8cdd1f77b037311197746bd89c4f5e54aca35f0be3d11d427e24b02",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_61c716f8150b8c46a4f8db6fe59b7b660dd282cf34b0d7c73a816b4cda85a5ca",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 8,
+      "checkpoint": false,
+      "steward": true,
+      "messageCount": 2,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [],
+      "toolSet": 1,
+      "toolCount": 0
+    },
+    {
+      "index": 9,
+      "checkpoint": true,
+      "steward": false,
+      "messageCount": 10,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 10,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 7,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 4602,
+          "sha256": "6ba7c00f2872e20b0c7d7e86e51ad33057505cb45f811ce20d5579fd8fda8c5c",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_6a553504b407df01d66cc7070a4e22c9e9c6ff2d41df2d16e1ad08f31b71fc13",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 11,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 9,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 4602,
+          "sha256": "6ba7c00f2872e20b0c7d7e86e51ad33057505cb45f811ce20d5579fd8fda8c5c",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_6a553504b407df01d66cc7070a4e22c9e9c6ff2d41df2d16e1ad08f31b71fc13",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 12,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 9,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 4602,
+          "sha256": "6ba7c00f2872e20b0c7d7e86e51ad33057505cb45f811ce20d5579fd8fda8c5c",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_6a553504b407df01d66cc7070a4e22c9e9c6ff2d41df2d16e1ad08f31b71fc13",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 13,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 8,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 5103,
+          "sha256": "699fdc4d4e9f7b62d3fb65e3e1c4ada6b1a3ec5bab81b370b0ea9ed0b4e8e180",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_8328ece998ec1155d5f721e5e63c15a9498c5691863eed69e9298f4e8a86b21d",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    },
+    {
+      "index": 14,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 11,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 5661,
+          "sha256": "32c91f3bafa0effe76a142bea8163f905483ece9889001f8ca291ae4cd9ad302",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_da338b5d0abdb39580fb6162f440198d0788b2db8784027472b99583a62aa01f",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 63
+    }
+  ],
+  "scriptedProviderCalls": 14,
+  "codeCommit": "f24ef49",
+  "offlineValidation": {
+    "command": "node scripts/check.mjs",
+    "syntax": true,
+    "typescript": true,
+    "adminTypescript": true,
+    "modules": {
+      "passed": 728,
+      "failed": 0
+    },
+    "sdkCommand": "DSH_HARNESS=<clean official CLI prefix> npm run test:kernel-host",
+    "sdk": {
+      "passed": 28,
+      "failed": 0
+    },
+    "extraSdkDevelopmentPackages": []
+  },
+  "toolSets": [
+    [
+      "ask_user",
+      "ask_user_question",
+      "attach_capability",
+      "bash",
+      "contacts",
+      "create_bot",
+      "create_goal",
+      "create_group",
+      "delete_capability",
+      "delete_group",
+      "detach_capability",
+      "edit",
+      "forget",
+      "get_goal",
+      "glob",
+      "grep",
+      "group_goal",
+      "group_relay",
+      "interrupt_agent",
+      "job_kill",
+      "job_list",
+      "job_output",
+      "list_agents",
+      "list_bot_models",
+      "list_bots",
+      "list_capabilities",
+      "list_connectors",
+      "list_secrets",
+      "list_subagent_models",
+      "memory_source",
+      "message_bot",
+      "plugin_manager",
+      "post_to_group",
+      "present",
+      "raw_source_query",
+      "read",
+      "read_group_chat",
+      "read_image",
+      "read_own_chat",
+      "recall",
+      "remember",
+      "request_connector",
+      "request_secret",
+      "review_memory",
+      "save_capability",
+      "schedule_create",
+      "schedule_edit",
+      "schedule_list",
+      "schedule_view",
+      "send_message",
+      "show_view",
+      "skill",
+      "stop_bot",
+      "subagent",
+      "subagent_fork",
+      "todo_write",
+      "update_bot",
+      "update_goal",
+      "update_group",
+      "web_fetch",
+      "workflow",
+      "working_directory",
+      "write"
+    ],
+    []
+  ]
+}

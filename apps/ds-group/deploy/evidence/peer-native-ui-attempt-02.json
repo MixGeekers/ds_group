@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 2,
+  "checkedAt": "2026-11-07T03:33:44.722Z",
+  "status": "failed",
+  "level": "packaged-plugin-in-real-dsh-web-ui-with-isolated-local-provider",
+  "expectedDshVersion": "0.2.2-rc.1",
+  "remoteModelCalls": 0,
+  "localModelCalls": 0,
+  "checks": [],
+  "browserErrors": [],
+  "screenshots": [],
+  "dshVersion": "0.2.2-rc.1",
+  "package": {
+    "version": "0.4.0-alpha.1",
+    "archive": "<synthetic-path>/dscord-0.4.0-alpha.1.tgz",
+    "sha256": "1445e2a2da43719286b0833277195818cbdd530edb689c4e68b7cc0a2acf1be3"
+  },
+  "initial": {
+    "nativeMode": true,
+    "nativeBundled": false,
+    "runtime": {
+      "available": false,
+      "mode": "native",
+      "message": "unsupported JSON schema: parameters.basisRefs.items.required is not supported by the value schema DSL"
+    },
+    "lastError": "unsupported JSON schema: parameters.basisRefs.items.required is not supported by the value schema DSL"
+  },
+  "error": "The archive must start the DSCord kernel\n\nfalse !== true\n",
+  "errorStack": "AssertionError [ERR_ASSERTION]: The archive must start the DSCord kernel\n\nfalse !== true\n\n    at file:///Users/<local-user>/.codex/worktrees/dscord-kernel-ui/apps/ds-group/scripts/native-ui-smoke.mjs:114:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
+  "diagnosticDirectory": "<synthetic-path>/dscord-native-ui-C9mWLg",
+  "publicEvidence": {
+    "originalSha256": "a579743bd53c41bcd8b5653c0736a7432fbe1aae5560ecb79e7da44a09f44990",
+    "origin": "platform-ui line",
+    "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+  }
+}

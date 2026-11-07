@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { verificationModel } from './memory-test-model.mjs';
 import path from 'node:path';
 import { randomBytes, randomInt, createHash } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
@@ -18,6 +19,7 @@ const { values } = parseArgs({
     prepare: { type: 'boolean' },
     run: { type: 'boolean' },
     'real-model': { type: 'boolean' },
+    model: { type: 'string' },
     'data-root': { type: 'string' },
     report: { type: 'string' },
   },
@@ -28,8 +30,9 @@ if (!values.prepare && !values.run)
   );
 if (values.run && !values['real-model'])
   throw new Error(
-    'This acceptance uses the real allowed model; select --run --real-model explicitly',
+    'This acceptance calls the configured provider; select --run --real-model explicitly',
   );
+const selectedModel=verificationModel(values.model,{run:values.run});
 const execute = promisify(execFile);
 const root = path.resolve(
   values['data-root'] ||
@@ -49,8 +52,8 @@ const reportPath =
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 const tools = ['read', 'write', 'edit', 'read_image'];
-const bridgePort = 24560;
-const webPort = 24562;
+const bridgePort = Number(process.env.DS_GROUP_BRIDGE_PORT||24560);
+const webPort = Number(process.env.DS_GROUP_DSH_WEB_PORT||24562);
 const bridgeUrl = `http://127.0.0.1:${bridgePort}`;
 const report = {
   startedAt: new Date().toISOString(),
@@ -62,8 +65,8 @@ const report = {
   }).format(new Date()),
   status: 'running',
   level:
-    'real-three-Synapse-federation-Core-native-DSH-and-allowed-remote-model',
-  model: 'opencode-go/deepseek-v4.1-flash',
+    'real-three-Synapse-federation-Core-native-DSH-and-configured-model',
+  model: selectedModel,
   physicalHosts: 1,
   remoteModelCalls: 0,
   checks: [],
@@ -258,6 +261,7 @@ async function stop(child) {
 const environment = {
   ...process.env,
   DS_GROUP_DATA_DIR: nodeRoot,
+  ...(selectedModel?{DS_GROUP_MODEL:selectedModel}:{}),
   DS_GROUP_CORE_URL: a.coreUrl,
   DS_GROUP_MATRIX_SETUP_PATH: path.join(nodeRoot, 'matrix-setup.json'),
   DS_GROUP_CORE_CONFIG_PATH: path.join(nodeRoot, 'core-config.json'),
@@ -547,6 +551,7 @@ try {
         );
       try {
         const status = await native('/status');
+        assert.equal(status.model,report.model,'Native runtime must use the selected model');
         assert.equal(
           status.loadedRuntimeSha256,
           report.sourceHashes['dsh-plugin/runtime.mjs'],

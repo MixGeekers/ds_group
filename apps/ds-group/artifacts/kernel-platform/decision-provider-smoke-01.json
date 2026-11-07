@@ -1,0 +1,84 @@
+{
+  "at": "2026-11-07T03:11:03.316Z",
+  "kind": "synthetic-live-api-contract",
+  "provider": "openai-decisions",
+  "model": "gpt-6-luna",
+  "sourceSha256": "ee69529be1179522ffbc124696557ad96a613ea724589557d6f589eea78f24a6",
+  "requests": 3,
+  "results": [
+    {
+      "id": "addressed",
+      "expected": "SPEAK",
+      "actual": "SPEAK",
+      "passed": true,
+      "elapsedMs": 1338,
+      "action": "SPEAK",
+      "probabilities": {
+        "LISTEN": 0.07,
+        "WAIT": 0.25,
+        "SPEAK": 0.68
+      },
+      "confidence": 0.52,
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 618,
+        "output_tokens": 0,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        }
+      }
+    },
+    {
+      "id": "other-person",
+      "expected": "LISTEN",
+      "actual": "LISTEN",
+      "passed": true,
+      "elapsedMs": 273,
+      "action": "LISTEN",
+      "probabilities": {
+        "LISTEN": 0.91,
+        "WAIT": 0.03,
+        "SPEAK": 0.06
+      },
+      "confidence": 0.86,
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 634,
+        "output_tokens": 0,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        }
+      }
+    },
+    {
+      "id": "waiting",
+      "expected": "WAIT",
+      "actual": "WAIT",
+      "passed": true,
+      "elapsedMs": 362,
+      "action": "WAIT",
+      "probabilities": {
+        "LISTEN": 0.01,
+        "WAIT": 0.96,
+        "SPEAK": 0.03
+      },
+      "confidence": 0.94,
+      "model": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 628,
+        "output_tokens": 0,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        }
+      }
+    }
+  ],
+  "health": {
+    "health": "ok",
+    "lastErrorCode": null,
+    "lastSuccessAt": 1794021063315
+  }
+}

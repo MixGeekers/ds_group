@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { parseArgs } from 'node:util';
+import { verificationModel } from './memory-test-model.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { randomUUID, createHash } from 'node:crypto';
@@ -8,12 +10,17 @@ import path from 'node:path';
 import { MatrixClient } from '../src/matrix-client.mjs';
 import { packageRoot, localPath } from '../src/paths.mjs';
 
-const setup = JSON.parse(await readFile(localPath('matrix-setup.json'), 'utf8'));
+const {values}=parseArgs({options:{run:{type:'boolean',default:false},model:{type:'string'}}});
+const model=verificationModel(values.model,{run:values.run});
+if(!values.run){console.log(JSON.stringify({status:'not-run',model,modelCalls:0,usage:'Pass --run with --model provider/model or DS_GROUP_MODEL to validate your configured test deployment.'}));process.exit(0);}
+const coreUrl=new URL(process.env.DS_GROUP_CORE_URL||'http://127.0.0.1:18100').origin;
+const financePort=Number(process.env.DS_GROUP_FINANCE_PORT||18091),hrPort=Number(process.env.DS_GROUP_HR_PORT||18092);
+const setup = JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH||localPath('matrix-setup.json'), 'utf8'));
 const members = Object.fromEntries(setup.participants.map(person => [person.localpart, person]));
 const clients = Object.fromEntries(setup.participants.map(person => [person.localpart, new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: person.accessToken })]));
 const runId = `first-flow-${new Date().toISOString().replace(/[:.]/g, '-')}`;
 const evidence = { schemaVersion: 1, runId, startedAt: new Date().toISOString(), evidenceLevel: 'real-matrix-and-ds-bot-model-local-multiprocess',
-  physicalHosts: 1, botHosts: ['finance', 'hr'], model: 'opencode-go/deepseek-v4.1-flash', checks: [], eventIds: [], failures: [], status: 'running' };
+  physicalHosts: 1, botHosts: ['finance', 'hr'], model, checks: [], eventIds: [], failures: [], status: 'running' };
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const meta = event => event.content?.['org.ds_group'] || {};
 
@@ -43,9 +50,9 @@ async function waitFor(work, description, timeout = 180000) {
   }
   throw new Error(`Timed out waiting for ${description}`);
 }
-async function status() { return (await fetch('http://127.0.0.1:18100/api/status')).json(); }
+async function status() { return (await fetch(`${coreUrl}/api/status`)).json(); }
 async function nodeVersions() {
-  return Promise.all([18091, 18092].map(async port => (await fetch(`http://127.0.0.1:${port}/api/ds-group-node/status`)).json()));
+  return Promise.all([financePort, hrPort].map(async port => (await fetch(`http://127.0.0.1:${port}/api/ds-group-node/status`)).json()));
 }
 async function bridgeState(name) { return JSON.parse(await readFile(localPath(`dsh-${name}`, 'runtime', 'node-state.json'), 'utf8')); }
 async function runScript(file, args) {
@@ -83,6 +90,7 @@ async function idle() { return waitFor(async () => (await status()).nodes.every(
 try {
   evidence.initialGenerationCalls = (await status()).budget.used;
   evidence.initialNodeVersions = await nodeVersions();
+  assert.ok(evidence.initialNodeVersions.every(node=>node.model===model),'Both nodes must use the selected model');
   const expectedRuntimeHash = createHash('sha256').update(await readFile(path.join(packageRoot, 'dsh-plugin/runtime.mjs'))).digest('hex');
   assert.ok(evidence.initialNodeVersions.every(node => node.loadedRuntimeSha256 === expectedRuntimeHash), 'Both nodes must load the frozen runtime source before verification');
   await idle();
@@ -128,7 +136,7 @@ try {
   let memoryEvent;
   let originalSession;
   await check('private conversation uses the same independent HR identity', async () => {
-    const response = await fetch('http://127.0.0.1:18100/api/dm', { method: 'POST',
+    const response = await fetch(`${coreUrl}/api/dm`, { method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${members.alice.accessToken}` },
       body: JSON.stringify({ participantId: members.hr.id }) });
     assert.equal(response.status, 200);
@@ -168,7 +176,7 @@ try {
     await idle();
     await runScript('scripts/service.mjs', ['down', 'hr']);
     await runScript('scripts/dsh-node.mjs', ['stop', 'hr']);
-    await waitFor(async () => { try { await fetch('http://127.0.0.1:18092/health', { signal: AbortSignal.timeout(500) }); return false; } catch { return true; } }, 'HR DSH shutdown', 60000);
+    await waitFor(async () => { try { await fetch(`http://127.0.0.1:${hrPort}/health`, { signal: AbortSignal.timeout(500) }); return false; } catch { return true; } }, 'HR DSH shutdown', 60000);
     await runScript('scripts/service.mjs', ['up', 'hr']);
     await idle();
     const beforeRecall = await bridgeState('hr');

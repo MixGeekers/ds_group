@@ -89,7 +89,7 @@ async function createBot(instructions = '等待明确请求。') {
   return result;
 }
 const sourceHashes = {};
-for (const file of ['src/model-config.mjs', 'dsh-plugin/model-profile.mjs', 'scripts/dsh-node.mjs', 'scripts/runtime-config.mjs', 'scripts/runtime-smoke.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime.mjs']) {
+for (const file of ['package.json', 'vendor/ds-bot/UPSTREAM.json', 'src/model-config.mjs', 'dsh-plugin/model-profile.mjs', 'scripts/dsh-node.mjs', 'scripts/runtime-config.mjs', 'scripts/runtime-smoke.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime.mjs', 'dsh-plugin/runtime-dependencies.json']) {
   sourceHashes[file] = createHash('sha256').update(await readFile(path.join(packageRoot, file))).digest('hex');
 }
 const report = { checkedAt: new Date().toISOString(), platform: process.platform, arch: process.arch, node: process.version,
@@ -98,10 +98,17 @@ const report = { checkedAt: new Date().toISOString(), platform: process.platform
 try {
   const version = await promisify(execFile)(installation.cli, ['--version'], { env: { ...env, DSH_HOME: path.join(directory, 'version-home') }, timeout: 30_000 });
   report.dshVersion = version.stdout.trim();
-  assert.match(report.dshVersion, /^0\.2\.1-rc\.5$/);
+  assert.equal(report.dshVersion, DSH_VERSION);
   report.checks.pinnedRuntimeVersion = true;
   const initial = await start();
-  assert.equal(initial.engineVersion, '0.2.7');
+  const upstream = JSON.parse(await readFile(path.join(packageRoot, 'vendor/ds-bot/package.json'), 'utf8'));
+  assert.equal(initial.engineVersion, upstream.version);
+  assert.equal(initial.runtime.id, 'dscord-kernel');
+  assert.equal(initial.runtime.version, '0.4.0');
+  assert.equal(initial.runtime.upstreamVersion, upstream.version);
+  assert.equal(initial.runtime.apiVersion, 1);
+  report.runtime = { id: initial.runtime.id, version: initial.runtime.version, upstreamVersion: initial.runtime.upstreamVersion, apiVersion: initial.runtime.apiVersion };
+  report.engine = { name: initial.engine, version: initial.engineVersion };
   assert.equal(initial.model, `opencode-go/${MODEL}`);
   report.checks.pluginLoaded = true;
   const catalog = await (await fetch(`${base}/api/ds-group-node/models`)).json();

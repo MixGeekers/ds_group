@@ -20,7 +20,13 @@ const mime = {
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".txt": "text/plain; charset=utf-8",
 };
+const publicLicenseFiles = new Set([
+  "licenses/bundled-dependencies.txt",
+  "licenses/ui-foundation.txt",
+  "licenses/lucide.txt",
+]);
 const optional = async (filename) => {
   try {
     return JSON.parse(await readFile(filename, "utf8"));
@@ -212,11 +218,12 @@ export async function createAdmin({
         throw policyError(404, "Not found");
       const relative =
         url.pathname === "/" ? "index.html" : url.pathname.slice(1);
-      // Only management HTML and immutable built resources are served on this listener.
+      // Serve the management UI and its published notices, never arbitrary files.
       if (
         relative !== "index.html" &&
         !relative.startsWith("assets/") &&
-        relative !== "theme.js"
+        relative !== "theme.js" &&
+        !publicLicenseFiles.has(relative)
       )
         throw policyError(404, "Not found");
       const filename = path.resolve(webRoot, relative);

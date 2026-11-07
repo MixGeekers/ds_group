@@ -2,16 +2,20 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createCore } from '../src/core.mjs';
+import { NodeFiles } from '../src/node-files.mjs';
+import { NodeStore } from '../src/node-store.mjs';
+import { BotNode } from '../src/bot-node.mjs';
 
 const roomId = '!attachments:fixture.test';
 const participants = [
   { id: '@alice:fixture.test', localpart: 'alice', name: 'Alice', kind: 'human', accessToken: 'synthetic-alice' },
   { id: '@bob:fixture.test', localpart: 'bob', name: 'Bob', kind: 'human', accessToken: 'synthetic-bob' },
   { id: '@finance:fixture.test', localpart: 'finance', name: 'Finance', kind: 'bot', accessToken: 'synthetic-finance' },
+  { id: '@hr:fixture.test', localpart: 'hr', name: 'HR', kind: 'bot', accessToken: 'synthetic-hr' },
 ];
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 
@@ -26,6 +30,8 @@ async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0, upstreamRang
   const events = new Map();
   const transactions = new Map();
   const calls = [];
+  const members = new Set(participants.map(person => person.id));
+  const state = { failNextSend: false, loseNextSendReceipt: false };
   const matrix = createServer(async (request, response) => {
     const json = (status, body) => {
       response.writeHead(status, { 'Content-Type': 'application/json' });
@@ -39,7 +45,7 @@ async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0, upstreamRang
       const chunks = [];
       for await (const chunk of request) chunks.push(chunk);
       const bytes = Buffer.concat(chunks);
-      calls.push({ method: request.method, pathname, actor: actor.id, bytes });
+      calls.push({ method: request.method, pathname, actor: actor.id, bytes, range: request.headers.range || null });
 
       if (request.method === 'GET' && pathname === '/_matrix/client/v3/account/whoami') {
         return json(200, { user_id: actor.id });
@@ -66,6 +72,7 @@ async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0, upstreamRang
           return;
         }
         response.writeHead(200, { 'Content-Type': media.mimeType, 'Content-Length': media.bytes.length });
+        media.beforeTransferEnd?.();
         response.end(media.bytes);
         return;
       }
@@ -75,8 +82,9 @@ async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0, upstreamRang
       const room = pathname.match(/^\/_matrix\/client\/v3\/rooms\/([^/]+)\/(.+)$/);
       if (room && room[1] === roomId) {
         if (request.method === 'GET' && room[2] === 'joined_members') {
-          return json(200, { joined: Object.fromEntries(participants.map(person => [person.id, { display_name: person.name }])) });
+          return json(200, { joined: Object.fromEntries(participants.filter(person => members.has(person.id)).map(person => [person.id, { display_name: person.name }])) });
         }
+        if (request.method === 'GET' && room[2] === 'state') return json(200, [{ type: 'm.room.create', sender: participants[0].id }]);
         if (request.method === 'GET' && room[2] === 'state/m.room.name/') return json(200, { name: 'Attachments' });
         if (request.method === 'GET' && room[2] === 'state/m.room.power_levels/') {
           return json(200, { users: { [participants[0].id]: 100 }, users_default: 0 });
@@ -92,6 +100,7 @@ async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0, upstreamRang
           return event ? json(200, event) : json(404, { errcode: 'M_NOT_FOUND', error: 'Unknown fixture event' });
         }
         if (request.method === 'PUT' && room[2].startsWith('send/m.room.message/')) {
+          if (state.failNextSend) { state.failNextSend = false; return json(503, { errcode: 'M_UNKNOWN', error: 'Synthetic failed send before publication' }); }
           const key = `${actor.id}/${room[2]}`;
           let eventId = transactions.get(key);
           if (!eventId) {
@@ -100,6 +109,7 @@ async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0, upstreamRang
             events.set(eventId, { event_id: eventId, room_id: roomId, sender: actor.id,
               type: 'm.room.message', origin_server_ts: Date.now(), content: JSON.parse(bytes.toString('utf8')) });
           }
+          if (state.loseNextSendReceipt) { state.loseNextSendReceipt = false; response.destroy(); return; }
           return json(200, { event_id: eventId });
         }
       }
@@ -165,7 +175,8 @@ async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0, upstreamRang
     core = undefined;
     await startCore();
   }
-  return { upload, request, send, abortUpload, restart, events, storedMedia, calls };
+  return { upload, request, send, abortUpload, restart, events, storedMedia, calls, members, state, directory: dataRoot,
+    get core() { return core; }, get baseUrl() { return baseUrl; } };
 }
 
 function successfulUpload(result) {
@@ -242,7 +253,7 @@ test('unsatisfiable and malformed ranges are rejected before contacting the medi
   assert.equal(app.calls.filter(call => call.pathname.includes('/media/download/')).length, 0);
 });
 
-test('a provider with native partial responses keeps its byte range and changed media size is rejected', async t => {
+test('verified local ranges ignore unsafe upstream range headers and reject changed media bytes', async t => {
   const app = await fixture(t, { upstreamRanges: true });
   const bytes = Buffer.from('original-media');
   const attachment = successfulUpload(await app.upload({ bytes }));
@@ -252,17 +263,18 @@ test('a provider with native partial responses keeps its byte range and changed 
   assert.deepEqual(Buffer.from(await partial.arrayBuffer()), bytes.subarray(2, 6));
   const stored = app.storedMedia.values().next().value;
   stored.declaredRangeLength = 1;
-  const invalidLength = await app.request('alice', 'GET', route, undefined, { Range: 'bytes=2-5' });
-  assert.equal(invalidLength.status, 502);
-  assert.match((await invalidLength.json()).error, /unexpected byte range/);
+  const stillVerified = await app.request('alice', 'GET', route, undefined, { Range: 'bytes=2-5' });
+  assert.equal(stillVerified.status, 206);
+  assert.deepEqual(Buffer.from(await stillVerified.arrayBuffer()), bytes.subarray(2, 6));
+  assert.ok(app.calls.filter(call => call.pathname.includes('/media/download/')).every(call => !call.range));
   delete stored.declaredRangeLength;
   app.storedMedia.values().next().value.bytes = Buffer.from('changed');
   const changed = await app.request('alice', 'GET', route);
   assert.equal(changed.status, 502);
-  assert.match((await changed.json()).error, /size differs/);
+  assert.match((await changed.json()).error, /length header differs/);
   const invalidRange = await app.request('alice', 'GET', route, undefined, { Range: 'bytes=2-5' });
   assert.equal(invalidRange.status, 502);
-  assert.match((await invalidRange.json()).error, /unexpected byte range/);
+  assert.match((await invalidRange.json()).error, /length header differs/);
 });
 
 test('upload identity deduplicates concurrent retries and survives core restart while conflicting content is rejected', async t => {
@@ -332,6 +344,25 @@ test('Bot-generated artifacts upload with Bot credentials and preserve original 
   assert.equal(await downloaded.text(), 'total\n360\n');
 });
 
+test('threaded Bot artifacts retain the root and explicit reply alongside files and reply mentions', async t => {
+  const app = await fixture(t);
+  const root = await app.send('alice', { body: '线程里的费用核算', transactionId: 'file-thread-root' });
+  const request = await app.send('alice', { body: '请生成汇总文件', threadRootId: root.body.event_id, transactionId: 'file-thread-request' });
+  assert.equal(request.status, 200);
+  const artifact = successfulUpload(await app.upload({ actor: 'finance', id: 'thread-output', name: '线程汇总.csv', mimeType: 'text/csv', bytes: Buffer.from('total\n360\n') }));
+  const sent = await app.send('finance', { body: '核算完成', attachments: [artifact.id], transactionId: 'file-thread-result',
+    threadRootId: root.body.event_id, replyTo: request.body.event_id, originThreadRootId: root.body.event_id, taskId: 'thread-expense' });
+  assert.equal(sent.status, 200, JSON.stringify(sent.body));
+  const event = app.events.get(sent.body.event_id);
+  assert.equal(event.content.msgtype, 'm.file');
+  assert.deepEqual(event.content['m.relates_to'], { rel_type: 'm.thread', event_id: root.body.event_id,
+    'm.in_reply_to': { event_id: request.body.event_id }, is_falling_back: false });
+  assert.deepEqual(event.content['m.mentions'].user_ids, [participants[0].id]);
+  assert.equal(event.content['org.ds_group'].taskId, 'thread-expense');
+  assert.equal(event.content['org.ds_group'].originThreadRootId, root.body.event_id);
+  assert.equal(event.content['org.ds_group'].attachments[0].sha256, artifact.sha256);
+});
+
 test('oversized uploads fail before Matrix receives content and a later valid upload is usable', async t => {
   const app = await fixture(t, { maxUploadBytes: 32 });
   const oversized = await app.upload({ id: 'too-large', bytes: Buffer.alloc(33, 7) });
@@ -369,4 +400,144 @@ test('unknown attachments fail before message delivery and client-supplied metad
   assert.equal(stored.name, attachment.name);
   assert.equal(stored.sha256, attachment.sha256);
   assert.equal(stored.contentUri, attachment.contentUri);
+});
+
+test('unshared uploads require their uploader and raw URLs cannot bypass membership revoked after a real share', async t => {
+  const app = await fixture(t);
+  const attachment = successfulUpload(await app.upload({ bytes: Buffer.from('private until shared') }));
+  const raw = `/api/attachments/${attachment.id}`;
+  for (const suffix of ['', '/metadata']) {
+    const denied = await app.request('bob', 'GET', raw + suffix);
+    assert.equal(denied.status, 403);
+    assert.equal((await denied.json()).code, 'ATTACHMENT_SOURCE_REQUIRED');
+  }
+  assert.equal((await app.request('alice', 'GET', raw + '/metadata')).status, 200);
+  assert.equal((await app.send('bob', { body: '不能靠已知ID转发', transactionId: 'steal-unshared', attachments: [attachment.id] })).status, 403);
+  assert.equal(app.events.size, 0);
+  const shared = await app.send('alice', { body: '已分享的文件', transactionId: 'real-share', attachments: [attachment.id] });
+  assert.equal(shared.status, 200);
+  assert.equal((await app.request('bob', 'GET', raw + '/metadata')).status, 200);
+  const downloaded = await app.request('bob', 'GET', raw);
+  assert.equal(downloaded.status, 200);
+  assert.equal(await downloaded.text(), 'private until shared');
+  app.members.delete(participants[1].id);
+  await app.restart();
+  for (const route of [raw, raw + '/metadata', `/api/rooms/${encodeURIComponent(roomId)}/attachments/${attachment.id}?eventId=${encodeURIComponent(shared.body.event_id)}`]) {
+    assert.equal((await app.request('bob', 'GET', route)).status, 403, route);
+  }
+  assert.equal((await app.request('alice', 'GET', raw + '/metadata')).status, 200);
+});
+
+test('old local indexes require an exact recoverable source proof and never accept a mismatched descriptor', async t => {
+  const app = await fixture(t);
+  const attachment = successfulUpload(await app.upload({ bytes: Buffer.from('old index') }));
+  const shared = await app.send('alice', { body: '旧消息', transactionId: 'old-share', attachments: [attachment.id] });
+  app.core.media.db.prepare('DELETE FROM attachment_sources').run();
+  await app.restart();
+  const raw = `/api/attachments/${attachment.id}`;
+  const denied = await app.request('bob', 'GET', raw + '/metadata');
+  assert.equal(denied.status, 403);
+  assert.equal((await denied.json()).code, 'ATTACHMENT_SOURCE_REQUIRED');
+  const source = `?roomId=${encodeURIComponent(roomId)}&eventId=${encodeURIComponent(shared.body.event_id)}`;
+  assert.equal((await app.request('bob', 'GET', raw + '/metadata' + source)).status, 200);
+  assert.equal(app.core.media.sources(attachment.id).length, 1);
+  const restored = await app.request('bob', 'GET', raw);
+  assert.equal(restored.status, 200);
+  assert.equal(await restored.text(), 'old index');
+  app.events.set('$forged', { event_id: '$forged', room_id: roomId, sender: participants[1].id, type: 'm.room.message',
+    content: { 'org.ds_group': { attachments: [{ ...attachment, contentUri: 'mxc://fixture.test/different-object' }] } } });
+  const forged = await app.request('bob', 'GET', raw + '/metadata' + `?roomId=${encodeURIComponent(roomId)}&eventId=%24forged`);
+  assert.equal(forged.status, 409);
+  assert.equal((await forged.json()).code, 'ATTACHMENT_SOURCE_MISMATCH');
+  assert.equal(app.core.media.sources(attachment.id).length, 1);
+});
+
+test('a raw download rechecks current source permission after staging and sends no file after revocation', async t => {
+  const app = await fixture(t);
+  const attachment = successfulUpload(await app.upload());
+  assert.equal((await app.send('alice', { body: '共享后撤权', transactionId: 'revoke-during-read', attachments: [attachment.id] })).status, 200);
+  app.storedMedia.values().next().value.beforeTransferEnd = () => app.members.delete(participants[1].id);
+  const response = await app.request('bob', 'GET', `/api/attachments/${attachment.id}`);
+  assert.equal(response.status, 403);
+  assert.match(response.headers.get('content-type'), /application\/json/);
+  assert.equal((await response.json()).code, 'ATTACHMENT_SOURCE_REQUIRED');
+});
+
+test('opening an actual old conversation recovers its shared local file index but forged descriptors do not grant access', async t => {
+  const app = await fixture(t);
+  const shared = successfulUpload(await app.upload({ id: 'old-shared' }));
+  const privateFile = successfulUpload(await app.upload({ id: 'unshared-private' }));
+  const posted = await app.send('alice', { body: '历史真实消息', transactionId: 'old-opened-room', attachments: [shared.id] });
+  app.core.media.db.prepare('DELETE FROM attachment_sources').run();
+  app.events.set('$forged-old', { event_id: '$forged-old', room_id: roomId, sender: participants[1].id, type: 'm.room.message',
+    content: { body: '伪造字段不应阻断时间线', 'org.ds_group': { attachments: [{ ...privateFile, name: 'another-file.txt' }, null] } } });
+  assert.equal((await app.request('bob', 'GET', `/api/rooms/${encodeURIComponent(roomId)}/messages`)).status, 200);
+  assert.equal(app.core.media.sources(shared.id)[0].eventId, posted.body.event_id);
+  assert.equal(app.core.media.sources(privateFile.id).length, 0);
+  assert.equal((await app.request('bob', 'GET', `/api/attachments/${shared.id}/metadata`)).status, 200);
+  assert.equal((await app.request('bob', 'GET', `/api/attachments/${privateFile.id}/metadata`)).status, 403);
+});
+
+test('attachment sharing records only confirmed sends and the same transaction safely completes a failed publication', async t => {
+  const app = await fixture(t);
+  const attachment = successfulUpload(await app.upload());
+  const input = { body: '实际发送后才能授权', transactionId: 'share-retry', attachments: [attachment.id] };
+  app.state.failNextSend = true;
+  assert.equal((await app.send('alice', input)).status, 503);
+  assert.equal(app.core.media.sources(attachment.id).length, 0);
+  assert.equal((await app.request('bob', 'GET', `/api/attachments/${attachment.id}/metadata`)).status, 403);
+  const sent = await app.send('alice', input);
+  assert.equal(sent.status, 200);
+  assert.deepEqual(await app.send('alice', input), sent);
+  assert.deepEqual(app.core.media.sources(attachment.id).map(({ roomId, eventId }) => ({ roomId, eventId })), [{ roomId, eventId: sent.body.event_id }]);
+  assert.equal(app.events.size, 1);
+});
+
+test('a lost Matrix send receipt does not grant raw access until its exact transaction is confirmed', async t => {
+  const app = await fixture(t);
+  const attachment = successfulUpload(await app.upload());
+  const input = { body: '发送回执未知', transactionId: 'unknown-share', attachments: [attachment.id] };
+  app.state.loseNextSendReceipt = true;
+  assert.equal((await app.send('alice', input)).status, 500);
+  assert.equal(app.events.size, 1);
+  assert.equal(app.core.media.sources(attachment.id).length, 0);
+  assert.equal((await app.request('bob', 'GET', `/api/attachments/${attachment.id}/metadata`)).status, 403);
+  const confirmed = await app.send('alice', input);
+  assert.equal(confirmed.status, 200);
+  assert.equal(app.events.size, 1);
+  assert.equal(app.core.media.sources(attachment.id)[0].eventId, confirmed.body.event_id);
+  assert.equal((await app.request('bob', 'GET', `/api/attachments/${attachment.id}/metadata`)).status, 200);
+});
+
+test('actual Bot normalization and file preparation prove local incoming, quoted and delegated files from their Matrix events', async t => {
+  const app = await fixture(t);
+  const bytes = Buffer.from('name,value\nA,7\n');
+  const attachment = successfulUpload(await app.upload({ bytes, name: 'old-data.csv', mimeType: 'text/csv' }));
+  const source = { event_id: '$old-direct', room_id: roomId, sender: participants[0].id, type: 'm.room.message', content: { body: '处理原文件',
+    'org.ds_group': { to: [participants[2].id], attachments: [attachment] } } };
+  const delegated = { event_id: '$delegated', room_id: roomId, sender: participants[2].id, type: 'm.room.message', content: { body: '请同伴核对',
+    'org.ds_group': { kind: 'task.request', taskId: 'delegated-old-file', to: [participants[3].id], attachments: [{ ...attachment,
+      source: { roomId: '!untrusted-room', eventId: '$untrusted-source' } }] } } };
+  const quoted = { event_id: '$quoted-file', room_id: roomId, sender: participants[0].id, type: 'm.room.message', content: { body: '再处理引用文件',
+    'm.relates_to': { 'm.in_reply_to': { event_id: source.event_id } }, 'org.ds_group': { to: [participants[3].id] } } };
+  for (const event of [source, delegated, quoted]) app.events.set(event.event_id, event);
+  assert.equal(app.core.media.sources(attachment.id).length, 0, 'Old direct Matrix sends have no invented index grants');
+  for (const [participant, current, expectedSource] of [[participants[2], source, source], [participants[3], delegated, delegated], [participants[3], quoted, source]]) {
+    const store = new NodeStore(':memory:', participant.id);
+    try {
+      const node = new BotNode({ participant, participants, roomId, store, matrix: {}, bridge: {}, heartbeat: async () => {} });
+      store.ingest([source, delegated, quoted], 'cursor');
+      const request = node.requestFor(store.item(current.event_id));
+      assert.equal(request.event.attachments[0].source.eventId, expectedSource.event_id);
+      const files = new NodeFiles({ coreUrl: app.baseUrl, accessToken: participant.accessToken,
+        directory: path.join(app.directory, 'nodes', participant.localpart, current.event_id.slice(1)), fetchImpl: async (url, options) => {
+          assert.equal(url.pathname, `/api/rooms/${encodeURIComponent(roomId)}/attachments/${attachment.id}`);
+          assert.equal(url.searchParams.get('eventId'), expectedSource.event_id);
+          return fetch(url, options);
+        } });
+      const prepared = await files.prepare(request);
+      assert.deepEqual(await readFile(prepared.files[0].path), bytes);
+    } finally { store.close(); }
+  }
+  assert.equal(app.core.media.sources(attachment.id).length, 2, 'Only the original and delegated events actually contain this attachment');
 });

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T03:32:24.935168+00:00",
+  "baseCommit": "2f7a93691d50f04ded6a0ecef49147f33815cdc3",
+  "level": "synthetic-native-bridge-regression",
+  "realModelExecutions": 0,
+  "before": {
+    "result": {
+      "tests": 6,
+      "pass": 0,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "duration_ms": 3086.797666
+    },
+    "logSha256": "f84a213dc30e6db34d1e85296e24f776554161e710a3bb786eaa0aee554ea2b8",
+    "cases": [
+      "cancel while observing",
+      "cancel while preparing memory view",
+      "detach while observing",
+      "detach while preparing memory view",
+      "cancel while native Bot is busy",
+      "abort while another binding occupies the native queue"
+    ]
+  },
+  "after": {
+    "nativeBridge": {
+      "tests": 34,
+      "pass": 34,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "duration_ms": 392.890709
+    },
+    "productModules": {
+      "tests": 626,
+      "pass": 626,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "duration_ms": 9840.059875
+    },
+    "logSha256": {
+      "nativeBridge": "b486a60279f5f2314e4fb6209ad83752224ec5c950b9d0f4900745d74153c023",
+      "productModules": "c424fff20b4a58cec9d6cd981178d423df99fd529f8e32a7e5d1c0dfbf09183c"
+    }
+  },
+  "behavior": [
+    "Cancellation and transport abort are checked before each preparation stage and native send.",
+    "Core/local task controls are polled before and during native idle waits.",
+    "Aborted queue entries settle and persist without waiting for another binding to release the native queue; skipped native queue callbacks do not write or send later.",
+    "Detaching waits for all accepted bridge requests and their final writes.",
+    "Already submitting native messages are allowed to settle admission; cancellation then removes the matching inbox occurrence or cancels only the correlated native turn.",
+    "Late cancellation lookups cannot cancel a different turn.",
+    "Transport detach preserves underlying native work that was already admitted and records an unknown result."
+  ],
+  "sourceHashes": {
+    "dsh-connect/native-bridge.mjs": "0d55b4fd800ae0e1e0e0bf5217b7e17fc04b279b918c5cce5694751a970a9e6e",
+    "tests/native-bridge.test.mjs": "a36662fa52895788e09cc9fc72375de02b9ed3a6a773e24e03d7d981fed13d5e"
+  },
+  "limits": [
+    "No real host or provider was exercised by this regression. Real natural-scene acceptance belongs to the parent integration thread."
+  ]
+}

@@ -30,11 +30,11 @@ function fixture(t) {
     store.ingest([value], undefined, register ? accepted => delivery.register(accepted) : undefined);
     return store.item(value.event_id);
   };
-  const generate = (value, response, attachments) => {
+  const generate = (value, response, attachments, references = {}) => {
     const transactionId = `delivery-${value.event_id}`;
     store.begin(value.event_id, { requestId: `request-${value.event_id}` });
     store.generated(value.event_id, { ...response, deliveredArtifacts: attachments }, [{ roomId, body: '合成成果',
-      options: { transactionId, deliveryRole: 'final', replyTo: value.event_id, attachments } }]);
+      options: { transactionId, deliveryRole: 'final', replyTo: value.event_id, attachments, ...references } }]);
     return transactionId;
   };
   const complete = async (value, attachments, { legacy = false } = {}) => {
@@ -61,6 +61,30 @@ test('current private wording permits a model delivery proposal for the requesti
 
   const other = accept(event('$wrong-recipient', '把整理结果扔到我的小窗。'));
   assert.throws(() => delivery.applyOutput(other, { delivery: { kind: 'direct', recipientId: bob.id } }), /original human requester/);
+});
+
+test('delivery keeps a same-room thread but strips current-room relations when privately rerouted', async t => {
+  const { store, delivery, accept, generate } = fixture(t);
+  const attachments = [artifact('thread-result')];
+  const sameRoom = event('$thread-task', '生成核对清单。');
+  sameRoom.content['m.relates_to'] = { rel_type: 'm.thread', event_id: '$thread-root' };
+  accept(sameRoom);
+  let id = generate(sameRoom, { text: '任务完成' }, attachments, { threadRootId: '$thread-root', originThreadRootId: '$thread-root' });
+  let prepared = await delivery.prepare(store.delivery(id));
+  assert.equal(prepared.room_id, roomId);
+  assert.equal(prepared.options.replyTo, sameRoom.event_id);
+  assert.equal(prepared.options.threadRootId, '$thread-root');
+  const privateTask = event('$thread-private', '完成后私信给我。');
+  privateTask.content['m.relates_to'] = { rel_type: 'm.thread', event_id: '$thread-root' };
+  accept(privateTask);
+  id = generate(privateTask, { text: '任务完成' }, attachments, { threadRootId: '$thread-root', originThreadRootId: '$thread-root' });
+  prepared = await delivery.prepare(store.delivery(id));
+  assert.equal(prepared.room_id, directRoomId);
+  assert.equal(prepared.options.replyTo, undefined);
+  assert.equal(prepared.options.threadRootId, undefined);
+  assert.equal(prepared.options.originThreadRootId, '$thread-root');
+  assert.deepEqual(prepared.options.attachments, attachments);
+  assert.deepEqual(await delivery.prepare(store.delivery(id)), prepared, 'Frozen retry preserves the final room and relations');
 });
 
 test('an ordinary new task stays in its origin conversation despite a model direct proposal', async t => {

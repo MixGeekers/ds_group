@@ -21,6 +21,8 @@ jobs:
       image: ${{ steps.release.outputs.image }}
       archive: ${{ steps.release.outputs.archive }}
       prerelease: ${{ steps.release.outputs.prerelease }}
+      npm_archive: ${{ steps.release.outputs.npmArchive }}
+      npm_tag: ${{ steps.release.outputs.npmTag }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -66,7 +68,7 @@ jobs:
           name: ds-group-source
           path: apps/ds-group/.local/release
       - name: Verify source payload
-        run: node apps/ds-group/scripts/release-verify.mjs --extract apps/ds-group/.local/release-unpacked
+        run: node apps/ds-group/scripts/release-verify.mjs --require-public-content --extract apps/ds-group/.local/release-unpacked
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
@@ -100,8 +102,54 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  npm:
+    name: Prepare tested npm release asset
+    needs: [metadata, verify]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      NPM_ARCHIVE: ${{ needs.metadata.outputs.npm_archive }}
+    defaults:
+      run:
+        working-directory: apps/ds-group
+        shell: bash
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ds-group-source
+          path: apps/ds-group/.local/release
+      - name: Build npm from the verified source version
+        run: |
+          node scripts/release-verify.mjs --require-public-content --extract .local/release-unpacked
+          npm ci --prefix .local/release-unpacked --ignore-scripts --no-audit --no-fund
+          npm --prefix .local/release-unpacked run build
+          node .local/release-unpacked/scripts/npm-pack.mjs
+      - name: Check a clean installation of the exact npm tarball
+        run: |
+          docker pull ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842
+          node .local/release-unpacked/scripts/npm-smoke.mjs --tarball "$GITHUB_WORKSPACE/apps/ds-group/.local/release-unpacked/.local/npm-release/$NPM_ARCHIVE" --report "$GITHUB_WORKSPACE/apps/ds-group/.local/npm-release-smoke.json"
+          (cd .local/release-unpacked/.local/npm-release && sha256sum "$NPM_ARCHIVE" > NPM-SHA256SUMS)
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ds-group-npm
+          path: |
+            apps/ds-group/.local/release-unpacked/.local/npm-release/*.tgz
+            apps/ds-group/.local/release-unpacked/.local/npm-release/NPM-SHA256SUMS
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
   publish:
-    needs: [metadata, verify, image]
+    needs: [metadata, verify, image, npm]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -112,6 +160,8 @@ jobs:
       VERSION: ${{ needs.metadata.outputs.version }}
       RELEASE_TAG: ${{ needs.metadata.outputs.tag }}
       PRERELEASE: ${{ needs.metadata.outputs.prerelease }}
+      NPM_ARCHIVE: ${{ needs.metadata.outputs.npm_archive }}
+      NPM_TAG: ${{ needs.metadata.outputs.npm_tag }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_REPO: ${{ github.repository }}
     steps:
@@ -123,6 +173,10 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: ds-group-source
+          path: release
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ds-group-npm
           path: release
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
@@ -142,10 +196,11 @@ jobs:
           docker buildx imagetools inspect "$IMAGE:$VERSION" --raw > release/image-index.json
           node -e 'const fs = require("fs"); const index = JSON.parse(fs.readFileSync("release/image-index.json")); for (const arch of ["amd64", "arm64"]) if (!index.manifests.some(m => m.platform?.os === "linux" && m.platform?.architecture === arch)) throw Error("Missing " + arch);'
           (cd release && sha256sum image-index.json >> SHA256SUMS)
-      - name: Publish source, checksums and image index
+          (cd release && cat NPM-SHA256SUMS >> SHA256SUMS && sha256sum --check SHA256SUMS)
+      - name: Publish source, npm tarball, checksums and image index
         shell: bash
         run: |
-          printf 'Container image `%s:%s` supports Linux amd64 and arm64.\n\nThe source archive includes deployment instructions in `deploy/README.md`. Verify it with `SHA256SUMS` before installation.\n\nCI covers Linux Node/TypeScript 7 builds, browser interactions, clean source installation, real Synapse deployment and DSH session restart/tool execution with zero remote generations.\n' "$IMAGE" "$VERSION" > "$RUNNER_TEMP/release-notes.md"
+          printf 'Container image `%s:%s` supports Linux amd64 and arm64.\n\nThe source archive includes deployment instructions in `deploy/README.md`. The npm runtime tarball is `%s`. Verify all assets with `SHA256SUMS` before installation.\n\nThis workflow publishes GitHub assets and the container image. An authenticated npm maintainer can publish the same tarball to the registry with `npm publish ./%s --access public --tag %s --ignore-scripts`. Registry publication is a separate step.\n\nCI covers Linux Node/TypeScript builds, browser interactions, clean installation, real Synapse deployment and DSH execution with synthetic accounts and no remote model calls.\n' "$IMAGE" "$VERSION" "$NPM_ARCHIVE" "$NPM_ARCHIVE" "$NPM_TAG" > "$RUNNER_TEMP/release-notes.md"
           flags=()
           if [ "$PRERELEASE" = true ]; then flags+=(--prerelease); fi
-          gh release create "$RELEASE_TAG" release/* --verify-tag --title "DS-Group $VERSION" --notes-file "$RUNNER_TEMP/release-notes.md" "${flags[@]}"
+          gh release create "$RELEASE_TAG" release/* --verify-tag --title "DSCord $VERSION" --notes-file "$RUNNER_TEMP/release-notes.md" "${flags[@]}"

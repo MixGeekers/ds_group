@@ -3,8 +3,7 @@ import { createReadStream } from 'node:fs';
 import { mkdir, open, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { Readable } from 'node:stream';
-import { finished, pipeline } from 'node:stream/promises';
+import { finished } from 'node:stream/promises';
 import { VerifiedMedia } from './verified-media.mjs';
 
 export const MAX_ATTACHMENTS = 10;
@@ -56,18 +55,6 @@ function byteRange(value, size) {
   return { start, end };
 }
 
-async function* selectBytes(stream, { start, end }) {
-  let offset = 0;
-  for await (const chunk of stream) {
-    const first = Math.max(0, start - offset);
-    const last = Math.min(chunk.length, end - offset + 1);
-    if (first < last) yield chunk.subarray(first, last);
-    offset += chunk.length;
-    if (offset > end) return;
-  }
-  throw failure(502, 'Media ended before the requested byte range');
-}
-
 export class MediaService {
   constructor({ dataRoot, maxBytes = DEFAULT_MAX_UPLOAD_BYTES, verifiedDownloadMaxBytes = process.env.DS_GROUP_VERIFIED_DOWNLOAD_MAX_BYTES, verifiedDownloadConcurrency = process.env.DS_GROUP_VERIFIED_DOWNLOAD_CONCURRENCY }) {
     this.maxBytes = Number(maxBytes);
@@ -81,6 +68,9 @@ export class MediaService {
         status TEXT NOT NULL, content_uri TEXT, created_at TEXT NOT NULL,
         UNIQUE(owner_id,upload_id)
       );
+      CREATE TABLE IF NOT EXISTS attachment_sources (
+        attachment_id TEXT NOT NULL,room_id TEXT NOT NULL,event_id TEXT NOT NULL,confirmed_at INTEGER NOT NULL,
+        PRIMARY KEY(attachment_id,room_id,event_id));
       UPDATE attachments SET status='failed' WHERE status='uploading';`);
     this.uploads = new Map();
     this.verified = new VerifiedMedia({ dataRoot, maxBytes: verifiedDownloadMaxBytes, concurrency: verifiedDownloadConcurrency, rangeFor: byteRange, headersFor: downloadHeaders });
@@ -91,6 +81,25 @@ export class MediaService {
     const row = this.db.prepare("SELECT * FROM attachments WHERE id=? AND status='ready'").get(id);
     if (!row) throw failure(404, 'Attachment not found');
     return descriptor(row);
+  }
+
+  ownedBy(id, userId) {
+    return this.db.prepare("SELECT owner_id FROM attachments WHERE id=? AND status='ready'").get(id)?.owner_id === userId;
+  }
+
+  rememberSource(attachment, { roomId, eventId }) {
+    const row = this.db.prepare("SELECT * FROM attachments WHERE id=? AND status='ready'").get(attachment.id);
+    if (!row) return; // Foreign media remains backed by its exact room proof.
+    if (!['id', 'name', 'mimeType', 'size', 'sha256', 'contentUri'].every(key => descriptor(row)[key] === attachment[key])) {
+      throw Object.assign(failure(409, 'The source message does not match this local attachment'), { code: 'ATTACHMENT_SOURCE_MISMATCH' });
+    }
+    if (typeof roomId !== 'string' || !roomId || typeof eventId !== 'string' || !eventId.startsWith('$')) throw failure(400, 'An actual attachment source event is required');
+    this.db.prepare(`INSERT INTO attachment_sources VALUES (?,?,?,?) ON CONFLICT(attachment_id,room_id,event_id)
+      DO UPDATE SET confirmed_at=excluded.confirmed_at`).run(attachment.id, roomId, eventId, Date.now());
+  }
+
+  sources(id) {
+    return this.db.prepare('SELECT room_id AS roomId,event_id AS eventId FROM attachment_sources WHERE attachment_id=? ORDER BY confirmed_at DESC LIMIT 32').all(id);
   }
 
   resolve(values = []) {
@@ -184,49 +193,9 @@ export class MediaService {
     }
   }
 
-  async download({ id, verifiedAttachment, authorize, client, request, response, asDownload = false }) {
-    if (verifiedAttachment) return this.verified.download({ attachment: verifiedAttachment, authorize, client, request, response, asDownload });
-    const attachment = this.get(id);
-    const range = request.headers.range;
-    const selected = range ? byteRange(range, attachment.size) : undefined;
-    if (selected === null) {
-      response.writeHead(416, { 'Content-Range': `bytes */${attachment.size}`, 'Accept-Ranges': 'bytes', 'Cache-Control': 'private, no-store' });
-      response.end();
-      return;
-    }
-    const controller = new AbortController();
-    const disconnected = () => { if (!response.writableFinished) controller.abort(); };
-    response.once('close', disconnected);
-    try {
-      const upstream = await client.downloadMedia(attachment.contentUri, { range, signal: controller.signal });
-      if (upstream.status === 200 && upstream.headers.has('content-length') && Number(upstream.headers.get('content-length')) !== attachment.size) {
-        await upstream.body?.cancel();
-        throw failure(502, 'Media size differs from the uploaded attachment');
-      }
-      const contentRange = selected && `bytes ${selected.start}-${selected.end}/${attachment.size}`;
-      if (upstream.status === 206 && (!selected || upstream.headers.get('content-range') !== contentRange
-        || (upstream.headers.has('content-length') && Number(upstream.headers.get('content-length')) !== selected.end - selected.start + 1))) {
-        await upstream.body?.cancel();
-        throw failure(502, 'Media returned an unexpected byte range');
-      }
-      const headers = downloadHeaders(attachment, asDownload);
-      for (const name of ['content-length', 'content-range']) {
-        if (upstream.headers.has(name)) headers[name] = upstream.headers.get(name);
-      }
-      if (selected) {
-        headers['content-length'] = String(selected.end - selected.start + 1);
-        headers['content-range'] = contentRange;
-      }
-      response.writeHead(selected ? 206 : upstream.status, headers);
-      if (upstream.body) {
-        const stream = Readable.fromWeb(upstream.body);
-        // Synapse storage providers can return a full stream even when Range was requested.
-        await pipeline(selected && upstream.status === 200 ? Readable.from(selectBytes(stream, selected)) : stream, response);
-      }
-      else response.end();
-    } finally {
-      response.off('close', disconnected);
-    }
+  download({ verifiedAttachment, authorize, client, request, response, asDownload = false }) {
+    if (!verifiedAttachment) throw failure(400, 'An authorized attachment descriptor is required');
+    return this.verified.download({ attachment: verifiedAttachment, authorize, client, request, response, asDownload });
   }
 
   async close() {

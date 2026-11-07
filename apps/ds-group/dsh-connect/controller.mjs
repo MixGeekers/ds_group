@@ -10,6 +10,7 @@ import { LEGACY_MODEL, checkModelPolicy } from '../src/model-config.mjs';
 
 function publicBot(bot) {
   return { id: bot.id, name: bot.name || bot.localpart, localpart: bot.localpart,
+    ...(bot.ownerId ? { ownerId: bot.ownerId } : {}),
     ...(bot.nativeBinding ? { nativeBinding: bot.nativeBinding } : {}) };
 }
 
@@ -35,7 +36,10 @@ export class ConnectController {
       this.state = saved;
     }
     this.state.modelSelections ||= {};
+    this.state.attentionModes ||= {};
+    this.state.nativeCreationRequests ||= {};
     if (this.native && !this.state.hostId) { this.state.hostId = randomUUID(); await this.save(); }
+    await this.processes.configure?.({ directory: this.directory });
     for (const node of Object.values(this.state.nodes)) {
       if (Object.hasOwn(this.state.modelSelections, node.id)) continue;
       const prepared = await readOptionalJson(path.join(node.directory, `dsh-${node.localpart}`, 'node-config.json'));
@@ -103,7 +107,7 @@ export class ConnectController {
     }));
     let nativeBots = [];
     if (this.native) {
-      try { nativeBots = await this.native.list(); } catch (error) { lastError ||= error.message; }
+      try { nativeBots = await this.ownedNativeBots(); } catch (error) { lastError ||= error.message; }
       for (const bot of bots) {
         const local = nativeBots.find(local => local.id === bot.nativeBinding?.nativeBotId && bot.nativeBinding.hostId === this.state.hostId);
         if (local) { bot.modelSelection = local.model ? { model: local.model } : null; bot.nativeBotId = local.id; }
@@ -113,6 +117,60 @@ export class ConnectController {
       ...(this.native ? { nativeBots, hostId: this.state.hostId, nativeMode: true, nativeBundled: this.native.bundled === true } : {}),
       dataDirectory: this.directory, lastError, modelPolicy: this.modelPolicy,
       models: this.native ? await this.native.models().catch(() => ({ available: false })) : this.models ? await this.models.view() : { available: false } };
+  }
+
+  async ownedNativeBots() {
+    const bots = await this.native.list();
+    return bots.filter(bot => !this.state.user || !bot.owner?.id || bot.owner.id === this.state.user.id);
+  }
+
+  async ownedNativeBot(id, { claim = false } = {}) {
+    if (!this.native) throw new Error('DSCORD_KERNEL_UNAVAILABLE');
+    const bot = await this.native.bot(id);
+    if (this.state.user && bot.owner?.id && bot.owner.id !== this.state.user.id) {
+      throw Object.assign(new Error('请选择属于当前账号的 Bot'), { code: 'BOT_OWNER_CONFLICT' });
+    }
+    if (claim && this.state.user && !bot.owner?.id) {
+      await this.native.call('claim-bot', { id, owner: { ...this.state.user, kind: 'human' },
+        source: { sender: { ...this.state.user, kind: 'human' }, transport: 'matrix' } });
+    }
+    return bot;
+  }
+
+  async createNative(body) {
+    if (!this.native) throw new Error('DSCORD_KERNEL_UNAVAILABLE');
+    const name = typeof body.name === 'string' ? body.name.trim() : '';
+    const role = typeof body.role === 'string' ? body.role.trim() : '';
+    if (!name || name.length > 120 || role.length > 4000) throw new Error('请输入有效的 Bot 名称和职责');
+    if (typeof body.requestId !== 'string' || !/^[a-zA-Z0-9_.:-]{1,160}$/.test(body.requestId)) throw new Error('创建请求缺少有效的标识');
+    await this.modelSource({ model: body.model });
+    const hash = createHash('sha256').update(JSON.stringify({ name, role, model: body.model,
+      ownerId: this.state.user?.id || null })).digest('hex');
+    const prior = this.state.nativeCreationRequests[body.requestId];
+    if (prior && prior.hash !== hash) throw new Error('同一创建请求的内容已经变化');
+    if (prior?.nativeBotId) {
+      await this.ownedNativeBot(prior.nativeBotId);
+      return this.status({ refresh: false });
+    }
+    this.state.nativeCreationRequests[body.requestId] = { hash, status: 'creating' };
+    await this.save();
+    const sender = this.state.user ? { ...this.state.user, kind: 'human' }
+      : { id: `local-user:${this.state.hostId}`, name: 'Local user', kind: 'human' };
+    try {
+      const created = await this.native.call('create-bot', { name, role, model: body.model, greet: false,
+        requestId: body.requestId, ...(this.state.user ? { owner: sender } : {}),
+        source: { sender, requestId: body.requestId, transport: this.state.user ? 'matrix' : 'native' } });
+      const id = created?.id || created?.bot?.id;
+      if (!id) throw new Error('内核没有返回新建 Bot 的身份');
+      this.state.nativeCreationRequests[body.requestId] = { hash, status: 'completed', nativeBotId: id };
+      await this.save();
+    } catch (error) {
+      this.state.nativeCreationRequests[body.requestId] = { hash, status: 'unknown' };
+      await this.save();
+      throw error;
+    }
+    await this.publishNative();
+    return this.status({ refresh: false });
   }
 
   async login({ serverUrl: input, user, password }) {
@@ -134,6 +192,8 @@ export class ConnectController {
       schemaVersion: 1, serverUrl, user: { id: login.user_id, name: login.user?.name || login.user_id },
       accessToken: login.access_token, bots: bots.map(publicBot), nodes: sameIdentity ? this.state.nodes : {},
       modelSelections: sameIdentity ? this.state.modelSelections : {},
+      attentionModes: sameIdentity ? this.state.attentionModes : {},
+      nativeCreationRequests: this.state.nativeCreationRequests || {},
       ...(this.state.hostId ? { hostId: this.state.hostId } : {}),
     };
     try {
@@ -157,7 +217,7 @@ export class ConnectController {
   async publishNative() {
     if (!this.native || !this.state.accessToken || this.closed) return;
     await this.remote(this.state.serverUrl, '/api/bot-catalog', { method: 'POST', token: this.state.accessToken,
-      body: { hostId: this.state.hostId, label: hostname(), bots: await this.native.list() } });
+      body: { hostId: this.state.hostId, label: hostname(), bots: await this.ownedNativeBots() } });
   }
 
   synchronizeNative() {
@@ -169,7 +229,12 @@ export class ConnectController {
       for (const bot of bots) {
         if (bot.nativeBinding?.hostId !== this.state.hostId || this.closed) continue;
         const node = this.state.nodes[bot.id];
-        if (!node || node.desired && !this.running.has(bot.id)) await this.connect(bot.id);
+        const active = this.running.get(bot.id);
+        if (node && (!node.desired || ['online', 'connecting'].includes(active?.status))) continue;
+        try { await this.connect(bot.id); }
+        catch (error) {
+          if (!this.closed) this.running.set(bot.id, { status: 'error', lastError: error.message });
+        }
       }
     });
   }
@@ -201,7 +266,7 @@ export class ConnectController {
     }
     this.runtime = await this.processes.available();
     if (!this.runtime.available) throw new Error(this.runtime.message);
-    const local = this.native ? await this.native.bot(bot.nativeBinding?.hostId === this.state.hostId ? bot.nativeBinding.nativeBotId : '') : undefined;
+    const local = this.native ? await this.ownedNativeBot(bot.nativeBinding?.hostId === this.state.hostId ? bot.nativeBinding.nativeBotId : '', { claim: true }) : undefined;
     const source = this.models ? await this.modelSource(local ? { model: local.model, reasoningEffort: local.effort } : this.state.modelSelections?.[botId]) : undefined;
     if (this.closed) throw new Error('连接插件正在关闭');
     if (existing && this.running.has(botId)) await this.stop(existing, false);
@@ -214,6 +279,7 @@ export class ConnectController {
     await this.writeBundle(bot, bundle, directory);
     const node = { ...publicBot(bot), directory, serverUrl: this.state.serverUrl,
       ...(local ? { nativeBotId: local.id } : {}),
+      ...(local && this.state.attentionModes[local.id] ? { attention: { mode: this.state.attentionModes[local.id] } } : {}),
       ...(!local ? { port: existing?.port || await this.selectPort() } : {}), desired: true };
     if (this.closed) throw new Error('连接插件正在关闭');
     const next = { ...this.state, nodes: { ...this.state.nodes, [botId]: node } };
@@ -304,9 +370,38 @@ export class ConnectController {
   async handle(body) {
     if (this.closed) throw new Error('连接插件正在关闭');
     if (body.action === 'status') return this.status();
+    if (body.action === 'kernel-state') {
+      if (body.nativeBotId) await this.ownedNativeBot(body.nativeBotId);
+      const value = await this.processes.kernelState(body.nativeBotId);
+      const desired = this.state.attentionModes[body.nativeBotId];
+      return { ...value, ...(desired ? { desiredAttention: { mode: desired,
+        status: value.attention?.mode === desired ? 'applied' : 'pending' } } : {}) };
+    }
+    if (body.action === 'memory-profile') {
+      await this.ownedNativeBot(body.nativeBotId);
+      return this.native.call(body.id ? 'memory-profile' : 'memory-profiles', {
+        botId: body.nativeBotId, kind: body.kind, ...(body.id ? { id: body.id } : {}),
+        ...(body.roomId ? { roomId: body.roomId } : {}), ...(body.query ? { query: body.query } : {}) });
+    }
     return this.serial(async () => {
       if (this.closed) throw new Error('连接插件正在关闭');
       switch (body.action) {
+        case 'create-native': return this.createNative(body);
+        case 'save-decision-provider': return this.processes.saveDecisionProvider({ apiKey: body.apiKey, enabled: body.enabled,
+          model: body.model, endpoint: body.endpoint });
+        case 'attention-update': {
+          await this.ownedNativeBot(body.nativeBotId);
+          if (!['mention', 'shadow', 'natural'].includes(body.mode)) throw new Error('请选择有效的参与方式');
+          this.state.attentionModes[body.nativeBotId] = body.mode;
+          await this.save();
+          let result = { mode: body.mode, status: 'pending', online: false };
+          for (const node of Object.values(this.state.nodes).filter(node => node.nativeBotId === body.nativeBotId)) {
+            if (!this.state.accessToken || node.serverUrl !== this.state.serverUrl) continue;
+            result = await this.remote(node.serverUrl, `/api/bots/${encodeURIComponent(node.id)}/attention`, {
+              method: 'PATCH', token: this.state.accessToken, body: { mode: body.mode } });
+          }
+          return result;
+        }
         case 'save-model': {
           if (!this.models || !this.state.accessToken || !this.state.bots.some(bot => bot.id === body.botId)) throw new Error('请选择自己的 Bot');
           const prior = this.state.modelSelections?.[body.botId];
@@ -327,7 +422,7 @@ export class ConnectController {
         case 'login': return this.login(body);
         case 'attach': {
           if (!this.native || !this.state.accessToken) throw new Error('请先登录并启用原生 DS-Bot');
-          await this.native.bot(body.nativeBotId);
+          await this.ownedNativeBot(body.nativeBotId, { claim: true });
           await this.publishNative();
           const { bot } = await this.remote(this.state.serverUrl, '/api/bots/attach', { method: 'POST', token: this.state.accessToken,
             body: { hostId: this.state.hostId, nativeBotId: body.nativeBotId, ...(body.botId ? { botId: body.botId } : {}) } });

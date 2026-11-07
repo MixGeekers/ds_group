@@ -8,6 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { initializeServer, savePrivateJson } from './server-init.mjs';
 import { bootstrapServer } from './server-bootstrap.mjs';
 import { packageRoot } from '../src/paths.mjs';
+import { MODEL, memoryTestModel } from './memory-test-model.mjs';
 
 const execute = promisify(execFile);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -17,8 +18,23 @@ async function unused(port) {
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
   await new Promise(resolve => server.close(resolve));
 }
+export function visibleEnvironmentModelSettings({model=MODEL,allowedModels}={}) {
+  model=model==null?null:memoryTestModel(model);
+  allowedModels=allowedModels===undefined?(model?[model]:null):allowedModels;
+  if(allowedModels!==null&&(!Array.isArray(allowedModels)||!allowedModels.length))throw new Error('allowedModels must be null or a nonempty list');
+  if(allowedModels)for(const value of allowedModels)memoryTestModel(value);
+  if(model&&allowedModels&&!allowedModels.includes(model))throw new Error('The selected model must be in allowedModels');
+  return{model,allowedModels};
+}
 export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308, serverName = 'memory-live.local',
-  prefix = 'memory-visible', activeFile = 'memory-visible-active.json', preparingMessage } = {}) {
+  prefix = 'memory-visible', activeFile = 'memory-visible-active.json', preparingMessage,
+  profiles = [ ['watch', '长测观察员'], ['lin_a', '林青'], ['lin_b', '林青'], ['song', '宋禾'] ],
+  allowedModels, model = MODEL, plannedRounds = 240 } = {}) {
+  if (!Array.isArray(profiles) || !profiles.length || profiles.some(profile => !Array.isArray(profile) || profile.length !== 2
+    || !/^[a-z0-9._=-]+$/.test(profile[0]) || typeof profile[1] !== 'string' || !profile[1].trim())
+    || new Set(profiles.map(profile => profile[0])).size !== profiles.length) throw new Error('Profiles require unique synthetic localparts and nonempty display names');
+  ({model,allowedModels}=visibleEnvironmentModelSettings({model,allowedModels}));
+  if (!Number.isSafeInteger(plannedRounds) || plannedRounds < 0) throw new Error('plannedRounds must be a nonnegative integer');
   await unused(port); await unused(matrixPort);
   await mkdir(path.join(packageRoot, '.local'), { recursive: true });
   const directory = await mkdtemp(path.join(packageRoot, `.local/${prefix}-`));
@@ -27,14 +43,13 @@ export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308
   const containerName = `dscord-memory-visible-${path.basename(directory).split('-').at(-1).toLowerCase()}`;
   const options = { dataRoot, synapseRoot, serverName, homeserverUrl: matrixUrl, publicUrl: coreUrl, publicHomeserverUrl: matrixUrl, webMode: 'bundled' };
   await initializeServer(options);
-  const profiles = [ ['watch', '长测观察员'], ['lin_a', '林青'], ['lin_b', '林青'], ['song', '宋禾'] ];
   await savePrivateJson(path.join(dataRoot, 'matrix-setup.json'), { serverName, homeserverUrl: matrixUrl,
     publicHomeserverUrl: matrixUrl, roomId: null, participants: profiles.map(([localpart, name]) => ({
       id: `@${localpart}:${serverName}`, localpart, name, kind: 'human', password: randomBytes(24).toString('base64url'), accessToken: null,
     })) });
   const configFile = path.join(dataRoot, 'core-config.json');
   const config = JSON.parse(await readFile(configFile, 'utf8'));
-  Object.assign(config, { demoLogin: false, registrationMode: 'closed', allowedModels: ['opencode-go/deepseek-v4.1-flash'] });
+  Object.assign(config, { demoLogin: false, registrationMode: 'closed', allowedModels: allowedModels?[...allowedModels]:null });
   await savePrivateJson(configFile, config);
   await execute('docker', ['run', '--detach', '--name', containerName, '--label', 'dscord.memory-visible=true',
     '--publish', `127.0.0.1:${matrixPort}:8008`, '--volume', `${synapseRoot}:/data`, image], { timeout: 60000 });
@@ -43,7 +58,7 @@ export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308
     if (attempt >= 100) throw new Error(`Matrix startup failed; inspect owned container ${containerName}`);
     await sleep(500);
   }
-  await bootstrapServer(options);
+  await bootstrapServer({ ...options, demo: true });
   const log = await open(path.join(directory, 'core.log'), 'a', 0o600);
   const core = spawn(process.execPath, [path.join(packageRoot, 'src/core.mjs')], { cwd: packageRoot,
     detached: true, stdio: ['ignore', log.fd, log.fd], env: { ...process.env, DS_GROUP_DATA_DIR: dataRoot,
@@ -56,13 +71,13 @@ export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308
   }
   const setup = JSON.parse(await readFile(path.join(dataRoot, 'matrix-setup.json'), 'utf8'));
   const state = { version: 1, directory, coreUrl, matrixUrl, serverName, containerName, corePid: core.pid,
-    roomId: setup.roomId, observerId: setup.participants[0].id, model: 'opencode-go/deepseek-v4.1-flash',
-    plannedRounds: 240, createdAt: new Date().toISOString() };
+    roomId: setup.roomId, observerId: setup.participants[0].id, model,
+    plannedRounds, createdAt: new Date().toISOString() };
   await savePrivateJson(path.join(directory, 'environment.json'), state);
   await savePrivateJson(path.join(packageRoot, '.local', activeFile), state);
   const response = await fetch(`${coreUrl}/api/rooms/${encodeURIComponent(setup.roomId)}/messages`, { method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${setup.participants[0].accessToken}` },
-    body: JSON.stringify({ body: preparingMessage || '【实时长程测试 · 准备中】\n这是新的隔离测试环境，消息通过真实 DSCord 与 Matrix 发送。计划 240 轮、3 个 Bot、4 个群。正在连接指定模型与 Ombre/Harrier 记忆检索；稍后每轮会保留真实输入、回答与检查结果。', transactionId: 'visible-test-preparing', to: [] }) });
+    body: JSON.stringify({ body: preparingMessage || `【实时长程测试 · 准备中】\n这是新的隔离测试环境，消息通过真实 DSCord 与 Matrix 发送。计划 ${plannedRounds} 轮；模型由运行者显式选择。服务准备本身不发起模型请求，后续运行会保留真实输入、回答与检查结果。`, transactionId: 'visible-test-preparing', to: [] }) });
   if (!response.ok) throw new Error(`Initial visible message HTTP ${response.status}`);
   return state;
 }

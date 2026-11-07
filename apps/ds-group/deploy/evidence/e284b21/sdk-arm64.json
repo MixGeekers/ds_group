@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "level": "official-sdk-and-background-review-abort-lifecycle",
+  "checkedAt": "2026-11-07T06:07:19.931Z",
+  "environment": "Linux ARM64 native Docker",
+  "sdk": {
+    "platform": "linux",
+    "arch": "arm64",
+    "node": "v24.19.0",
+    "dsh": "0.2.2-rc.1",
+    "testkit": "MODULE_NOT_FOUND",
+    "tokenMeter": "<synthetic-path>/estimate.js"
+  },
+  "checks": [
+    "knowledge-only context starts no CLI and reaches the next real input as labelled context",
+    "memory snapshots never answer an open human question; Bot input keeps its own identity",
+    "the same native CLI route receives only the latest projected snapshot and fresh replay omits retired frames",
+    "owned kernel starts with source-aware memory; reads do not create a Chief or call a model",
+    "structured native inputs preserve equal-name accounts across rooms and inject background without waking a turn",
+    "native ingress coalesces retries, rejects changed bodies and keeps a receipt across restart",
+    "legacy inflight is retained once, never replayed at adoption or later restart",
+    "an explicit legacy owner claim persists once and cannot be overwritten by another account",
+    "Bot creation request retries survive a lost receipt and restart without a duplicate Session",
+    "a legacy owner route refuses startup before listeners, files or work are installed",
+    "the home lease outlives parallel native module cleanup",
+    "the actual SDK identified claimed messages produce the first-step snapshot before their user/message event",
+    "the official projection/surface removes 53 old knowledge frames without rewriting source events",
+    "retirement is idempotent and never replaces human, tool or Bot relay nodes",
+    "native cold restore needs no custom message interpreter and retains one current knowledge frame",
+    "idle maintenance retains the latest frame before the next model step replaces it",
+    "retirement preserves an official compaction surface and removes only its following old frame",
+    "dispatch omits only empty retired nodes and preserves every other empty or nonempty message",
+    "snapshot rewrites precede existing admission and later native observers on the official event bus",
+    "the real SDK aborts a hanging background stream promptly and restart resumes unchanged persistent sources",
+    "a cleanly ending late stream cannot publish its proposal or acknowledge the source after stop",
+    "stop interrupts a 60-second retry delay and the automatic scheduler does not retry or warn after disposal",
+    "stop releases a background idle wait without starting a provider or writing after its late resolution",
+    "native memory installs with DSH value schemas and enforces every basis reference field",
+    "a background flush leaves reserved-only sources unreviewed and returns without a model loop",
+    "review input and the actual contacts tool omit a stranger and aliases known only to another Bot"
+  ],
+  "command": "npm run test:kernel-host",
+  "remoteModelCalls": 0,
+  "syntheticAdapterScope": "Lifecycle checks use an in-process LlmAdapter that hangs, ends late, or fails locally; these are not remote model calls. Adapter invocation totals are asserted within the tests, not exported by the test runner.",
+  "publicEvidence": {
+    "sourceCommit": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+    "sourceArchiveSha256": "26c8c5d51e14cacea4b421f5d5db5931def86be9f9328460b773db1d87028683",
+    "originalHostLogSha256": "d3da1e65e643211412923dce21fbd79c8338e6f92f252168e04a4ec315221c8d",
+    "originalEnvironmentSha256": "1f26c00a3fbc3681da0ee86cde83c971cdf846e1f7a22a65e57e7f425cfc2c76"
+  }
+}

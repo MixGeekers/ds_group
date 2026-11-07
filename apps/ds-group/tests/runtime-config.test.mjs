@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, chmod, symlink, rm, realpath } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { nodeIdentifier, runtimeSettings, providerConfiguration, resolveDsh, MODEL } from '../scripts/runtime-config.mjs';
+import { nodeIdentifier, runtimeSettings, providerConfiguration, resolveDsh, MODEL, DSH_VERSION } from '../scripts/runtime-config.mjs';
 
 const root = path.resolve('runtime-config-fixture');
 
@@ -50,6 +50,19 @@ test('legacy explicit opencode environment remains usable for existing deploymen
   assert.deepEqual(config.provider.models, [{ id: MODEL }]);
   assert.equal(config.credentials.refs.DSCORD_NODE_MODEL_API_KEY, 'synthetic-key');
   assert.equal(JSON.stringify(config.provider).includes('synthetic-key'), false);
+});
+
+test('an unrelated legacy credential cannot replace the selected source provider', () => {
+  const config = providerConfiguration({ env: { OPENCODE_API_KEY: 'unrelated-legacy-key' },
+    sourceSelection: { model: 'company/team/model', maxTokens: 2048 },
+    sourceProviders: { company: { api: 'openai-completions', baseURL: 'https://models.example/v1',
+      models: [{ id: 'team/model' }], apiKeyEnv: 'COMPANY_KEY' } },
+    sourceCredentials: { refs: { COMPANY_KEY: 'selected-private-key' } } });
+  assert.equal(config.providerId, 'company');
+  assert.deepEqual(config.selection, { model: 'company/team/model', maxTokens: 2048 });
+  assert.equal(config.provider.baseURL, 'https://models.example/v1');
+  assert.deepEqual(config.credentials.refs, { COMPANY_KEY: 'selected-private-key' });
+  assert.equal(JSON.stringify(config).includes('unrelated-legacy-key'), false);
 });
 
 test('imports native model catalogs, overrides and provider options without mutating the source', () => {
@@ -101,12 +114,21 @@ test('environment references and unauthenticated custom providers are supported'
   assert.equal(providerConfiguration({ ...options, env: { LOCAL_KEY: 'synthetic' } }).credentials.refs.LOCAL_KEY, 'synthetic');
 });
 
+test('an empty native credentials file still permits an environment credential or keyless provider', () => {
+  const options = { sourceProviders: { local: { api: 'openai-completions', baseURL: 'http://127.0.0.1:9901/v1', models: [{ id: 'one' }] } },
+    sourceSelection: { model: 'local/one' }, sourceCredentials: null };
+  assert.deepEqual(providerConfiguration({ ...options, env: {} }).credentials.refs, {});
+  options.sourceProviders.local.apiKeyEnv = 'LOCAL_KEY';
+  assert.equal(providerConfiguration({ ...options, env: { LOCAL_KEY: 'synthetic' } }).credentials.refs.LOCAL_KEY, 'synthetic');
+});
+
 test('missing credentials and unconfigured models fail before changing profiles', () => {
   assert.throws(() => providerConfiguration({ env: {} }), { code: 'INVALID_MODEL' });
   assert.throws(() => providerConfiguration({ env: { DS_GROUP_MODEL: 'unknown/one' } }), { code: 'MODEL_PROVIDER_UNAVAILABLE' });
   const options = { env: {}, sourceProviders: { configured: { apiKeyEnv: 'MISSING', models: [{ id: 'one' }] } }, sourceSelection: { model: 'configured/one' } };
   assert.throws(() => providerConfiguration(options), { code: 'MISSING_CREDENTIAL' });
   assert.throws(() => providerConfiguration({ ...options, env: { DS_GROUP_MODEL: 'configured/missing' } }), { code: 'MODEL_UNAVAILABLE' });
+  assert.throws(() => providerConfiguration({ ...options, sourceProviders: { configured: { models: [] } } }), { code: 'MODEL_UNAVAILABLE' });
   assert.throws(() => providerConfiguration({ env: { OPENCODE_API_KEY: 'synthetic', DS_GROUP_OPENCODE_BASE_URL: 'file:///tmp/model' } }), /HTTP\(S\)/);
 });
 
@@ -128,6 +150,6 @@ test('npm DSH CLI is discovered through PATH and SDK resolves from its real pack
 });
 
 test('uninstalled DSH and unsupported native Windows lifecycle fail with deployment guidance', async () => {
-  await assert.rejects(resolveDsh({ env: { PATH: '' }, platform: 'linux' }), /Install @deepseek-ai\/dsh@0.2.1-rc.5/);
+  await assert.rejects(resolveDsh({ env: { PATH: '' }, platform: 'linux' }), error => error.message.includes(`Install @deepseek-ai/dsh@${DSH_VERSION}`));
   await assert.rejects(resolveDsh({ env: {}, platform: 'win32' }), /Linux containers or WSL2/);
 });

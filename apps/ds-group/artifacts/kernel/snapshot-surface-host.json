@@ -1,0 +1,466 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T04:37:32.845Z",
+  "level": "real-dsh-local-scripted-provider",
+  "dshVersion": "0.2.2-rc.1",
+  "status": "passed",
+  "remoteModelCalls": 0,
+  "checks": [
+    "oneActiveSnapshotAcrossHumanBotAndToolSteps",
+    "firstRequestUsesItsActualClaimedAuthorAndRoom",
+    "realReadToolPairAndOriginalSpeakersRetained",
+    "sameNativeSessionColdRestoreWithUnchangedRawSnapshotEvents",
+    "manualCheckpointPrunesOldHomeSnapshotsBeforeItsFirstNewTurn",
+    "checkpointRestoreRetainsOriginalHumanToolAndDelegationEvents",
+    "nativeAutomaticPressureCompactionRetainsOneCurrentFrameAndTheSameSession",
+    "explicitPartTransferAndColdRestoreKeepHeldOriginalBodyAuthorAndRoom"
+  ],
+  "sourceHashes": {
+    "memory/native.mjs": "a9cc12177eb2ddda4bef60c07c4bcc60179231aeb5df37fb37e80db62f12f78f",
+    "memory/snapshot-context.mjs": "9300dd9a3d6a7706665347674d55809bfcae9c60c711a0c885a1ec48271a0856",
+    "dsh-connect/native-team.mjs": "1d0374a23861dd8b26d196cd7b6f0686797e86db0e0f1b7837b639d73748bd35",
+    "vendor/ds-bot/src/host/parts.js": "75a8c5b48cbcec364a16b492e10f5c8aa5ab1e52d079e20bcf0bf287a7d897a0",
+    "dsh-plugin/runtime-dependencies.json": "a72a7c7d232a357947c1c6c2fcebe3ca761891605d8bbcb6807056f677aa1fee",
+    "tests/fixtures/memory-snapshot-host.mjs": "9d5538574c662bb87a6909127661f2115bc9f711d4cdf0e26635d346e5baeff7",
+    "tests/memory-snapshot.runtime.mjs": "ae5cb56ac54a901468fc95dbb166d54296e1e576c2c05a7716b0fee73ef72f2b"
+  },
+  "limitations": [
+    "A continuing external CLI may retain previously submitted text in its own private history; this verifies native derived requests and fresh CLI replay.",
+    "Scripted provider output proves request composition and lifecycle, not remote model reasoning quality."
+  ],
+  "botId": "session-9785bc3a-eff6-4088-922e-a95348490c6e",
+  "contextEstimates": {
+    "beforeManualCheckpoint": 140490,
+    "afterManualCheckpoint": 21308,
+    "beforeAutomaticCheckpoint": 120659,
+    "afterAutomaticCheckpoint": 20790
+  },
+  "finalSnapshotSource": {
+    "roomId": "!south:snapshot.local",
+    "authorId": "matrix:@bob:snapshot.local",
+    "speaker": {
+      "id": "matrix:@bob:snapshot.local",
+      "name": "@bob:snapshot.local",
+      "kind": "human",
+      "aliases": [
+        "@bob:snapshot.local"
+      ],
+      "aliasesTruncated": false
+    }
+  },
+  "rawSnapshotCount": 59,
+  "retirementCount": 58,
+  "nativeSessionId": "session-9785bc3a-eff6-4088-922e-a95348490c6e",
+  "transferredSessionId": "session-fdfdac6d-ede5-4406-bc5a-80f5cc5cd8db",
+  "calls": [
+    {
+      "index": 1,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 6,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": false,
+      "hasHumanTwo": false,
+      "snapshots": [
+        {
+          "chars": 2876,
+          "sha256": "6156ca873c67281ca7b9428385450c70f1e3e39326ae2ad3f258cc1d06a3b216",
+          "authorId": "matrix:@alice:snapshot.local",
+          "roomId": "!north:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_e7d236919932b79ad2f5931762f48235cd60d594a6ebdd95688779c19a18ef50",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 2,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 8,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": false,
+      "snapshots": [
+        {
+          "chars": 3517,
+          "sha256": "ab713f4c52f7ea228c96cf3a0b7025f81df2716764a4df27a51637881902fb92",
+          "authorId": "native:session-d792c343-1157-4e8f-8cf9-ba615e483d11",
+          "roomId": null,
+          "sourceRefs": [
+            {
+              "id": "source_64f89ab1e7b8537cd4382e69eaca98a6caf5af5a78e37d6049b3a40783d8138f",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 3,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 10,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 2857,
+          "sha256": "923db69cf1c5fc00437e0a7667b904811c0038f0f8e0536f9a707b85ce1b510c",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_1c4bd0d50ce2e7dfe9d8965d0ec27020ee2a7e63cd9bf60b6560d3409e6c4b2c",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 4,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 12,
+      "toolResults": [
+        "<path>/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-surface-PmHn8U/workspace/evidence.txt</path>\n<type>file</type>\n<content>\n1: tool-file-history-proof\n\n(End of file - total 1 lines)\n</content>"
+      ],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 3635,
+          "sha256": "421b27cea5efb75fb78ee0a7911c6aa5119f3085447174b52efb5bde4cecca04",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_1c4bd0d50ce2e7dfe9d8965d0ec27020ee2a7e63cd9bf60b6560d3409e6c4b2c",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 5,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 14,
+      "toolResults": [
+        "<path>/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-surface-PmHn8U/workspace/evidence.txt</path>\n<type>file</type>\n<content>\n1: tool-file-history-proof\n\n(End of file - total 1 lines)\n</content>"
+      ],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 3356,
+          "sha256": "258d2878b7492b1d6cd8dd4451ed393033592c3b3330decc9bb63745465a0cd6",
+          "authorId": "matrix:@alice:snapshot.local",
+          "roomId": "!north:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_01dbef92a17635fc435bfeaaa94426141d7afe59e578353521754418a56bad30",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 6,
+      "checkpoint": true,
+      "steward": false,
+      "messageCount": 16,
+      "toolResults": [
+        "<path>/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-surface-PmHn8U/workspace/evidence.txt</path>\n<type>file</type>\n<content>\n1: tool-file-history-proof\n\n(End of file - total 1 lines)\n</content>"
+      ],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 9018,
+          "sha256": "7df11fbbd17cd8cf762dfff99ef260efd9ec21aabe15fca1bd549234698db7d9",
+          "seed": 52
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 7,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 6,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 4013,
+          "sha256": "0dd9d856cdbbcb0b68496d63a924ace89c8a88aff17ce9ccdb4afa3f6d9f0f58",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_61c716f8150b8c46a4f8db6fe59b7b660dd282cf34b0d7c73a816b4cda85a5ca",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 8,
+      "checkpoint": false,
+      "steward": true,
+      "messageCount": 2,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [],
+      "toolSet": 1,
+      "toolCount": 0
+    },
+    {
+      "index": 9,
+      "checkpoint": true,
+      "steward": false,
+      "messageCount": 9,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 10,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 7,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 4528,
+          "sha256": "f9963a8c830c2d72a905c1c29ea82180a2c0ef902748b6f45eb5c3456327d57b",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_6a553504b407df01d66cc7070a4e22c9e9c6ff2d41df2d16e1ad08f31b71fc13",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 11,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 9,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 4528,
+          "sha256": "f9963a8c830c2d72a905c1c29ea82180a2c0ef902748b6f45eb5c3456327d57b",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_6a553504b407df01d66cc7070a4e22c9e9c6ff2d41df2d16e1ad08f31b71fc13",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 12,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 9,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 4528,
+          "sha256": "f9963a8c830c2d72a905c1c29ea82180a2c0ef902748b6f45eb5c3456327d57b",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_6a553504b407df01d66cc7070a4e22c9e9c6ff2d41df2d16e1ad08f31b71fc13",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    },
+    {
+      "index": 13,
+      "checkpoint": false,
+      "steward": false,
+      "messageCount": 8,
+      "toolResults": [],
+      "hasHumanOne": true,
+      "hasPeer": true,
+      "hasHumanTwo": true,
+      "snapshots": [
+        {
+          "chars": 5025,
+          "sha256": "9aa55fe8b363df64d8253eb89233504634c5f2888ad1ad381eba31dd4edccf08",
+          "authorId": "matrix:@bob:snapshot.local",
+          "roomId": "!south:snapshot.local",
+          "sourceRefs": [
+            {
+              "id": "source_8328ece998ec1155d5f721e5e63c15a9498c5691863eed69e9298f4e8a86b21d",
+              "revision": 1
+            }
+          ]
+        }
+      ],
+      "toolSet": 0,
+      "toolCount": 62
+    }
+  ],
+  "scriptedProviderCalls": 13,
+  "offlineValidation": {
+    "command": "node scripts/check.mjs",
+    "syntax": true,
+    "typescript": true,
+    "adminTypescript": true,
+    "moduleTests": {
+      "passed": 673,
+      "failed": 0
+    },
+    "sdkCommand": "npm run test:kernel-host",
+    "sdkAndCliTests": {
+      "passed": 20,
+      "failed": 0
+    }
+  },
+  "failureHistory": [
+    {
+      "candidate": "Before the claimed-source fix",
+      "result": "The first human provider request contained zero knowledge snapshots; fixed separately in afb0429."
+    },
+    {
+      "candidate": "Empty developer/message replacement",
+      "result": "In-memory Session tests passed, but actual persistence first required turn/step, then cold restore rejected developer events outside an open step. Removed from the final implementation."
+    },
+    {
+      "candidate": "Prune event with sourceEventSeqs",
+      "result": "The actual SDK rejected surface-only metadata on the log-only prune event; references now belong to the following user/message replacement."
+    }
+  ],
+  "meteringMeaning": "contextEstimates and compaction/prune.shadowedTokenCount are native heuristic context estimates, not provider-reported billing or total model usage.",
+  "toolSets": [
+    [
+      "ask_user",
+      "ask_user_question",
+      "attach_capability",
+      "bash",
+      "contacts",
+      "create_bot",
+      "create_goal",
+      "create_group",
+      "delete_capability",
+      "delete_group",
+      "detach_capability",
+      "edit",
+      "forget",
+      "get_goal",
+      "glob",
+      "grep",
+      "group_goal",
+      "group_relay",
+      "interrupt_agent",
+      "job_kill",
+      "job_list",
+      "job_output",
+      "list_agents",
+      "list_bot_models",
+      "list_bots",
+      "list_capabilities",
+      "list_connectors",
+      "list_secrets",
+      "list_subagent_models",
+      "memory_source",
+      "message_bot",
+      "plugin_manager",
+      "post_to_group",
+      "present",
+      "read",
+      "read_group_chat",
+      "read_image",
+      "read_own_chat",
+      "recall",
+      "remember",
+      "request_connector",
+      "request_secret",
+      "review_memory",
+      "save_capability",
+      "schedule_create",
+      "schedule_edit",
+      "schedule_list",
+      "schedule_view",
+      "send_message",
+      "show_view",
+      "skill",
+      "stop_bot",
+      "subagent",
+      "subagent_fork",
+      "todo_write",
+      "update_bot",
+      "update_goal",
+      "update_group",
+      "web_fetch",
+      "workflow",
+      "working_directory",
+      "write"
+    ],
+    []
+  ]
+}

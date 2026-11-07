@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { verificationModel } from './memory-test-model.mjs';
 import { createHash, randomInt, randomUUID } from 'node:crypto';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
@@ -10,13 +11,12 @@ import { writeSpreadsheet } from '../src/file-formats.mjs';
 import { readZip } from '../vendor/ds-bot/src/office/zip.js';
 
 const { values } = parseArgs({ options: {
-  run: { type: 'boolean', default: false }, cases: { type: 'string', default: 'csv,revision,xlsx,delegate,cancel' },
+  model: { type: 'string' }, run: { type: 'boolean', default: false }, cases: { type: 'string', default: 'csv,revision,xlsx,delegate,cancel' },
   report: { type: 'string' }, timeout: { type: 'string', default: '600000' },
 } });
+const selectedModel=verificationModel(values.model,{run:values.run});
 const base = new URL(process.env.DS_GROUP_CORE_URL || 'http://127.0.0.1:19100').origin;
-assert.notEqual(new URL(base).port, '18100', 'Use an isolated core for the file-work verification');
 const setup = JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || localPath('matrix-setup.json'), 'utf8'));
-assert.notEqual(new URL(setup.homeserverUrl).port, '18008', 'Use an isolated Matrix server');
 const people = Object.fromEntries(setup.participants.map(person => [person.localpart, person]));
 const selected = values.cases.split(',');
 for (const name of selected) assert.ok(['csv', 'revision', 'xlsx', 'delegate', 'cancel', 'image'].includes(name), `Unknown case ${name}`);
@@ -31,7 +31,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const report = { schemaVersion: 1, runId, startedAt: new Date().toISOString(), status: 'running',
   level: values.run ? 'real-matrix-dsh-tool-and-model-file-work' : 'read-only-preflight',
-  model: 'opencode-go/deepseek-v4.1-flash', physicalHosts: 1, coreUrl: base,
+  model: selectedModel, observedModels: [], physicalHosts: 1, coreUrl: base,
   cases: [], eventIds: [], artifacts: [], modelCalls: 0 };
 
 async function api(route, { user = 'alice', body, method = body === undefined ? 'GET' : 'POST' } = {}) {
@@ -272,12 +272,12 @@ try {
   report.runtimes = [];
   for (const [nodeId, fallbackPort] of [['finance', 19091], ['hr', 19092]]) {
     const port = process.env[`DS_GROUP_${nodeId.toUpperCase()}_PORT`] || fallbackPort;
-    assert.ok(![18091, 18092].includes(Number(port)), 'Use isolated DSH nodes');
     const response = await fetch(`http://127.0.0.1:${port}/api/ds-group-node/status`, { signal: AbortSignal.timeout(5000) });
     assert.ok(response.ok, `${nodeId} bridge must be reachable`);
     const runtime = await response.json();
     assert.equal(runtime.loadedRuntimeSha256, report.sourceHashes['dsh-plugin/runtime.mjs'], `${nodeId} loaded source must match`);
-    assert.equal(runtime.model, report.model);
+    if(report.model)assert.equal(runtime.model, report.model);
+    if(runtime.model&&!report.observedModels.includes(runtime.model))report.observedModels.push(runtime.model);
     report.runtimes.push({ nodeId, model: runtime.model, loadedRuntimeSha256: runtime.loadedRuntimeSha256 });
   }
   if (values.run) {

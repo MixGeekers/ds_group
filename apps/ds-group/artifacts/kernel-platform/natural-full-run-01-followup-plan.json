@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-07T06:50:57.884Z",
+  "originalRun": "platform-natural-full-run-01",
+  "originalReportSha256": "416430f8d2a2b4a9fae914fb444a962e5bb0443599e85d160821198b931d6c08",
+  "status": "plan-only-no-model-requests",
+  "executionBoundary": "Each case is a separate natural repair continuation with new event/report/logs; never modify the original96-message definition, grades or report. Send only userBody plus normal routing/mention metadata. Evaluator criteria and original IDs are never model prompt material.",
+  "cases": [
+    {
+      "id": "handoff-source-versions",
+      "originalRow": "full-079",
+      "route": {
+        "personKey": "a",
+        "personId": "@zhou_ops:natural-full.local",
+        "roomKey": "project",
+        "roomId": "!5xrQbnLcXwibvF0fK6Hl1WxzWj9-GLwdNCJ3ZEpLbs4",
+        "botIndex": 0,
+        "botId": "@bot-3aa143c1-b339-41f2-a7c5-1d66c1b34369:natural-full.local"
+      },
+      "userBody": "我后来又看了一眼这份交接，有几项我记得群里已经说清了，却又被列成未定；测试次数那句也像把两轮版本混在了一起。请回头核对预算、买的箱子和已经用的箱子，以及每次测试对应的文件，修正 handoff.md 后发我。确实没法核实的直说，别把已经确定的事又变成待确认。",
+      "evaluatorOnly": {
+        "originalHumanEvidence": [
+          {
+            "row": "full-020",
+            "eventId": "$BA-h256d8zWwUOZdj8099oNLaXFDQFWQrCLK4iZ3_3E",
+            "meaning": "900 yuan actual allowance explicitly stated by工程周宁"
+          },
+          {
+            "row": "full-068",
+            "eventId": "$4BPhLPEHg6x-NZ8KraHJeVWdjURZjPfM-2MJX52tDKI",
+            "meaning": "18 purchased,12 actually packed; unused boxes are margin, not loss"
+          }
+        ],
+        "testVersionEvidence": [
+          {
+            "author": "识雨",
+            "sourceEventId": "$ttshOPAk-IWWgsTYJY7w4oFxnFH6adVGzEXKyhZEnqc",
+            "moduleSha256": "f40507f0f3cd03752d0697db717e163ae33c2ad3f326ded472ebe462e05e8f73",
+            "bytes": 2401,
+            "actualOriginalSuite": 17,
+            "layout": "purchase-helper/packing.mjs + tests/packing.test.mjs",
+            "independentRerunPassed": 17
+          },
+          {
+            "author": "知秋",
+            "moduleSha256": "3fa5a9aaca5da5c033903984892a04f301a1927975de787685ebcfc67e6f1670",
+            "bytes": 1846,
+            "earlierSuite": 14,
+            "laterSuite": 15,
+            "meaning": "Different module and suite lineage; current14/15 never disproves original17"
+          }
+        ],
+        "acceptance": [
+          "Corrected actual handoff is delivered to the original project room and same human/Bot identities remain traceable",
+          "900 allowance is source-backed; do not claim source lost while the original exists",
+          "PurchasedBoxes18 stays distinct from12 already used; do not ask for a needless new decision or alter the correct financial JSON",
+          "Original17 versus later14/15 histories remain versioned and attributed, without claiming all versions are identical or that the old17 result was false",
+          "Any additional current test run is tied to actual bytes and tools; additional tests are allowed, but cannot rewrite historical counts",
+          "Unresolved facts stay honestly unresolved; allow multiple concise formats and source citations, no required memory tool or exact keyword template",
+          "Compare delivered corrected bytes to original handoff and independently inspect the changed assertions; model success status alone is insufficient"
+        ],
+        "notRequired": [
+          "A particular memory tool name",
+          "Fixed wording, apology or event-ID citation in user-facing text"
+        ],
+        "originalGradesRemainUnchanged": true
+      }
+    },
+    {
+      "id": "neighbor-and-loan-attribution",
+      "originalRows": [
+        "full-087",
+        "full-088"
+      ],
+      "route": {
+        "personKey": "c",
+        "personId": "@shen_yao:natural-full.local",
+        "roomKey": "work",
+        "roomId": "!xdKelVojc_xhVyZK6jRGW94YfBftWm5ba5Q-iyyWL50",
+        "botIndex": 1,
+        "botId": "@bot-eb06ca4d-a964-4929-bdad-5cd47ceb973d:natural-full.local"
+      },
+      "userBody": "上面隔壁搬家和借胶带的事，我看几条信息挨得太近了。请把他们和我们的安排分开写，借出去的是什么、还的时候放哪里也重新核实；没问清的别顺手补上，回一条我能转给他们的短消息。",
+      "evaluatorOnly": {
+        "originalHumanEvidence": [
+          {
+            "row": "full-087",
+            "eventId": "$OOeWOH7QVCSLlA1SLjzIiZ0D8y01E8Cienngv33OypA",
+            "meaning": "Neighbor:北门、周四九点; no floor was stated"
+          },
+          {
+            "row": "full-088",
+            "eventId": "$8f0NpHSuTySYe5LZpII2RAnBAzPXWw5LFhX8ZYJCDxA",
+            "meaning": "Loan one roll of tape; vehicle/property arrangements belong to the other team"
+          },
+          {
+            "row": "full-077",
+            "eventId": "$OiEKv8xJJ5NV0w5Io6M3epSLYErNQDK_52-Us3hM2Yc",
+            "meaning": "West shelf second compartment is the blank-label location, not evidence about tape storage"
+          }
+        ],
+        "acceptance": [
+          "Keep ourFri20 10:20/west-ramp/first-floor arrangement separate from neighborThu9/north-gate",
+          "Do not transfer our obsolete third-floor detail to the neighbor; their floor remains unknown unless genuinely newly confirmed",
+          "One roll of tape is distinct from labels; return location has no original confirmation and must not inherit the label shelf",
+          "A proposed return method or request for missing detail is allowed if clearly presented as a suggestion/question, not an already confirmed location",
+          "Do not invent that a loan has already been returned or change the procurement cost as if it were a cancellation",
+          "Actual reply/source/room/identity must be traced; no forced tool path or one exact phrasing"
+        ],
+        "originalGradesRemainUnchanged": true
+      }
+    }
+  ],
+  "separateFull084Repair": "Uses its independently assigned repair runner and three-file contract; not included in these two case verdicts"
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "status": "failed",
+  "scope": "cross-server stage setup only",
+  "level": "read-only release source harness setup",
+  "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+  "platforms": [
+    "linux/arm64",
+    "linux/amd64"
+  ],
+  "error": "ENOENT while creating /source/.local before provider or DSH startup",
+  "remoteModelCalls": 0,
+  "scriptedProviderCalls": 0,
+  "fixedBy": "f33f21b",
+  "followupSourceArchiveSha256": "a2fa392e4078adf3bcda57c782035a6f9209c7f24e06c7b583a334770f85aef9",
+  "followup": "8/8 scoped checks on each architecture, 10 local scripted responses per architecture",
+  "logSha256": {
+    "arm64": "8f7345176ee704b3078b8514c3527182dd5d7d8696bdc0914790c42b0772a4e1",
+    "amd64": "c93af26b12acb117a891b32bd26be669f8dbeb646e6c285250c68b823be0e86e"
+  }
+}

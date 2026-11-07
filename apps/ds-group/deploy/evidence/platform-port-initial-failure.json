@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "project": "dscord-platform-1ac094954d5c",
+  "startedAt": "2026-11-07T03:48:14.686Z",
+  "status": "failed",
+  "evidenceLevel": "real isolated Docker Compose Core/Synapse/administration and persistent named volumes; synthetic identities; zero model",
+  "image": "dscord-kernel-core-check:amd64",
+  "origins": {
+    "coreUrl": "http://127.0.0.1:25320",
+    "matrixUrl": "http://127.0.0.1:25328",
+    "adminUrl": "http://127.0.0.1:25330"
+  },
+  "checks": [],
+  "modelCalls": 0,
+  "physicalCrossMachine": false,
+  "error": "listen EADDRINUSE: address already in use 127.0.0.1:25320",
+  "completedAt": "2026-11-07T03:48:14.690Z"
+}

@@ -1,12 +1,17 @@
 import {modelReference} from '../src/model-config.mjs';
 
-export const ORIGINAL_TEST_MODEL='opencode-go/deepseek-v4.1-flash';
-export const COMMANDCODE_TEST_MODEL='commandcode-goat/deepseek/deepseek-v4.1-flash';
-export function memoryTestModel(value=process.env.DSCORD_MEMORY_TEST_MODEL||ORIGINAL_TEST_MODEL){
-  if(![ORIGINAL_TEST_MODEL,COMMANDCODE_TEST_MODEL].includes(value))throw new Error('TEST_MODEL_NOT_AUTHORIZED: use an explicitly authorized ordinary DeepSeek V4.1 Flash route; Fast is excluded');
+// Importing offline checks never selects a paid provider. Live entry points
+// require the caller's explicit reference and use that provider's own config.
+export function memoryTestModel(value=process.env.DSCORD_MEMORY_TEST_MODEL||process.env.DS_GROUP_MODEL){
+  if(value===undefined||value===null||value==='')throw Object.assign(new Error('Set DSCORD_MEMORY_TEST_MODEL or DS_GROUP_MODEL to your provider/model before running a live validation.'),{code:'TEST_MODEL_REQUIRED'});
+  modelReference(value);
   return value;
 }
-export const MODEL=memoryTestModel();
+export const MODEL=process.env.DSCORD_MEMORY_TEST_MODEL||process.env.DS_GROUP_MODEL||null;
+export function verificationModel(value=MODEL,{run=false}={}){
+  if(value===undefined||value===null||value==='')return run?memoryTestModel(null):null;
+  return memoryTestModel(value);
+}
 export function restrictTestProvider(provider,reference=MODEL){
   const route=modelReference(memoryTestModel(reference)),copy=structuredClone(provider);
   if(copy.models?.length){copy.models=copy.models.filter(model=>model.id===route.model);if(copy.models.length!==1)throw new Error('TEST_MODEL_MISSING_FROM_PROFILE');}

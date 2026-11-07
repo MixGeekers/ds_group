@@ -18,7 +18,11 @@ const coreUrl = `http://127.0.0.1:${base}`, matrixUrl = `http://127.0.0.1:${base
 const env = { ...process.env, DS_GROUP_IMAGE: process.env.DS_GROUP_IMAGE || 'ds-group:ci',
   DS_GROUP_BIND: '127.0.0.1', DS_GROUP_HTTP_PORT: String(base), DS_GROUP_MATRIX_PORT: String(base + 8), DS_GROUP_ADMIN_PORT: String(base + 10),
   DS_GROUP_SERVER_NAME: `${project}.test`, DS_GROUP_PUBLIC_URL: coreUrl, DS_GROUP_MATRIX_PUBLIC_URL: matrixUrl,
-  DS_GROUP_WEB_MODE: 'api-only', DS_GROUP_MEDIA_BACKEND: 'local' };
+  DS_GROUP_WEB_MODE: 'api-only', DS_GROUP_MEDIA_BACKEND: 'local', DS_GROUP_BOOTSTRAP_DEMO: 'true' };
+if (process.env.DS_GROUP_PLATFORM) {
+  assert.ok(['linux/amd64', 'linux/arm64'].includes(process.env.DS_GROUP_PLATFORM), 'Use a supported Linux deployment platform');
+  env.DOCKER_DEFAULT_PLATFORM = process.env.DS_GROUP_PLATFORM;
+}
 const report = { schemaVersion: 1, project, startedAt: new Date().toISOString(), status: 'running',
   evidenceLevel: 'real isolated Docker Compose Core/Synapse/administration and persistent named volumes; synthetic identities; zero model',
   image: env.DS_GROUP_IMAGE, origins: { coreUrl, matrixUrl, adminUrl }, checks: [], modelCalls: 0, physicalCrossMachine: false };
@@ -72,6 +76,8 @@ try {
   started = true;
   await check('real Compose starts API-only Core, official Synapse and independent administration listener', async () => {
     await compose(['up', '--no-build', '--detach', '--wait', '--wait-timeout', '180']);
+    report.containerRuntime = JSON.parse(await compose(['exec', '-T', 'core', 'node', '-e', 'console.log(JSON.stringify({platform:process.platform,arch:process.arch,node:process.version}))']));
+    if (process.env.DS_GROUP_PLATFORM) assert.equal(`${report.containerRuntime.platform}/${report.containerRuntime.arch === 'x64' ? 'amd64' : report.containerRuntime.arch}`, process.env.DS_GROUP_PLATFORM);
     await request(coreUrl, '/healthz'); await request(coreUrl, '/readyz'); await request(adminUrl, '/healthz'); await request(matrixUrl, '/_matrix/client/versions');
     assert.equal((await request(coreUrl, '/api/bootstrap')).web.mode, 'api-only'); await noChatWeb();
     return { services: ['config', 'synapse', 'bootstrap', 'core', 'administration'], mode: 'api-only', rootStatus: 404, adminHealth: 200 };

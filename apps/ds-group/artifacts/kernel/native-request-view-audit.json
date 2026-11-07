@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T06:44:45.790Z",
+  "level": "read-only-official-sdk-reconstruction-of-recorded-native-surface",
+  "source": {
+    "run": "platform-natural-full-run-01",
+    "step": "full-079",
+    "sessionId": "session-4c97bf45-1aef-4fe1-9f8c-57a2633b975b",
+    "throughSeq": 1101,
+    "compressedFrames": 480,
+    "prefixEventCount": 1102
+  },
+  "wireCaptureAvailable": false,
+  "before": {
+    "nativeDerivedMessages": 10,
+    "dispatchMessages": 9,
+    "currentKnowledgeFrames": 1,
+    "requests": [
+      {
+        "messageId": "b3379381-178d-43b3-8cba-a299183355fb",
+        "requestId": "matrix-2635c279768b251a576e84433fea54767df82edfab58c0e38b3b847e4b92885c",
+        "chars": 80479,
+        "fields": [
+          7875,
+          7789
+        ]
+      },
+      {
+        "messageId": "8acf0e95-7ad8-4782-bb25-5f5e01213788",
+        "requestId": "matrix-6e0eae582cb82f9fafebd475b459af34a513dbca9251675698f849a61819a1ab",
+        "chars": 63899,
+        "fields": [
+          7940
+        ]
+      }
+    ]
+  },
+  "after": {
+    "dispatchMessages": 9,
+    "currentKnowledgeFrames": 1,
+    "requests": [
+      {
+        "messageId": "b3379381-178d-43b3-8cba-a299183355fb",
+        "requestId": "matrix-2635c279768b251a576e84433fea54767df82edfab58c0e38b3b847e4b92885c",
+        "chars": 64787,
+        "fields": []
+      },
+      {
+        "messageId": "8acf0e95-7ad8-4782-bb25-5f5e01213788",
+        "requestId": "matrix-6e0eae582cb82f9fafebd475b459af34a513dbca9251675698f849a61819a1ab",
+        "chars": 55945,
+        "fields": []
+      }
+    ],
+    "replacedRequestNodes": 2
+  },
+  "preservation": {
+    "originalEventPrefixSha256": "56d64d3a6ba40ca7d8f1ff0167e7c50a7d091cce717bad8ba5cae457d40db4ce",
+    "originalEventsUnchanged": true,
+    "sourceFileUnchanged": true,
+    "allHumanBodiesSourcesRoutesAndRoomHistoryUnchanged": true,
+    "otherMessagesUnchanged": true,
+    "checkpointSha256": "2b12e966cee27dd1addc999faa3041deb330acf1ab7221b30d162c6cbe6851a4",
+    "checkpointChars": 36656,
+    "checkpointRetainsBudget900AndRemainder319": true,
+    "checkpointRetains17TestsAnd2455Bytes": true
+  },
+  "limitations": [
+    "This reconstructs the durable native model surface at the request boundary, not the final provider HTTP body.",
+    "The confirmed overlap does not independently establish the cause of the observed factual confusion."
+  ]
+}

@@ -1,0 +1,971 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T06:05:13.458Z",
+  "runId": 42345080280,
+  "headSha": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+  "status": "completed",
+  "conclusion": "success",
+  "event": "pull_request",
+  "url": "https://github.com/MixGeekers/dscord/actions/runs/42345080280",
+  "createdAt": "2026-11-07T06:00:32Z",
+  "updatedAt": "2026-11-07T06:03:58Z",
+  "verifiedVia": [
+    "GitHub connector workflow run and job summaries",
+    "gh actual artifact download and source archive verification"
+  ],
+  "jobs": [
+    {
+      "id": 128320967240,
+      "name": "Browser / Chromium",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install Chromium with bounded dependency downloads",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Build chat and administration frontends required by the browser suite",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Chat, unified client and administration browser checks",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        }
+      ]
+    },
+    {
+      "id": 128320967376,
+      "name": "Native / ubuntu-24.04-arm / Node 24.x",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install exact dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Syntax and zero-model module tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "TypeScript 7 and React production build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Assemble npm runtime with central initialization and management frontend",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Build and verify source release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Clean-install and test extracted release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Upload verified source release",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ]
+    },
+    {
+      "id": 128320967384,
+      "name": "DSH / ubuntu-24.04-arm",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install official standalone DSH",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Prepare verified standalone source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Kernel and memory tool contracts use the official pinned SDK",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Owned kernel has one lifecycle and a pure zero-model health API",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Native Bot session survives restart with zero generations",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Complete native tools, observation and automatic review use only a local provider",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Current memory replaces superseded snapshots across restart and native compaction",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Native tools, artifacts and cancellation with a local scripted provider",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Native cross-server work authorization and synchronous tool guard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Upload native runtime result",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27
+        }
+      ]
+    },
+    {
+      "id": 128320967401,
+      "name": "DSH / ubuntu-24.04",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install official standalone DSH",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Prepare verified standalone source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Kernel and memory tool contracts use the official pinned SDK",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Owned kernel has one lifecycle and a pure zero-model health API",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Native Bot session survives restart with zero generations",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Complete native tools, observation and automatic review use only a local provider",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Current memory replaces superseded snapshots across restart and native compaction",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Native tools, artifacts and cancellation with a local scripted provider",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Native cross-server work authorization and synchronous tool guard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Upload native runtime result",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27
+        }
+      ]
+    },
+    {
+      "id": 128320967406,
+      "name": "Native / ubuntu-24.04-arm / Node 24.19.0",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install exact dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Syntax and zero-model module tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "TypeScript 7 and React production build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Assemble npm runtime with central initialization and management frontend",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Build and verify source release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Clean-install and test extracted release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Upload verified source release",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ]
+    },
+    {
+      "id": 128320967430,
+      "name": "Native / ubuntu-24.04 / Node 24.x",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install exact dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Syntax and zero-model module tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "TypeScript 7 and React production build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Assemble npm runtime with central initialization and management frontend",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Build and verify source release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Clean-install and test extracted release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Upload verified source release",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ]
+    },
+    {
+      "id": 128320967461,
+      "name": "Deploy / Linux amd64",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Prepare standalone source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Build native image from release archive",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Validate deployment configurations",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Fresh deployment, messaging and restart persistence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "API-only central identity and separate administration survive recreation",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Upload deployment result",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Post Build native image from release archive",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Post Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ]
+    },
+    {
+      "id": 128320967469,
+      "name": "Native / ubuntu-24.04 / Node 24.19.0",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install exact dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Syntax and zero-model module tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "TypeScript 7 and React production build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Assemble npm runtime with central initialization and management frontend",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Build and verify source release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Clean-install and test extracted release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Upload verified source release",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ]
+    },
+    {
+      "id": 128320967498,
+      "name": "Deploy / Linux arm64",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Prepare standalone source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Build native image from release archive",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Validate deployment configurations",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Fresh deployment, messaging and restart persistence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "API-only central identity and separate administration survive recreation",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Upload deployment result",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Post Build native image from release archive",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Post Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ]
+    },
+    {
+      "id": 128321715008,
+      "name": "DS-Group matrix passed",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Require every matrix result",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13563496635,
+      "name": "deploy-arm64",
+      "bytes": 3334,
+      "digest": "sha256:c4586295a85ffdf8912138ce05089fd50162f0eacc787c9e3a0aaeda57dd0132",
+      "expiresAt": "2026-11-21T06:03:35Z",
+      "expired": false,
+      "headSha": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/42345080280/artifacts/13563496635"
+    },
+    {
+      "id": 13563491397,
+      "name": "ds-group-source",
+      "bytes": 2604224,
+      "digest": "sha256:e66be61269638b38eb5d1bbf53f37555a6292e8abc4a5ca63b8c6c5599e9fd7e",
+      "expiresAt": "2026-11-21T06:01:42Z",
+      "expired": false,
+      "headSha": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/42345080280/artifacts/13563491397"
+    },
+    {
+      "id": 13563451811,
+      "name": "deploy-amd64",
+      "bytes": 3335,
+      "digest": "sha256:9ebdaeea9e7d673dba805437e976f513ba19cc3e0a6679fd9da0af5468a3b294",
+      "expiresAt": "2026-11-21T06:03:24Z",
+      "expired": false,
+      "headSha": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/42345080280/artifacts/13563451811"
+    },
+    {
+      "id": 13563326953,
+      "name": "MixGeekers~dscord~RQ4DRM.dockerbuild",
+      "bytes": 58069,
+      "digest": "sha256:805790f911983c32edad36f8a902cbfccc4a2d4cd20285f164433feafd6b50db",
+      "expiresAt": "2027-02-05T06:00:32Z",
+      "expired": false,
+      "headSha": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/42345080280/artifacts/13563326953"
+    },
+    {
+      "id": 13563272032,
+      "name": "MixGeekers~dscord~EXU2AQ.dockerbuild",
+      "bytes": 57053,
+      "digest": "sha256:eba543b19951343325c4b3f1c7e2f9558d529ab15c5d71a9fb16bf0c5eebb6a8",
+      "expiresAt": "2027-02-05T06:00:32Z",
+      "expired": false,
+      "headSha": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/42345080280/artifacts/13563272032"
+    },
+    {
+      "id": 13563272001,
+      "name": "runtime-ubuntu-24.04",
+      "bytes": 11723,
+      "digest": "sha256:451c7babb77935159a488fce57ad715ca273a58abe397b073a2d2e579175e6ca",
+      "expiresAt": "2026-11-21T06:03:12Z",
+      "expired": false,
+      "headSha": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/42345080280/artifacts/13563272001"
+    },
+    {
+      "id": 13563182422,
+      "name": "runtime-ubuntu-24.04-arm",
+      "bytes": 11732,
+      "digest": "sha256:5a0140be43947f40a7801a8f680464ae0af69041596bfe091a3360978e042920",
+      "expiresAt": "2026-11-21T06:03:02Z",
+      "expired": false,
+      "headSha": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/42345080280/artifacts/13563182422"
+    },
+    {
+      "id": 13562879172,
+      "name": "browser-checks",
+      "bytes": 1721867,
+      "digest": "sha256:315bd092d85c04d7392afc8ba65fb61ff42408ada8c2c088400cb9c9595bd51c",
+      "expiresAt": "2026-11-21T06:01:44Z",
+      "expired": false,
+      "headSha": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/42345080280/artifacts/13562879172"
+    }
+  ],
+  "sourceArchiveDownloaded": {
+    "artifactId": 13563491397,
+    "sha256": "26c8c5d51e14cacea4b421f5d5db5931def86be9f9328460b773db1d87028683",
+    "matchesLocalCandidate": true,
+    "files": 617,
+    "verified": true
+  },
+  "moduleVerification": {
+    "jobId": 128320967469,
+    "moduleCounts": [
+      725,
+      725
+    ],
+    "passCounts": [
+      725,
+      725
+    ],
+    "failCounts": [
+      0,
+      0
+    ],
+    "scope": "official Native Linux amd64 Node24.19 job and its clean-install extracted release repeat"
+  }
+}

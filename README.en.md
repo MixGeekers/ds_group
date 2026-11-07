@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-![DSCORD architecture, Web/PWA connects to a shared Core and Matrix/Synapse server, with two independent Bot nodes each running DSH and DS-Bot](apps/ds-group/assets/readme/collaboration-hero.png)
+![DSCORD architecture, Web/PWA connects to a shared Core and Matrix/Synapse server, with independent Bot nodes running DSH and the DSCord kernel](apps/ds-group/assets/readme/collaboration-hero.png)
 
 <p align="center"><strong>A place for people and Bots to work together</strong></p>
 
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="npm Alpha version"></a>
+  <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="Published npm version"></a>
   <a href="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="CI status on main"></a>
   <a href="apps/ds-group/deploy/README.md"><img src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-0B1B52?style=flat-square" alt="Server deployment on Linux amd64 and arm64"></a>
 </p>
@@ -74,13 +74,13 @@ Select your Bot in a group, attach a file, and start with a request like this:
 
 ## Get started
 
-> DSCord is in Alpha. For account registration, personal Bots, and the graphical DSH connection page, install from the current source using the steps below. The published npm version, `0.2.0-alpha.1`, connects Bots through the CLI. See the [installation guide](apps/ds-group/deploy/npm.md).
+This guide targets **DSCord 0.4.0-alpha.1**. Use the same release for Core, the web client, and Bot nodes. Check the release page for the actual archive or npm version; older package instructions do not describe current features. See [installation and upgrades](apps/ds-group/deploy/npm.md).
 
-Already have a server address? Go to [Connect your Bot](#connect-bot). You can also give DSH the [Chinese setup prompt](README.md#dsh-setup) to help with installation and configuration.
+Already have a server? Go to [Connect your Bot](#connect-bot). Addresses, ports, and paths below are replaceable examples. `localhost` always means the machine making the request.
 
 ### Deploy a server
 
-Prepare a Linux amd64 or arm64 server with Git, Docker Engine, and Compose v2.
+Use Linux amd64 or arm64 with Docker Engine and Compose v2. These commands build from source; for a release deployment, use its matching source archive or tag.
 
 ```sh
 git clone https://github.com/MixGeekers/dscord.git
@@ -88,27 +88,28 @@ cd dscord/apps/ds-group
 cp deploy/.env.example deploy/.env
 ```
 
-Before the first start, edit `deploy/.env` with your own `DS_GROUP_SERVER_NAME` and public URLs. Keep the defaults for a local trial. For external access and HTTPS, follow the [server guide](apps/ds-group/deploy/README.md).
+Before the first start, edit `deploy/.env` with your Matrix identity domain (`DS_GROUP_SERVER_NAME`) and public URLs. Keep the identity domain after accounts are created. Template defaults are for a local trial; see the [server guide](apps/ds-group/deploy/README.md) for public HTTPS.
 
 ```sh
 docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
 ```
 
-Open [localhost:18100](http://localhost:18100) on the server itself, or use your configured public URL from another device. Register an account, then create your first Bot under “My Bots.”
+Open [localhost:18100](http://localhost:18100) on the server, or your configured public address, and register an account. Create Bots on their own nodes, then add them to the server. “My Bots” manages Bots already owned by your account.
 
 <a id="connect-bot"></a>
 
 ### Connect your Bot
 
-Bots run through DeepSeek Harness (DSH). First, register or sign in on the server website, then create or select a Bot under “My Bots.”
+1. Prepare compatible DSH. The pinned SDK baseline is `@deepseek-ai/dsh@0.2.2-rc.1`; source and CLI packages declare Node `>=24.19.0 <25`. These are the supported versions in [package.json](apps/ds-group/package.json) and the [host contract](apps/ds-group/dsh-connect/KERNEL.md), not a promise of compatibility with other hosts.
+2. Obtain or build a matching 0.4.0-alpha.1 `.tgz` using the [installation guide](apps/ds-group/deploy/npm.md#安装). Install and enable `dscord` in DSH's `Plugins → Add plugin`. Configure your own working model and credentials in DSH.
+3. Open **DSCord** in DSH and sign in to your server account. Under “Bots on this node,” explicitly create a Bot, choose a configured model, and describe its role, or select an existing Bot.
+4. Choose “Add to server.” You can then message it, inspect its settings, or invite it to a group from the web client. Adding an existing Bot from the website requires its node to be connected with the same account.
 
-1. Install Node `>=24.19.0 <25` and DSH `0.2.1-rc.5` on the Bot's machine, then set up the model you want to use in DSH. See [model settings](apps/ds-group/deploy/README.md#configuration).
-2. Follow the [package build instructions](apps/ds-group/deploy/npm.md#安装) to create a `.tgz` file. Install it through DSH's `Plugins → Add plugin` and enable `dscord`.
-3. Open **DSCord** in the DSH sidebar, enter your server address, sign in, choose a DSH model for your Bot, save the selection, and bring it online.
+The working model has no mandated provider or model name. Choose a DSH-supported model with the tools your work needs. Natural participation uses a separate optional decision service; mention-only mode does not require it. See [model and participation settings](apps/ds-group/模型配置与迁移.md).
 
-You can then message the Bot directly or invite it to a group. Its machine must be able to reach the server's Core and Matrix URLs.
+The Bot's machine must reach the public Core and Matrix URLs. When adopting an existing `ds-bot` team, stop its previous plugin first. DSCord adopts the original data directory; it does not merge separate histories. A stopped or disconnected node cannot perform work through the website.
 
-To install the published npm Alpha, run `npm install --global dscord@alpha` and connect Bots through the CLI. Follow the [npm guide](apps/ds-group/deploy/npm.md) for the full procedure.
+For assisted setup, use the [Chinese DSH prompt](README.md#dsh-setup) with your own server, account, paths, and models.
 
 <a id="architecture"></a>
 
@@ -120,7 +121,7 @@ The shared server manages members and messages. Bots run on their own machines a
 | --- | --- |
 | **Web / PWA** | Chat, files, notifications, accounts, and Bot management. |
 | **DSCord Core + Matrix / Synapse** | Members, rooms, messages, attachments, and node connections. |
-| **DSH + DS-Bot** | Each Bot's conversations, tools, task collaboration, and result delivery. |
+| **DSH + DSCord kernel** | Each Bot's conversations, tools, task collaboration, and result delivery. |
 
 Each Bot processes tasks in order; different Bots can work in parallel. See the [framework design](架构与设计/DS-Group首个框架与实施路线.md) for more detail.
 
@@ -137,7 +138,7 @@ Detailed guides are currently in Simplified Chinese.
 | Configure attachment storage | [Storage guide](apps/ds-group/deploy/storage/README.md) |
 | Understand features and current limits | [Application guide](apps/ds-group/README.md) |
 | Work on the interface | [Frontend design](apps/ds-group/前端架构与设计规范.md) |
-| Follow development | [Implementation record](apps/ds-group/实施记录.md) · [Release record](apps/ds-group/发行验证.md) |
+| Configure models and participation | [Model and participation settings](apps/ds-group/模型配置与迁移.md) |
 | Use the logo and project artwork | [Brand and assets](apps/ds-group/assets/目录.md) |
 
 ### Contribute
@@ -178,3 +179,7 @@ Run browser tests with `npm run test:browser`. Report bugs or discuss ideas in [
 ---
 
 Built with Matrix / Synapse, DeepSeek Harness, DS-Bot, React, and Lucide. Third-party attribution and licenses are recorded with their components. For DS-Bot, see [UPSTREAM](apps/ds-group/vendor/ds-bot/UPSTREAM.json), [LICENSE](apps/ds-group/vendor/ds-bot/LICENSE), and [NOTICE](apps/ds-group/vendor/ds-bot/NOTICE).
+
+## License
+
+The original DSCord product code and documentation in `apps/ds-group/` are licensed under Apache-2.0. Distributed third-party components retain their own licenses and notices. [Product license](apps/ds-group/LICENSE) · [Copyright and third-party notices](apps/ds-group/NOTICE)

@@ -1,17 +1,18 @@
-# DSCord 的 DS-Bot 节点适配
+# 独立 DSH 节点适配器
 
-本模块在独立 DSH 宿主内装载 DS-Bot 0.2.7，并提供 DS-Group 的 Bot 注册与对话 HTTP 接口。
+本模块为 DSCord 0.4.0-alpha.1 的独立 CLI 节点提供 HTTP 桥接。在独立 DSH 宿主中运行 `dscord-kernel`，由 Matrix 适配进程接收消息并回传结果。直接安装到正在使用的 DSH 的图形连接插件位于 [`dsh-connect/`](../dsh-connect/KERNEL.md)，两种运行方式的数据与模型配置方式不同。
 
-## 运行依赖
+## 兼容与依赖
 
-- 固定上游为 `71d344bf193f3f18185f25de3d8e5c483046910a`。原始 npm 包保存在 `../vendor/ds-bot/`，`UPSTREAM.json`、`LICENSE` 和 `NOTICE` 记录来源及许可，上游源码保持未修改。
-- 发行节点使用 Linux amd64/arm64 与官方 npm DeepSeek Harness 0.2.1-rc.5 CLI。`index.mjs` 使用 Node `registerHooks` 将本模块及 vendored DS-Bot 的 SDK imports 解析到同一个宿主安装目录。
-- 通过 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 指定安装位置，启动器也会查找 PATH 中的 `dsh`。Linux 双架构纳入发行验证。本机开发环境已有 macOS 桌面版路径回退及历史 Session 重启证据，详见[发行验证](../发行验证.md)。
-- `runtime-dependencies.json` 与 `runtime-dependencies-lock.json` 固定 `deep-view@0.1.0`、`yaml@2.9.1`。启动器在数据目录内使用 `npm ci --ignore-scripts` 准备依赖，模块解析指向该私有依赖目录，源码树无需写入依赖链接。
+Node 支持范围 `>=24.19.0 <25` 来自 [package.json](../package.json)。DSH 接入固定为官方 `@deepseek-ai/dsh@0.2.2-rc.1`，版本常量见 [runtime-config.mjs](../scripts/runtime-config.mjs)；内核依赖该 SDK 的原生 Session、inbox、工具、附件和生命周期服务，见[宿主契约](../dsh-connect/KERNEL.md)。不应据此假定其他 DSH 版本可用。
+
+内核基于 DS-Bot 0.3.1，来源和许可保存在 [UPSTREAM.json](../vendor/ds-bot/UPSTREAM.json)、LICENSE 和 NOTICE。运行依赖由 [runtime-dependencies.json](runtime-dependencies.json) 及其锁文件定义，启动器准备私有依赖目录并核验版本。SDK imports 解析到实际宿主，运行库解析到私有目录，无需手工复制依赖到源码树。
 
 ## 启动和停止
 
-先按[服务器部署](../deploy/README.md#接入远端-bot)导出并导入目标 Bot 的配置，然后在应用包目录启动。下方 `your-bot-account` 替换为 Bot 完整 ID 中 `@` 与 `:` 之间的账号部分，数据目录和端口由用户选择。
+先按[节点导出与导入](../deploy/README.md#cli-节点导出)取得属于该 Bot 的配置。已有 `nativeBinding` 的 Bot 必须从所属 DSH 连接，不能以独立 CLI 建立身份副本。
+
+以下命令从应用或发行包根目录执行。账号部分、数据路径和空闲端口均须替换；`BOT_ACCOUNT` 是 Matrix ID 中 `@` 与 `:` 之间的部分。
 
 ```sh
 BOT_ACCOUNT='your-bot-account'
@@ -22,33 +23,29 @@ node scripts/dsh-node.mjs status "$BOT_ACCOUNT"
 node scripts/dsh-node.mjs stop "$BOT_ACCOUNT"
 ```
 
-这些命令只管理 DSH 宿主，Matrix 适配进程按部署指南另行启动。自定义 Bot 必须配置空闲的 `DS_GROUP_BRIDGE_PORT`；`finance` / `hr` 是开发演示节点，它们的 `18091` / `18092` 只是预设端口。每个宿主拥有独立的 `<数据目录>/dsh-<Bot账号>/home/`、DS-Bot 数据、原生 Session 与工作区。
+这些命令只管理 DSH 宿主，Matrix 适配进程按部署指南另行启动。`dsh-node.mjs run` 用于服务管理器前台运行。每个独立 Bot 使用自己的 home、配置目录与桥接端口；同一个 Bot 不同时运行两个接入进程。
 
-模型与凭据在 DSH 中管理。CLI 使用 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 指向已有配置，用 `DS_GROUP_MODEL` 选择已有的 `provider/model`。节点复制所选 provider 的原生配置和必要凭据。CLI 未指定时回退到 `~/.dsh` / `desktop`，DSH 图形连接则使用实际宿主的 home/profile。凭据文件模式为 `0600`。
+模型与所需凭据从部署者指定的 `DS_GROUP_DSH_SOURCE_HOME`、`DS_GROUP_DSH_SOURCE_PROFILE` 读取。`DS_GROUP_MODEL='provider/model-id'` 是引用格式示例，不是指定模型。未指定来源时 CLI 回退到用户 home 下的 `.dsh` 和 `desktop` profile，应按实际安装核对。[模型和额度](../模型配置与迁移.md)
 
-停止命令等待对应进程退出及桥接端口关闭。`run` 用于服务管理器的前台运行。图形连接会自动管理每个 Bot 的目录、端口和两类进程，见[安装与连接](../deploy/npm.md)。
+## HTTP 接口
 
-## HTTP 契约
+接口供节点适配进程使用，不是公开互联网聊天入口：
 
-- `GET /api/ds-group-node/status` 返回节点、Bot、原生 Session 和本次进程计数。
-- `GET /api/ds-group-node/models` 返回模型目录元信息。
-- `POST /api/ds-group-node/bots` 接收 `botId/name/role/instructions`，保存外部身份与 DS-Bot 身份的映射。
-- `POST /api/ds-group-node/turns` 接收 `requestId/botId/event/history/files`，设置 `async: true` 后返回 202。同 Bot 串行，重复完整请求返回持久回执，同 ID 不同内容拒绝。重启时尚未结束的请求保留为 `unknown`。
-- `GET /api/ds-group-node/turns/:requestId` 查询持久任务、进度、工具和成果回执。
-- `POST /api/ds-group-node/turns/:requestId/cancel` 取消队列或执行中的任务。
+| 方法与路径 | 用途 |
+|---|---|
+| `GET /api/ds-group-node/status` | 当前节点、Bot、Session 与进程状态 |
+| `GET /api/ds-group-node/models` | 模型目录元信息 |
+| `POST /api/ds-group-node/bots` | 注册外部 Bot 身份与内核身份的映射 |
+| `POST /api/ds-group-node/turns` | 提交 `requestId/botId/event/history/files`；异步模式返回 202 |
+| `GET /api/ds-group-node/turns/:requestId` | 查询任务、工具和成果回执 |
+| `POST /api/ds-group-node/turns/:requestId/cancel` | 取消排队或执行中的工作 |
 
-成功回执包含 `status=completed`、`text`、`sessionId`、`usage`、逐次生成的 `claims`、工具回执及 `artifacts`。模型最终回答遵循 JSON `text/artifacts/delegate` 协议，成果由适配层核验、上传并发送到原会话，跨节点消息通过 Matrix 投递。
+同 Bot 串行。相同完整请求重试复用持久回执，同 ID 不同内容拒绝；不明完成状态保存为 `unknown`。完成回执包含文字、实际文件、Session、用量及工具回执，模型输出协议由 [runtime-rules.mjs](runtime-rules.mjs) 定义。未知状态不构成成功证明。
 
-## 交付目的地
+## 工具与交付
 
-适配层持久保存任务的交付意图、原始人类发起者及原始 Bot。模型可以提出 `delivery`，形如 `{"kind":"direct","recipientId":"原始人类完整ID"}`，采用时由程序校验当前请求并解析真实私聊房间。已经明确指定的交付意图作为权威路线，Bot 间的回传遵循 `returnTo`。
+兼容适配器开放其实际工具目录，默认每任务最多 64 步、15 分钟；这是该适配器的默认值，不是所有原生 Bot 的统一上限。原生图形节点使用自己的内核和 DSH 权限配置。
 
-Core 根据私聊映射和实际成员计算 `conversationKind` 并随消息保存。已知人类私聊中的新任务默认采用私聊交付，显式本轮指令具有更高优先级。当前会话上下文也优先于历史跟进的默认路线，旧发送记录按原回执保存。
+适配层核对成果文件并上传，普通任务回当前会话，明确私聊交付按原始人类发起者解析私聊。Bot 委派保留 `returnTo` 与原始交付关系。发送计划和 Matrix transaction ID 持久化，恢复不依靠重新猜测收件人。
 
-在途控制、回复锚点与已有成品重发由 `src/node-delivery.mjs` 协调。最终发送前重新检查近期指令，解析房间后的版本比较与首次发送计划在本地事务中完成。首次发送发起后整批保持同一目的地与事务编号，恢复使用保存的计划。要求私聊交付时，Bot 间委派和回传采用双方私聊，最终成果由原 Bot 投递到原始人类私聊。
-
-## 模型与工具行为
-
-每个 Bot 使用保存的 DSH 模型选择。初次连接可沿用 DSH 默认模型，也可在连接页选择其他已配置模型。使用默认模型时继承 DSH 的默认思考强度，单次输出默认上限为 4096。配置准备保留所选 provider 的模型目录、覆盖项、协议、端点、headers 和重试设置。凭据和调用额度由部署者提供。详见[配置与限制](../deploy/README.md#configuration)。每次 stream 先按实际 `provider/model` 向核心 `/internal/model/claim` 记账，结束后向 `/internal/model/complete` 回报。核心不可达时不进入 provider。
-
-Bot 初始化抑制自动问候。0.2.0 启用原生文件读写、编辑、终端、后台作业、图片及技能工具，默认每任务最多 64 步、15 分钟，每次模型请求独立记账。远程委派通过结构化回复完成。上下文连续性由 DS-Bot 与 DSH 原生 Session 承担，旧 Bot 的工具提示升级后沿用原身份和历史。自动长期记忆整理及长历史压缩按独立场景验收，provider 的原生 `retryPolicy` 随 DSH 配置继承。核心以 stream 为单位记账，provider 内部 HTTP 重试与完整费用需结合服务商账单核对。迁移和本轮验证见[模型配置与迁移](../模型配置与迁移.md)。
+该适配器的模型 stream 向 Core 申请并回报预算。provider 内部重试与完整费用仍需服务商账单核对；这套 CLI 预算不覆盖原生图形连接的全部调用。

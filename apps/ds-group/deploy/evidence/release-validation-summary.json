@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T03:59:56.689Z",
+  "productVersion": "0.4.0",
+  "dshVersion": "0.2.2-rc.1",
+  "integrationSource": "b3add9b",
+  "fixes": [
+    "1c02640",
+    "135c61f",
+    "5e716dd",
+    "ff76c07",
+    "738f9ab",
+    "f33f21b"
+  ],
+  "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+  "scopedArchiveSha256": "a2fa392e4078adf3bcda57c782035a6f9209c7f24e06c7b583a334770f85aef9",
+  "npmArchiveSha256": "fda5e4d313e66d932e1bd49f171af02af97fd697a975a4fd443574250fc1dfba",
+  "offline": {
+    "status": "passed",
+    "modules": 647,
+    "build": "passed",
+    "originalLogSha256": "ad47a058a7206ee771525145cd137cecbcbcd7642a67c17f19649a36f40e16cb"
+  },
+  "browser": {
+    "files": 12,
+    "namedChecks": 108,
+    "status": "passed"
+  },
+  "ci": {
+    "runId": 42335611379,
+    "headSha": "0294a3f8d380abfaa9283a7a96a7d2f6c5436451",
+    "status": "success",
+    "jobs": 10,
+    "url": "https://github.com/MixGeekers/dscord/actions/runs/42335611379"
+  },
+  "physicalCrossMachine": false,
+  "remoteBusinessModels": "not used by this release slice",
+  "reports": [
+    {
+      "file": "kernel-linux-arm64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "b7d1fb28a91d2d05b66e4a67113876889b3d8534dbb32a6af9e838c1603886b7",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "runtime-linux-arm64.json",
+      "status": "passed",
+      "checks": 17,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "5f8f8c876d0c37196adc859e0e8c44364c9938a92323e2107be67e284c60f0e6",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "native-linux-arm64.json",
+      "status": "passed",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 3,
+      "originalSha256": "9bb6643076117f56b29bc82e0b49147a1651293e6f87109c0cdcf41b517683b5",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "work-linux-arm64.json",
+      "status": "passed",
+      "checks": 6,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 6,
+      "originalSha256": "2a79ac70450349784f2e772695d2ce8d58b24c662bf82457a6d027deccf8ccbd",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "scoped-linux-arm64.json",
+      "status": "passed",
+      "checks": 8,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 10,
+      "originalSha256": "3df62865e875c09328970b6834e1e9154cc5746887095d4772659c2a5ca105e7",
+      "origin": "deployment",
+      "sourceArchiveSha256": "a2fa392e4078adf3bcda57c782035a6f9209c7f24e06c7b583a334770f85aef9",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "deploy-linux-arm64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "42bac83c78e99725f8d8befe045e57a85d19904335b31c7b6e29bc009b807b68",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "platform-linux-arm64.json",
+      "status": "passed",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "4df86eaf95eef68865b50bf9ecee8df55549a3c4eb790fd24e01ad50df5a5929",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "kernel-linux-amd64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "511e7e84c97b841f92a4fa9bf80b00ed767e04a583175994e02d91bb31fd1297",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "runtime-linux-amd64.json",
+      "status": "passed",
+      "checks": 17,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "782003993c832f73b05b50fe3af362eb370a635a898fa57cd8bad58f2a0ed352",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "native-linux-amd64.json",
+      "status": "passed",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 3,
+      "originalSha256": "e3c31ca4894f22f7eb73bbfa245d01b66390b8d089759e158319b6b254d6824a",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "work-linux-amd64.json",
+      "status": "passed",
+      "checks": 6,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 6,
+      "originalSha256": "0b068fdef2d8fc2276c23e0bdec97781dff8c2c7dc6c25972fbade63cbcdfcc5",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "scoped-linux-amd64.json",
+      "status": "passed",
+      "checks": 8,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 10,
+      "originalSha256": "72a6fea3b1f03a28dba819810b57d4790b0820ff8928ccf9cb0a38742855b600",
+      "origin": "deployment",
+      "sourceArchiveSha256": "a2fa392e4078adf3bcda57c782035a6f9209c7f24e06c7b583a334770f85aef9",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "deploy-linux-amd64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "50757e8402c10d4d2dd83de6ff640547e9a1acbaff37336ec2afeec157c1ae55",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "platform-linux-amd64.json",
+      "status": "passed",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "3de8ee4449e5dcd821b9a120f2b209796d4d394b7ad6c19a89747a3790ec35cd",
+      "origin": "deployment",
+      "sourceArchiveSha256": "f863461da7cfb3c8acbd90a0fefd8ec45c6069cb6baabbc0d559a8f636083ce3",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "npm-clean-final.json",
+      "status": "passed",
+      "checks": 7,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "62f1b071609436cb9c2853a8799995e7c73d84d26851aa4a36b3faeeed2715f4",
+      "origin": "deployment",
+      "environment": "macOS ARM64 Node and real Linux ARM64 Synapse"
+    },
+    {
+      "file": "npm-native-ui-final.json",
+      "status": "passed",
+      "checks": 9,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "d77f4f78f7d09c0b7dbb212bb2c9126a520bef4eaddb5d9c30fb6bd73e963ab0",
+      "origin": "deployment",
+      "environment": "macOS ARM64 real DSH web and packaged plugin"
+    },
+    {
+      "file": "peer-runtime-macos-arm64.json",
+      "status": "passed",
+      "checks": 17,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "6cf358ca1c52a42c423209fc1dc13087c53d1b542f9a10518fa0092a30285da3",
+      "origin": "standalone-runtime line",
+      "componentSource": "2f7a936 + 1c02640 + 5e716dd + 135c61f"
+    },
+    {
+      "file": "peer-work-macos-arm64.json",
+      "status": "passed",
+      "checks": 6,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 6,
+      "originalSha256": "addb4de1d08793cef85e6e39cbad62f80882a26cb9401de0059e2a44ade743de",
+      "origin": "standalone-runtime line",
+      "componentSource": "2f7a936 + 1c02640 + 5e716dd + 135c61f"
+    },
+    {
+      "file": "peer-native-macos-arm64.json",
+      "status": "passed",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 3,
+      "originalSha256": "823e7df57f97a361b574db37e8e7fb36060a25bf913ac3528147366003798da1",
+      "origin": "standalone-runtime line",
+      "componentSource": "2f7a936 + 1c02640 + 5e716dd + 135c61f"
+    },
+    {
+      "file": "memory-schema-initial-failure.json",
+      "status": "failed",
+      "checks": 1,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "f1cc803d74f31ab172e09e736463b705886775c56a13cd9d769d6ee3d17087fa",
+      "origin": "standalone-runtime line",
+      "componentSource": "2f7a936 + 1c02640; before 5e716dd"
+    },
+    {
+      "file": "request-header-initial-failure.json",
+      "status": "failed",
+      "checks": 1,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "965b93960f0075b4540bbe4492eea643a67175d933346fcf21bae49b7c498cf9",
+      "origin": "standalone-runtime line",
+      "componentSource": "2f7a936 + 1c02640 + 5e716dd; before 135c61f"
+    },
+    {
+      "file": "peer-native-ui-attempt-01.json",
+      "status": "failed",
+      "checks": 0,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "b47088f700b57f033bfa9d1389a307d8f3e2b6baa0b0b16b9d3bc52a72e3ea84",
+      "origin": "platform-ui line",
+      "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+    },
+    {
+      "file": "peer-native-ui-attempt-02.json",
+      "status": "failed",
+      "checks": 0,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "a579743bd53c41bcd8b5653c0736a7432fbe1aae5560ecb79e7da44a09f44990",
+      "origin": "platform-ui line",
+      "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+    },
+    {
+      "file": "peer-native-ui-attempt-03.json",
+      "status": "failed",
+      "checks": 2,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "09d5917b8f59546a9e367a816fe1c36262c99dbaf46612464fe91e4b4c92d4c0",
+      "origin": "platform-ui line",
+      "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+    },
+    {
+      "file": "peer-native-ui-attempt-04.json",
+      "status": "failed",
+      "checks": 2,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "406a9c7542a2e737c1214fe56927e70ec9969faef778d9bf079da3242819c9d4",
+      "origin": "platform-ui line",
+      "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+    },
+    {
+      "file": "peer-native-ui-attempt-05.json",
+      "status": "failed",
+      "checks": 7,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "acba60fce9781fd4af210ee8058a75833cbe94b29406ad33aafc0521bb7211c5",
+      "origin": "platform-ui line",
+      "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+    },
+    {
+      "file": "peer-native-ui-attempt-06.json",
+      "status": "passed",
+      "checks": 9,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "originalSha256": "0819290be0e7a50c779849b719d46db0fa9fa8a3ebc91a92730970d2c0e04b71",
+      "origin": "platform-ui line",
+      "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+    }
+  ]
+}

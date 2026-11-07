@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-![DSCORD 架构，Web/PWA 连接共享 Core 与 Matrix/Synapse 服务器，两个独立 Bot 节点各自运行 DSH 与 DS-Bot](apps/ds-group/assets/readme/collaboration-hero.png)
+![DSCORD 架构，Web/PWA 连接共享 Core 与 Matrix/Synapse 服务器，独立 Bot 节点运行 DSH 与 DSCord 内核](apps/ds-group/assets/readme/collaboration-hero.png)
 
 <p align="center"><strong>让人和 Bot 在同一个群里工作</strong></p>
 
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="npm Alpha 版本"></a>
+  <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="npm 已发布版本"></a>
   <a href="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="main 分支 CI 状态"></a>
   <a href="apps/ds-group/deploy/README.md"><img src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-0B1B52?style=flat-square" alt="服务器部署支持 Linux amd64 与 arm64"></a>
 </p>
@@ -74,37 +74,13 @@ DSCord 是一个可以自己部署的聊天协作空间。你和伙伴在群里�
 
 ## 开始使用
 
-> DSCord 仍在 Alpha 阶段。想使用账号注册、个人 Bot 和图形连接，请按下面步骤安装当前源码版本。npm 已发布的 `0.2.0-alpha.1` 使用 CLI 连接 Bot。[安装说明](apps/ds-group/deploy/npm.md)
+本指南对应 **DSCord 0.4.0-alpha.1**。Core、网页和 Bot 节点应使用同一发行版本；下载包与 npm 的实际版本以发行页为准。旧版本的安装说明不代表当前功能。[安装与升级](apps/ds-group/deploy/npm.md)
 
-已有服务器地址，可以直接[连接自己的 Bot](#connect-bot)。也可以把下方的[中文提示词复制给 DSH](#dsh-setup)，让它协助完成安装和配置。
-
-<a id="dsh-setup"></a>
-
-### 交给 DSH 配置
-
-Bot 通过 DeepSeek Harness（DSH）运行。复制下面这段话给 DSH，让它帮你完成安装和连接。
-
-```text
-请帮我安装并配置 DSCord：https://github.com/MixGeekers/dscord
-
-先检查我的电脑、DSH 和已有配置。如果已有服务器，帮我连接；
-如果需要新建服务器，确认主机、域名和数据目录后再部署。
-缺少的信息一次问清。
-
-请阅读项目当前版本的安装文档，安装兼容版本和需要的依赖，
-配置服务地址，使用我自己的账号创建或选择 Bot，并通过 DSH 让它上线。
-优先复用已有安装，保留账号、聊天记录和其他项目的数据。
-
-使用我已有且受支持的模型配置。缺少凭据或模型不兼容时告诉我；
-密码和密钥留在本机，模型测试先确认我的调用额度。
-
-完成网页访问、登录和 Bot 连接检查。需要我手动操作时，
-告诉我具体入口；最后给我访问地址、数据保存位置和启动停止方法。
-```
+已有服务器地址，可以直接[连接自己的 Bot](#connect-bot)。下列地址、端口和路径是可替换示例，`localhost` 只指正在使用的那台机器。
 
 ### 自己部署服务器
 
-准备一台 Linux amd64 或 arm64 服务器，安装 Git、Docker Engine 和 Compose v2。
+准备 Linux amd64 或 arm64、Docker Engine 和 Compose v2。以下从源码构建；部署发行版本时使用对应的源码包或 tag。
 
 ```sh
 git clone https://github.com/MixGeekers/dscord.git
@@ -112,27 +88,40 @@ cd dscord/apps/ds-group
 cp deploy/.env.example deploy/.env
 ```
 
-首次启动前，编辑 `deploy/.env`，填写自己的 `DS_GROUP_SERVER_NAME` 和公开访问地址。仅在本机试用时可以保留默认值；对外部署的 HTTPS 配置见 [服务器指南](apps/ds-group/deploy/README.md)。
+首次启动前编辑 `deploy/.env`，决定自己的 `DS_GROUP_SERVER_NAME` 和公开地址。身份域在生成 Matrix 账号后必须保留；本机试用可以使用模板默认值。对外 HTTPS 部署见[服务器指南](apps/ds-group/deploy/README.md)。
 
 ```sh
 docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
 ```
 
-在服务器本机打开 [localhost:18100](http://localhost:18100)，或从其他设备访问你配置的公开地址。注册账号，再到“我的 Bot”创建第一个 Bot。
+在服务器本机打开 [localhost:18100](http://localhost:18100)，或访问已配置的公开地址，注册账号。Bot 在自己的节点创建，随后加入服务器；网页“我的 Bot”负责管理已归属的成员。
 
 <a id="connect-bot"></a>
 
 ### 连接自己的 Bot
 
-先在服务器网页注册或登录自己的账号，到“我的 Bot”创建或选择 Bot。
+1. 准备兼容 DSH。当前固定 SDK 基线为 `@deepseek-ai/dsh@0.2.2-rc.1`；源码与 CLI 的 Node 声明为 `>=24.19.0 <25`。这是[包声明](apps/ds-group/package.json)与[宿主契约](apps/ds-group/dsh-connect/KERNEL.md)的支持范围，不是对其他宿主版本的兼容承诺。
+2. 按[安装说明](apps/ds-group/deploy/npm.md#安装)取得或构建 0.4.0-alpha.1 的 `.tgz`，在 DSH 的 `Plugins → Add plugin` 中安装并启用 `dscord`。在 DSH 配置自己的业务模型和凭据。
+3. 打开 DSH 左侧 **DSCord**，用服务器地址和自己的账号登录。在“此节点的 Bot”中显式创建 Bot，选择已配置的模型、填写职责；也可选择已有 Bot。
+4. 点击“加入服务器”。随后可在网页“我的 Bot”中私聊、查看设置，或将自己的 Bot 邀请进群。网页添加已有 Bot 时，节点须登录同一账号并保持连接。
 
-1. 在 Bot 所在机器安装 Node `>=24.19.0 <25` 和 DSH `0.2.1-rc.5`，在 DSH 中准备好要使用的模型。[模型设置](apps/ds-group/deploy/README.md#configuration)
-2. 按[构建安装包的步骤](apps/ds-group/deploy/npm.md#安装)生成 `.tgz` 文件，在 DSH 的 `Plugins → Add plugin` 中安装并启用 `dscord`。
-3. 打开 DSH 左侧的 **DSCord**，填写服务器地址并登录，为自己的 Bot 选择 DSH 中的模型，保存后点击“上线”。
+业务模型没有指定的服务商或型号，使用 DSH 能提供且适合所需工具的模型。自然参与另有可选的判断服务，默认点名回应不需要该服务；当前适配范围见[模型与参与设置](apps/ds-group/模型配置与迁移.md)。
 
-上线后，就可以私聊它，或把它邀请到群里。Bot 所在机器需要能访问服务器的 Core 和 Matrix 地址。
+Bot 所在机器必须能访问 Core 和 Matrix 的公开地址。已有 `ds-bot` 团队升级前先停止旧插件，再由 DSCord 在原数据目录接管；不会自动合并两套独立历史。节点停止或网络断开时，网页不能替它执行任务。
 
-已发布的 npm Alpha 可通过 `npm install --global dscord@alpha` 安装，使用 CLI 接入 Bot。完整步骤见 [npm 安装说明](apps/ds-group/deploy/npm.md)。
+<a id="dsh-setup"></a>
+
+### 让 DSH 协助配置
+
+可以把下面的说明交给自己的 DSH。实际服务器、目录、账号和模型由你提供。
+
+```text
+请按 https://github.com/MixGeekers/dscord 的目标发行版本安装指南协助配置 DSCord。
+先检查已有安装和数据，确认是连接现有服务器还是部署新服务器；使用对应版本，保留已有账号、会话和其他项目的数据。
+使用我提供的服务器地址、账号、数据目录和 DSH 模型配置。缺少信息时先列出需要补充的内容。
+凭据保留在适当的私有配置中，不写进公开文件。安装检查先验证服务、登录和节点连接；会产生费用的模型测试由我明确安排。
+完成后说明访问入口、数据位置、启动停止和备份方法。
+```
 
 <a id="architecture"></a>
 
@@ -144,7 +133,7 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach
 | --- | --- |
 | **Web / PWA** | 聊天、文件、通知、账号与 Bot 管理。 |
 | **DSCord Core + Matrix / Synapse** | 成员、房间、消息、附件和节点连接。 |
-| **DSH + DS-Bot** | 每个 Bot 的会话、工具执行、任务协作和成果回传。 |
+| **DSH + DSCord 自有内核** | 每个 Bot 的会话、工具执行、任务协作和成果回传。 |
 
 同一个 Bot 按顺序处理任务，不同 Bot 可以并行工作。更多组件关系见 [框架设计](架构与设计/DS-Group首个框架与实施路线.md)。
 
@@ -159,7 +148,7 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach
 | 配置附件存储 | [存储指南](apps/ds-group/deploy/storage/README.md) |
 | 了解功能和当前限制 | [应用说明](apps/ds-group/README.md) |
 | 参与界面开发 | [前端设计](apps/ds-group/前端架构与设计规范.md) |
-| 查看开发进展 | [实施记录](apps/ds-group/实施记录.md) · [发行记录](apps/ds-group/发行验证.md) |
+| 配置业务模型与参与方式 | [模型和参与设置](apps/ds-group/模型配置与迁移.md) |
 | 使用 Logo 和项目素材 | [品牌与素材](apps/ds-group/assets/目录.md) |
 
 ### 参与开发
@@ -200,3 +189,7 @@ npm run build
 ---
 
 基于 Matrix / Synapse、DeepSeek Harness、DS-Bot、React 与 Lucide 构建。第三方来源与许可随组件记录，DS-Bot 的来源及声明见 [UPSTREAM](apps/ds-group/vendor/ds-bot/UPSTREAM.json)、[LICENSE](apps/ds-group/vendor/ds-bot/LICENSE) 与 [NOTICE](apps/ds-group/vendor/ds-bot/NOTICE)。
+
+## 许可证
+
+DSCord 产品的自有代码和文档位于 `apps/ds-group/`，采用 Apache-2.0。随产品分发的第三方组件保留各自的许可证与声明。[产品许可证](apps/ds-group/LICENSE) · [版权与第三方声明](apps/ds-group/NOTICE)

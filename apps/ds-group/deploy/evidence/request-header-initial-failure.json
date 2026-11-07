@@ -1,0 +1,77 @@
+{
+  "checkedAt": "2026-11-07T03:33:32.977Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "level": "real-dsh-native-tools-scripted-local-provider",
+  "modelCalls": 0,
+  "scriptedProviderCalls": 0,
+  "sourceHashes": {
+    "dsh-plugin/runtime.mjs": "6999412ca8539d8a837cce04e83cab2d6b2f49fcdf77e048272b09db0faa23b3",
+    "dsh-plugin/runtime-rules.mjs": "1657aa77114ca3a6268bad0e6d071e7bdfae045580a8b9b7ea58358c4211588b",
+    "dsh-plugin/work-files.mjs": "62a350cf088970ab540079b1722b7ecf0e5f6d0fb17f9b0a20f01b9250d95a17",
+    "scripts/runtime-work-smoke.mjs": "7bd125d5aeb7d776c27d02676405b7e263c89781176c6459661f04ffd1074199"
+  },
+  "checks": [
+    "asynchronousAdmissionAndDuplicate"
+  ],
+  "status": "failed",
+  "receipt": {
+    "requestId": "file-work-native-smoke",
+    "botId": "@finance:local-smoke.test",
+    "inputHash": "b5068f673274b4cef7337106e27f561926e36a7a6a3e2eed2c6aa8421e4cd4b1",
+    "eventId": "$work",
+    "status": "failed",
+    "stage": "failed",
+    "model": "local-fixture/team/chat",
+    "modelConfig": {
+      "model": "local-fixture/team/chat",
+      "maxTokens": 4096
+    },
+    "summary": "MODEL_TURN_FAILED",
+    "claims": [],
+    "toolCalls": 0,
+    "toolReceipts": [],
+    "artifacts": [],
+    "acceptedAt": "2026-11-07T03:33:35.997Z",
+    "startedAt": "2026-11-07T03:33:36.014Z",
+    "updatedAt": "2026-11-07T03:33:36.060Z",
+    "workdir": "<synthetic-path>/task",
+    "files": [
+      {
+        "name": "costs.csv",
+        "path": "<synthetic-path>/costs.csv",
+        "mimeType": "text/csv",
+        "size": 30,
+        "sha256": "2bf74f3e604b17c04aa05ec672c9521fa1fd02228d756261dae1fd20d530fea1",
+        "id": "input-costs"
+      }
+    ],
+    "sessionId": "session-82f1d51a-0ba8-4806-93dd-7e33d4dbf882",
+    "errorCode": "MODEL_TURN_FAILED",
+    "usage": {
+      "calls": 0
+    },
+    "finishedAt": "2026-11-07T03:33:36.060Z",
+    "duplicate": false
+  },
+  "error": "MODEL_TURN_FAILED\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n",
+  "diagnosticDirectory": "<synthetic-path>/ds-group-work-smoke-jJAkHi",
+  "model": "local-fixture/team/chat",
+  "ledger": {
+    "limit": null,
+    "used": 0,
+    "remaining": null,
+    "maxTokens": 8192,
+    "allowedModels": null,
+    "models": [],
+    "model": null,
+    "claims": []
+  },
+  "completedAt": "2026-11-07T03:33:36.605Z",
+  "publicEvidence": {
+    "originalSha256": "965b93960f0075b4540bbe4492eea643a67175d933346fcf21bae49b7c498cf9",
+    "origin": "standalone-runtime line",
+    "componentSource": "2f7a936 + 1c02640 + 5e716dd; before 135c61f"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "level": "shipped-official-sdk-services-and-real-cordis-event-bus",
+  "checkedAt": "2026-11-07T05:01:39.100Z",
+  "environment": "Linux ARM64 native Docker",
+  "sdk": {
+    "platform": "linux",
+    "arch": "arm64",
+    "node": "v24.19.0",
+    "dsh": "0.2.2-rc.1",
+    "testkit": "MODULE_NOT_FOUND",
+    "tokenMeter": "<synthetic-path>/estimate.js"
+  },
+  "checks": [
+    "knowledge-only context starts no CLI and reaches the next real input as labelled context",
+    "memory snapshots never answer an open human question; Bot input keeps its own identity",
+    "the same native CLI route receives only the latest projected snapshot and fresh replay omits retired frames",
+    "owned kernel starts with source-aware memory; reads do not create a Chief or call a model",
+    "structured native inputs preserve equal-name accounts across rooms and inject background without waking a turn",
+    "native ingress coalesces retries, rejects changed bodies and keeps a receipt across restart",
+    "legacy inflight is retained once, never replayed at adoption or later restart",
+    "an explicit legacy owner claim persists once and cannot be overwritten by another account",
+    "Bot creation request retries survive a lost receipt and restart without a duplicate Session",
+    "a legacy owner route refuses startup before listeners, files or work are installed",
+    "the home lease outlives parallel native module cleanup",
+    "the actual SDK identified claimed messages produce the first-step snapshot before their user/message event",
+    "the official projection/surface removes 53 old knowledge frames without rewriting source events",
+    "retirement is idempotent and never replaces human, tool or Bot relay nodes",
+    "native cold restore needs no custom message interpreter and retains one current knowledge frame",
+    "idle maintenance retains the latest frame before the next model step replaces it",
+    "retirement preserves an official compaction surface and removes only its following old frame",
+    "dispatch omits only empty retired nodes and preserves every other empty or nonempty message",
+    "snapshot rewrites precede existing admission and later native observers on the official event bus",
+    "native memory installs with DSH value schemas and enforces every basis reference field",
+    "a background flush leaves reserved-only sources unreviewed and returns without a model loop",
+    "review input and the actual contacts tool omit a stranger and aliases known only to another Bot"
+  ],
+  "command": "npm run test:kernel-host",
+  "remoteModelCalls": 0,
+  "scriptedProviderCalls": 0,
+  "publicEvidence": {
+    "productBase": "9898c624431f76123f6dc03346503af8e65ab744",
+    "patches": [
+      "9770272",
+      "a542444",
+      "69caeef"
+    ],
+    "gates": [
+      "9565006",
+      "9e1dda6"
+    ],
+    "sourceArchiveSha256": "8525539b71a9b22220a0cee31f32183fe0cf4f057a632fdbb8688d35df4660fd",
+    "originalHostLogSha256": "ec3dd773c75ba9b2e407b5cc270d3a717dec6a6ffa2e920026fe92d50d0a92e5",
+    "originalEnvironmentSha256": "1f26c00a3fbc3681da0ee86cde83c971cdf846e1f7a22a65e57e7f425cfc2c76"
+  }
+}

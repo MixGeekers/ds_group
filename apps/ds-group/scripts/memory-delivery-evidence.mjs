@@ -3,7 +3,6 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { packageRoot } from '../src/paths.mjs';
-import { MODEL } from './memory-host.mjs';
 
 if (!process.argv[2]) throw new Error('Pass the completed memory-delivery run directory');
 const directory = resolve(packageRoot, process.argv[2]);
@@ -42,7 +41,7 @@ const published = {
       for (const [key, value] of Object.entries(row.usage || {})) if (typeof value === 'number') sum[key] = (sum[key] || 0) + value;
       return sum;
     }, {}), usageRecords: ends.filter(row => row.usage).length, embedding: report.embedding, costComplete: false },
-  accountingChecks: { onlyRequestedModel: models.length === 1 && models[0] === MODEL, noUnfinishedStreams: unfinished.length === 0 },
+  accountingChecks: { onlyRequestedModel: models.length === 1 && models[0] === report.model, noUnfinishedStreams: unfinished.length === 0 },
 };
 if (!Object.values(published.accountingChecks).every(Boolean)) published.status = 'failed';
 const destination = join(packageRoot, 'artifacts/memory');

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 2,
+  "checkedAt": "2026-11-07T03:34:43.959Z",
+  "status": "failed",
+  "level": "packaged-plugin-in-real-dsh-web-ui-with-isolated-local-provider",
+  "expectedDshVersion": "0.2.2-rc.1",
+  "remoteModelCalls": 0,
+  "localModelCalls": 0,
+  "checks": [
+    "archiveLoadsWithPinnedDshAndPrivateDependencies",
+    "readingStateDoesNotCreateChiefOrOtherBots"
+  ],
+  "browserErrors": [],
+  "screenshots": [
+    "<synthetic-path>/failure.png"
+  ],
+  "dshVersion": "0.2.2-rc.1",
+  "package": {
+    "version": "0.4.0-alpha.1",
+    "archive": "<synthetic-path>/dscord-0.4.0-alpha.1.tgz",
+    "sha256": "0f034db5f2e8c634a35595c071931e338e0369e99075be06095cb25e00fe5d7b"
+  },
+  "initial": {
+    "nativeMode": true,
+    "nativeBundled": true,
+    "runtime": {
+      "available": true,
+      "mode": "native",
+      "runtime": {
+        "id": "dscord-kernel",
+        "version": "0.4.0",
+        "upstreamVersion": "0.3.1",
+        "apiVersion": 1,
+        "api": "/api/dscord/kernel",
+        "instanceId": "ac4e7652-8fcc-4641-ab5b-7aeeab491636",
+        "status": "running",
+        "home": "<synthetic-path>/bot",
+        "dataVersion": 1,
+        "hostCompatibility": {
+          "minimum": "0.2.2-rc.1",
+          "sessionSource": "native-agent-inbox"
+        },
+        "memoryBackend": "source-aware-v1",
+        "adoption": {
+          "at": "2026-11-07T03:34:46.093Z",
+          "from": "new-home",
+          "snapshot": null,
+          "sha256": null,
+          "inflightSnapshot": null,
+          "botIds": [],
+          "sessionPolicy": "preserve-native-identities",
+          "tasksReplayed": false,
+          "prepared": true
+        },
+        "migrationWork": {
+          "turns": [],
+          "queued": []
+        }
+      }
+    },
+    "lastError": null
+  },
+  "runtime": {
+    "id": "dscord-kernel",
+    "version": "0.4.0",
+    "upstreamVersion": "0.3.1",
+    "api": "/api/dscord/kernel"
+  },
+  "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'DSCord', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"_button_1ulci_2 _outline_1ulci_56 _md_1ulci_23\">DSCord</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div aria-hidden=\"true\" class=\"_mask_14mp3_18\"></div> from <div role=\"presentation\" class=\"_root_14mp3_6\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div aria-hidden=\"true\" class=\"_mask_14mp3_18\"></div> from <div role=\"presentation\" class=\"_root_14mp3_6\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div aria-hidden=\"true\" class=\"_mask_14mp3_18\"></div> from <div role=\"presentation\" class=\"_root_14mp3_6\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+  "errorStack": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'DSCord', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"_button_1ulci_2 _outline_1ulci_56 _md_1ulci_23\">DSCord</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div aria-hidden=\"true\" class=\"_mask_14mp3_18\"></div> from <div role=\"presentation\" class=\"_root_14mp3_6\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div aria-hidden=\"true\" class=\"_mask_14mp3_18\"></div> from <div role=\"presentation\" class=\"_root_14mp3_6\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div aria-hidden=\"true\" class=\"_mask_14mp3_18\"></div> from <div role=\"presentation\" class=\"_root_14mp3_6\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at /Users/<local-user>/.codex/worktrees/dscord-kernel-ui/apps/ds-group/scripts/native-ui-smoke.mjs:136:67",
+  "diagnosticDirectory": "<synthetic-path>/dscord-native-ui-7XRDDh",
+  "publicEvidence": {
+    "originalSha256": "09d5917b8f59546a9e367a816fe1c36262c99dbaf46612464fe91e4b4c92d4c0",
+    "origin": "platform-ui line",
+    "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+  }
+}

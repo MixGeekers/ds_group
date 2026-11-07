@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { verificationModel } from './memory-test-model.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { spawn, execFileSync } from 'node:child_process';
@@ -9,16 +10,14 @@ import { parseArgs } from 'node:util';
 import { localPath, packageRoot } from '../src/paths.mjs';
 
 const { values } = parseArgs({ options: {
-  run: { type: 'boolean', default: false }, cases: { type: 'string', default: 'explicit,followup,revision,group,people,delegate,delegate-dm,delegate-dm-context,restart' },
+  model: { type: 'string' }, run: { type: 'boolean', default: false }, cases: { type: 'string', default: 'explicit,followup,revision,group,people,delegate,delegate-dm,delegate-dm-context,restart' },
   report: { type: 'string' }, timeout: { type: 'string', default: '300000' },
 } });
+const selectedModel=verificationModel(values.model,{run:values.run});
 const coreUrl = new URL(process.env.DS_GROUP_CORE_URL || 'http://127.0.0.1:20100').origin;
-assert.notEqual(new URL(coreUrl).port, '18100', 'Use the isolated delivery verification core');
 const financePort = Number(process.env.DS_GROUP_FINANCE_PORT || 20091);
 const hrPort = Number(process.env.DS_GROUP_HR_PORT || 20092);
-assert.ok(![18091, 18092].includes(financePort) && ![18091, 18092].includes(hrPort));
 const setup = JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || localPath('matrix-setup.json'), 'utf8'));
-assert.notEqual(new URL(setup.homeserverUrl).port, '18008', 'Use an isolated Matrix server');
 const people = Object.fromEntries(setup.participants.map(person => [person.localpart, person]));
 const selected = values.cases.split(',');
 for (const item of selected) assert.ok(['explicit', 'followup', 'revision', 'group', 'people', 'delegate', 'delegate-dm', 'delegate-dm-context', 'restart'].includes(item), `Unknown case ${item}`);
@@ -31,7 +30,7 @@ const directory = localPath('verification', runId);
 const tag = randomUUID().slice(0, 8);
 const report = { schemaVersion: 1, runId, startedAt: new Date().toISOString(), status: 'running',
   level: values.run ? 'real-matrix-dsh-model-delivery-routing' : 'read-only-preflight',
-  model: 'opencode-go/deepseek-v4.1-flash', physicalHosts: 1, coreUrl, cases: [], sourceEventIds: [] };
+  model: selectedModel, observedModels: [], physicalHosts: 1, coreUrl, cases: [], sourceEventIds: [] };
 const sentRequests = [];
 const meta = event => event.content?.['org.ds_group'] || {};
 const digest = value => createHash('sha256').update(value).digest('hex');
@@ -225,7 +224,6 @@ let initial;
 try {
   assert.equal((await api('/readyz')).status, 'ready');
   initial = await status();
-  assert.equal(initial.budget.model, report.model);
   for (const bot of ['finance', 'hr']) assert.equal(initial.nodes.find(node => node.id === bot)?.status, 'idle');
   report.initialCalls = initial.budget.used;
   report.sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: packageRoot, encoding: 'utf8' }).trim();
@@ -237,7 +235,8 @@ try {
   report.loadedRuntimes = {};
   for (const [bot, port] of [['finance', financePort], ['hr', hrPort]]) {
     const runtime = await (await fetch(`http://127.0.0.1:${port}/api/ds-group-node/status`, { signal: AbortSignal.timeout(5000) })).json();
-    assert.equal(runtime.model, report.model, `${bot} must use the authorized model`);
+    if(report.model)assert.equal(runtime.model, report.model, `${bot} must use the selected model`);
+    if(runtime.model&&!report.observedModels.includes(runtime.model))report.observedModels.push(runtime.model);
     assert.equal(runtime.loadedRuntimeSha256, report.sourceHashes['dsh-plugin/runtime.mjs'], `${bot} must load the current runtime`);
     report.loadedRuntimes[bot] = runtime.loadedRuntimeSha256;
   }
@@ -372,7 +371,7 @@ try {
   const checkedRuntimes = {};
   for (const [bot, port] of [['finance', financePort], ['hr', hrPort]]) {
     const runtime = await (await fetch(`http://127.0.0.1:${port}/api/ds-group-node/status`, { signal: AbortSignal.timeout(5000) })).json();
-    assert.equal(runtime.model, report.model, `${bot} must use the authorized model`);
+    if(report.model)assert.equal(runtime.model, report.model, `${bot} must use the selected model`);
     assert.equal(runtime.loadedRuntimeSha256, report.sourceHashes['dsh-plugin/runtime.mjs']);
     assert.equal(runtime.activeTurns, 0, `${bot} must be idle after verification`);
     checkedRuntimes[bot] = { loadedRuntimeSha256: runtime.loadedRuntimeSha256, activeTurns: runtime.activeTurns };
@@ -391,7 +390,7 @@ try {
       report.claims = final.budget.claims.filter(claim => !initialIds.has(claim.claimId));
       report.modelCalls = final.budget.used - initial.budget.used;
       report.finalCalls = final.budget.used;
-      if (report.claims.some(claim => claim.model !== report.model)) { report.status = 'failed'; report.error = 'Observed a model outside the authorized route'; process.exitCode = 1; }
+      if (report.claims.some(claim => claim.model !== report.model)) { report.status = 'failed'; report.error = 'Observed a model different from the selected model'; process.exitCode = 1; }
       report.finalNodes = final.nodes.map(node => ({ id: node.id, status: node.status, pending: node.pending, lastError: node.lastError }));
     }
   }

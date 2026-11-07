@@ -21,8 +21,10 @@ import { nodeBundle } from '../scripts/server-admin.mjs';
 import { Governance, serverOf, roomAllows } from './governance.mjs';
 import { CollaborationService } from './collaboration.mjs';
 import { RoomMedia } from './room-media.mjs';
+import { AttachmentAccess } from './attachment-access.mjs';
 import { BotWorkService } from './bot-work.mjs';
 import { readJsonBody } from './http-json.mjs';
+import { KernelControl, publicKernelSummary } from './kernel-control.mjs';
 export { readJsonBody } from './http-json.mjs';
 
 const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
@@ -34,6 +36,29 @@ function bearer(request) {
   const authorization = request.headers.authorization || '';
   if (!authorization.startsWith('Bearer ')) throw Object.assign(new Error('Please sign in'), { status: 401 });
   return authorization.slice(7);
+}
+
+async function validateMessageReferences(client, roomId, input) {
+  const references = [input.threadRootId, input.replyTo].filter(id => id !== undefined);
+  if ([...references, input.originThreadRootId].filter(id => id !== undefined)
+    .some(id => typeof id !== 'string' || !id || id.length > 1024 || id.includes('\0'))) {
+    throw Object.assign(new Error('Message references must be non-empty event IDs'), { status: 400, code: 'INVALID_MESSAGE_REFERENCE' });
+  }
+  const events = new Map(await Promise.all([...new Set(references)].map(async id => {
+    let event;
+    try { event = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/event/${encodeURIComponent(id)}`); }
+    catch (error) {
+      if (![403, 404].includes(error.status)) throw error;
+      throw Object.assign(new Error('The message reference is unavailable in this conversation'), { status: 400, code: 'MESSAGE_REFERENCE_UNAVAILABLE' });
+    }
+    if (event.event_id !== id || event.room_id !== roomId || event.type !== 'm.room.message') {
+      throw Object.assign(new Error('Message references must belong to this conversation'), { status: 400, code: 'INVALID_MESSAGE_REFERENCE' });
+    }
+    return [id, event];
+  })));
+  if (input.threadRootId && events.get(input.threadRootId)?.content?.['m.relates_to']?.rel_type) {
+    throw Object.assign(new Error('Choose the original thread root rather than a related event'), { status: 400, code: 'INVALID_THREAD_ROOT' });
+  }
 }
 
 function requestClientIp(request, trustProxy) {
@@ -95,6 +120,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   });
   const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES,
     verifiedDownloadMaxBytes: config.verifiedDownloadMaxBytes, verifiedDownloadConcurrency: config.verifiedDownloadConcurrency });
+  const attachmentAccess = new AttachmentAccess({ media, roomMedia, accounts });
   const chat = new DatabaseSync(path.join(dataRoot, 'chat.sqlite'));
   chat.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS direct_rooms (pair_key TEXT PRIMARY KEY, room_id TEXT NOT NULL, participants_json TEXT NOT NULL)');
   chat.exec(`CREATE TABLE IF NOT EXISTS group_requests (request_key TEXT PRIMARY KEY, input_hash TEXT NOT NULL, status TEXT NOT NULL, room_id TEXT);
@@ -111,6 +137,8 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   }) : null;
   if (push) await push.start();
   const nodes = new Map();
+  const kernelControl = await new KernelControl({ dataRoot, accounts, node: botId => nodes.get(botId),
+    rpcTimeoutMs: config.kernelRpcTimeoutMs, leaseMs: config.kernelLeaseMs }).initialize();
   const startedAt = new Date().toISOString();
   let directory = await collaboration.directory();
   directorySetup.participants = directory;
@@ -165,7 +193,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     const key = JSON.stringify([userId, roomId, input.transactionId]);
     const identity = { body: input.body, attachments: attachments.map(file => file.id), to: [...new Set(input.to)].sort(),
       replyMention: input.replyMention !== false };
-    for (const field of ['replyTo', 'taskId', 'returnTo', 'kind', 'hop', 'originSenderId', 'originRoomId', 'originEventId']) {
+    for (const field of ['replyTo', 'threadRootId', 'taskId', 'returnTo', 'kind', 'hop', 'originSenderId', 'originRoomId', 'originEventId', 'originThreadRootId']) {
       if (input[field] !== undefined) identity[field] = input[field];
     }
     const inputHash = createHash('sha256').update(JSON.stringify(identity)).digest('hex');
@@ -174,16 +202,21 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     if ((previous && previous.input_hash !== inputHash) || (active && active.inputHash !== inputHash)) {
       throw Object.assign(new Error('This message transaction belongs to different content'), { status: 409 });
     }
-    if (previous?.event_id) return { event_id: previous.event_id };
+    if (previous?.event_id) {
+      attachmentAccess.record(JSON.parse(previous.payload_json).attachments || [], roomId, previous.event_id);
+      return { event_id: previous.event_id };
+    }
     if (active) return active.promise;
     const tokenHash = createHash('sha256').update(token).digest('hex');
     if (previous && previous.token_hash !== tokenHash) {
       throw Object.assign(new Error('Check the conversation for this pending message before sending it from another login'), { status: 409 });
     }
     const promise = (async () => {
+      for (const attachment of attachments) await attachmentAccess.local({ client, userId, id: attachment.id });
       let payload;
       if (previous) payload = JSON.parse(previous.payload_json);
       else {
+        await validateMessageReferences(client, roomId, input);
         const direct = chat.prepare('SELECT participants_json FROM direct_rooms WHERE room_id=?').get(roomId);
         const directIds = direct ? JSON.parse(direct.participants_json) : [];
         const conversationKind = directIds.length === 2 && members.length === 2 && directIds.every(id => members.includes(id)) ? 'direct' : 'group';
@@ -194,6 +227,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       }
       const receipt = await client.send(roomId, payload.body, payload);
       chat.prepare('UPDATE message_requests SET event_id=? WHERE request_key=?').run(receipt.event_id, key);
+      attachmentAccess.record(attachments, roomId, receipt.event_id);
       return receipt;
     })();
     sendingMessages.set(key, { inputHash, promise });
@@ -203,8 +237,10 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   function nodeSnapshot() {
     return accounts.publicParticipants().filter(p => p.kind === 'bot').map(participant => {
       const active = nodes.get(participant.id);
-      if (!active) return { id: participant.localpart, botId: participant.id, name: participant.name, status: 'offline', engine: 'DS-Bot 0.2.7' };
-      return { ...active, status: Date.now() - active.heartbeatAt > 20000 ? 'offline' : active.status };
+      if (!active) return { id: participant.localpart, botId: participant.id, name: participant.name, status: 'offline', engine: 'DSCord node' };
+      // Owner-only kernel settings and memory counts stay out of public status.
+      const { kernel, kernelControl: control, ...visible } = active;
+      return { ...visible, status: Date.now() - active.heartbeatAt > 20000 ? 'offline' : active.status };
     });
   }
   async function dispatch(request, response) {
@@ -305,7 +341,16 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       if (!bot || bot.kind !== 'bot' || bot.ownerId !== user.id) return send(403, { error: 'Choose one of your own Bots' });
       const secret = await nodeCredentials.issue(bot);
       const bundle = nodeBundle(setup, { ...config, nodeSecret: secret }, bot.localpart);
+      const nativeBinding = nativeBots.bindings(user.id).find(binding => binding.botId === bot.id);
+      if (nativeBots.isNative(bot.id) && nativeBinding) {
+        bundle.coreConfig.executionMode = 'native';
+        bundle.coreConfig.nativeBinding = nativeBinding;
+        bundle.setup.participants.find(person => person.id === bot.id).nativeBinding = nativeBinding;
+      }
       return send(200, { bundle });
+    }
+    if (kernelControl.handles(url.pathname) && url.pathname.startsWith('/api/')) {
+      return kernelControl.handle({ request, response, url, send, userId: request.dsIdentity.user_id, readJsonBody });
     }
     if (botWork.handles(url.pathname)) return botWork.handle({ request, url, send });
     if (tasks.handles(url.pathname)) return tasks.handle({ request, url, send });
@@ -319,13 +364,13 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
       if (serverOf(userId) !== setup.serverName || accounts.row(userId)?.status !== 'active') return send(403, { error: 'An active home identity is required' });
-      const proven = await roomMedia.prove({ client, userId, roomId: decodeURIComponent(roomAttachment[1]),
+      const proven = await attachmentAccess.prove({ client, userId, roomId: decodeURIComponent(roomAttachment[1]),
         attachmentId: decodeURIComponent(roomAttachment[2]), eventId: url.searchParams.get('eventId') });
       if (roomAttachment[3]) return send(200, proven);
       return media.download({ verifiedAttachment: proven.attachment, client, request, response, asDownload: url.searchParams.get('download') === '1',
         authorize: async () => {
           if (accounts.row(userId)?.status !== 'active') throw Object.assign(new Error('An active home identity is required'), { status: 403 });
-          await roomMedia.prove({ client, userId, roomId: proven.proof.roomId, eventId: proven.proof.eventId, attachmentId: proven.attachment.id });
+          await attachmentAccess.prove({ client, userId, roomId: proven.proof.roomId, eventId: proven.proof.eventId, attachmentId: proven.attachment.id });
         } });
     }
     if (url.pathname === '/api/attachments' || url.pathname.startsWith('/api/attachments/')) {
@@ -344,8 +389,12 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const attachment = url.pathname.match(/^\/api\/attachments\/([^/]+)(\/metadata)?$/);
       if (request.method === 'GET' && attachment) {
         const id = decodeURIComponent(attachment[1]);
-        if (attachment[2]) return send(200, { attachment: media.get(id) });
-        return media.download({ id, client, request, response, asDownload: url.searchParams.get('download') === '1' });
+        const source = url.searchParams.has('roomId') || url.searchParams.has('eventId')
+          ? { roomId: url.searchParams.get('roomId'), eventId: url.searchParams.get('eventId') } : undefined;
+        const authorized = await attachmentAccess.local({ client, userId, id, source });
+        if (attachment[2]) return send(200, { attachment: authorized });
+        return media.download({ verifiedAttachment: authorized, client, request, response, asDownload: url.searchParams.get('download') === '1',
+          authorize: () => attachmentAccess.local({ client, userId, id, source }) });
       }
       return send(404, { error: 'Unknown attachment endpoint' });
     }
@@ -462,6 +511,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const result = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/context/${encodeURIComponent(eventId)}?limit=30`);
       const events = [...(result.events_before || []).toReversed(), ...(result.event ? [result.event] : []), ...(result.events_after || [])]
         .map(event => ({ ...event, room_id: roomId }));
+      attachmentAccess.observe(events, roomId);
       chatFeatures.recordEvents(userId, events);
       return send(200, { eventId, events });
     }
@@ -473,6 +523,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         const { user_id: userId } = await client.whoami();
         const events = (await client.timeline(roomId, Math.min(Number(url.searchParams.get('limit')) || 100, 200)))
           .map(event => ({ ...event, room_id: roomId }));
+        attachmentAccess.observe(events, roomId);
         chatFeatures.recordEvents(userId, events);
         return send(200, { events });
       }
@@ -491,6 +542,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     }
     if (url.pathname.startsWith('/internal/')) {
       const scope = authorizeNode(request);
+      if (kernelControl.handles(url.pathname)) return kernelControl.handle({ request, response, url, send, scope, readJsonBody });
       const input = await readJsonBody(request);
       if (request.method === 'POST' && url.pathname === '/internal/model/claim') {
         requireNodeScope(scope, { nodeId: input.nodeId });
@@ -500,15 +552,19 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       if (request.method === 'POST' && url.pathname === '/internal/nodes/heartbeat') {
         requireNodeScope(scope, { botId: input.botId, nodeId: input.id });
         const participant = accounts.publicParticipants().find(p => p.id === input.botId && p.kind === 'bot');
-        if (!participant || typeof input.id !== 'string' || !input.id) return send(400, { error: 'Unknown Bot node' });
+        if (!participant || typeof input.id !== 'string' || !input.id || input.id.length > 200 ||
+          input.id.includes('\0') || typeof input.runtimeId !== 'string' || !input.runtimeId || input.runtimeId.length > 200 || input.runtimeId.includes('\0') ||
+          !['idle', 'thinking', 'error', 'offline'].includes(input.status)) return send(400, { error: 'Invalid Bot node heartbeat' });
         const current = nodes.get(input.botId);
-        if (current && current.status !== 'offline' && current.runtimeId !== input.runtimeId && Date.now() - current.heartbeatAt < 20000) return send(409, { error: 'Node already has an active runtime' });
+        if (current && current.status !== 'offline' && (current.id !== input.id || current.runtimeId !== input.runtimeId) && Date.now() - current.heartbeatAt < 20000) return send(409, { error: 'Node already has an active runtime' });
         const node = { id: input.id, botId: input.botId, name: participant.name, runtimeId: input.runtimeId,
           status: input.status, processed: input.processed ?? 0, pending: input.pending ?? 0,
           sessionId: input.sessionId ?? null, lastError: input.lastError ?? null,
           model: typeof input.model === 'string' ? input.model.slice(0, 512) : null,
-          engine: input.engine || 'DS-Bot 0.2.7', heartbeatAt: Date.now() };
+          engine: input.engine || 'DSCord node', heartbeatAt: Date.now(), kernel: publicKernelSummary(input.kernel),
+          kernelControl: input.kernelControl?.version === 1 ? { version: 1 } : null };
         nodes.set(input.botId, node);
+        kernelControl.observeNode(input.botId);
         chatFeatures.touchPresence(input.botId, { status: input.status === 'offline' ? 'offline' : 'online' });
         return send(200, { accepted: true });
       }
@@ -538,11 +594,13 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         ...jsonHeaders, ...(retryAfterMs === undefined ? {} : { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) }),
       });
       response.end(JSON.stringify({ error: error.message, code: error.code || error.errcode || 'REQUEST_FAILED',
+        ...(error.nodeCode === undefined ? {} : { nodeCode: error.nodeCode }),
         ...(retryAfterMs === undefined ? {} : { retry_after_ms: retryAfterMs }) }));
     });
   });
-  return { server, budget, push, media, tasks, chatFeatures, accounts, identity, nodeCredentials, governance, collaboration, botWork, close: async () => {
+  return { server, budget, push, media, tasks, chatFeatures, accounts, identity, nodeCredentials, governance, collaboration, botWork, kernelControl, close: async () => {
     media.verified.stop();
+    kernelControl.close();
     await new Promise(resolve => server.close(resolve));
     if (push) await push.close();
     await nodeCredentials.close();

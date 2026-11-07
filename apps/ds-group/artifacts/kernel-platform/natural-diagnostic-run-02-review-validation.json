@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-07T04:37:14.529Z",
+  "sourceCommit": "019c060f1dc06a125ff14264476dfd234414531a",
+  "originalReportSha256": "1a9b7440cb55cea3df4ad71d7545b6b90941c001687803033e3409c5f78f797a",
+  "privateReviewSidecarSha256": "8734f0ed11478b2a4c7436ee65373a64438ac04107353381e5c43fe799c64396",
+  "reviewEvidence": {
+    "actualBotMessagesReviewed": 12,
+    "openCriteriaReviewed": 3,
+    "artifactsByteVerified": 5,
+    "priorFindingsRechecked": 4,
+    "priorFindingsReproduced": 0,
+    "workChangedChains": 3,
+    "immutableReviewedInputFiles": 15,
+    "reviewedInputHashesStillMatch": true
+  },
+  "requestOwnership": {
+    "oldNaturalRequestId": "matrix-78d57e7968e017c14c9aab53729267061b152a33939529db59d552a6d33e835e",
+    "oldNaturalReceiptExists": false,
+    "reliableRequestId": "matrix-e349df120b274b2436a1112178e6a2ac231fa44a6f313ad99c16ab3aa3e08609",
+    "reliableSourceEventId": "$Aw6bYN8pvDfv5cHv2GXHZYrz0d3giDs5ykBz_HGExbw",
+    "reliableSourceSenderId": "@tan_prod:natural-diagnostic.local",
+    "writeCallId": "call_00_hfpp0xn8jfqzwtzmymfuau69",
+    "presentCallId": "call_00_1swy755fijyh567brhtogm0t",
+    "fileSha256": "0b06467e0f716e71027b5b00c1c1b1be046d11e0ebc646fef15c91af90d8508d"
+  },
+  "exporterValidation": {
+    "command": "node --test tests/platform-natural-validation.test.mjs",
+    "tests": 26,
+    "passed": 26,
+    "failed": 0,
+    "actualProviderCallsDuringReview": 0,
+    "originalRunMutations": 0
+  },
+  "publication": {
+    "publicHashes": {
+      "artifacts/kernel-platform/natural-diagnostic-run-02-reviewed.json": "7e9945075cba4fd53b06f4bc78372aad82e8d46cc3097f3422505d54a05a6658",
+      "artifacts/kernel-platform/natural-diagnostic-run-02-review.md": "b9007f93ab95d97305de36c3741e53e3a9b47d5b814159263b8a5f4467393619"
+    },
+    "nonMessageCommentsExcluded": 11,
+    "privateBodiesOmitted": 2,
+    "privateTokenScan": {
+      "syntheticNodeConfigFiles": 6,
+      "hostLogFiles": 1,
+      "secretCandidates": 7,
+      "dshAuthUrlCandidates": 1,
+      "literalSecretMatches": 0,
+      "dshAuthUrlMatches": 0,
+      "credentialPatternMatches": 0,
+      "secretValuesCopied": false
+    }
+  }
+}

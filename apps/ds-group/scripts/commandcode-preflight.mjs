@@ -1,14 +1,14 @@
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {parse} from 'yaml';
-import {COMMANDCODE_TEST_MODEL,memoryTestModel} from './memory-test-model.mjs';
+import {memoryTestModel} from './memory-test-model.mjs';
 import {modelReference} from '../src/model-config.mjs';
 
 // Catalog access is not a quota balance. Generation availability is verified by
 // the separate actual DSH smoke run and each subsequent request's real result.
-export async function readCommandCodeCatalog(home,{fetchImpl=fetch,model=COMMANDCODE_TEST_MODEL}={}){
+export async function readCommandCodeCatalog(home,{fetchImpl=fetch,model}={}){
   const route=modelReference(memoryTestModel(model));
-  if(route.provider!=='commandcode-goat')throw new Error('Expected the authorized CommandCode provider');
+  if(route.provider!=='commandcode-goat')throw new Error('This optional catalog helper only supports the CommandCode provider');
   const config=parse(await readFile(path.join(home,'profiles/web/cordis.patch.yml'),'utf8'));
   const provider=config.find(row=>row.id==='llm-pi-ai')?.config?.providers?.[route.provider];
   const credentials=parse(await readFile(path.join(home,'.credentials.yaml'),'utf8'));

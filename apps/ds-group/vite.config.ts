@@ -18,6 +18,7 @@ export default defineConfig({
     outDir: '../dist/web',
     emptyOutDir: true,
     target: 'es2022',
+    license: { fileName: 'licenses/bundled-dependencies.txt' },
     manifest: true,
   },
 });

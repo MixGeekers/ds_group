@@ -86,13 +86,13 @@ export class IdentityService {
     }
     response.setHeader('Access-Control-Allow-Origin', normalized);
     response.setHeader('Vary', 'Origin');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Range, X-Upload-Id');
     response.setHeader('Access-Control-Expose-Headers', 'Retry-After, Content-Disposition, Content-Length, Content-Range');
     if (request.method === 'OPTIONS') {
       const method = request.headers['access-control-request-method'];
       const headers = request.headers['access-control-request-headers']?.toLowerCase().split(',').map(value => value.trim()) || [];
-      if (!['GET', 'POST', 'PUT', 'DELETE'].includes(method) || headers.some(header => !['authorization', 'content-type', 'range', 'x-upload-id'].includes(header))) {
+      if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(method) || headers.some(header => !['authorization', 'content-type', 'range', 'x-upload-id'].includes(header))) {
         throw forbidden('This cross-origin request method or header is not supported');
       }
     }

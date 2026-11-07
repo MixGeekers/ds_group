@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 2,
+  "checkedAt": "2026-11-07T03:35:38.636Z",
+  "status": "failed",
+  "level": "packaged-plugin-in-real-dsh-web-ui-with-isolated-local-provider",
+  "expectedDshVersion": "0.2.2-rc.1",
+  "remoteModelCalls": 0,
+  "localModelCalls": 0,
+  "checks": [
+    "archiveLoadsWithPinnedDshAndPrivateDependencies",
+    "readingStateDoesNotCreateChiefOrOtherBots"
+  ],
+  "browserErrors": [],
+  "screenshots": [
+    "<synthetic-path>/failure.png"
+  ],
+  "dshVersion": "0.2.2-rc.1",
+  "package": {
+    "version": "0.4.0-alpha.1",
+    "archive": "<synthetic-path>/dscord-0.4.0-alpha.1.tgz",
+    "sha256": "0f034db5f2e8c634a35595c071931e338e0369e99075be06095cb25e00fe5d7b"
+  },
+  "initial": {
+    "nativeMode": true,
+    "nativeBundled": true,
+    "runtime": {
+      "available": true,
+      "mode": "native",
+      "runtime": {
+        "id": "dscord-kernel",
+        "version": "0.4.0",
+        "upstreamVersion": "0.3.1",
+        "apiVersion": 1,
+        "api": "/api/dscord/kernel",
+        "instanceId": "9a254b82-ace1-4124-a805-dd87413955f2",
+        "status": "running",
+        "home": "<synthetic-path>/bot",
+        "dataVersion": 1,
+        "hostCompatibility": {
+          "minimum": "0.2.2-rc.1",
+          "sessionSource": "native-agent-inbox"
+        },
+        "memoryBackend": "source-aware-v1",
+        "adoption": {
+          "at": "2026-11-07T03:35:40.344Z",
+          "from": "new-home",
+          "snapshot": null,
+          "sha256": null,
+          "inflightSnapshot": null,
+          "botIds": [],
+          "sessionPolicy": "preserve-native-identities",
+          "tasksReplayed": false,
+          "prepared": true
+        },
+        "migrationWork": {
+          "turns": [],
+          "queued": []
+        }
+      }
+    },
+    "lastError": null
+  },
+  "runtime": {
+    "id": "dscord-kernel",
+    "version": "0.4.0",
+    "upstreamVersion": "0.3.1",
+    "api": "/api/dscord/kernel"
+  },
+  "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   'session-3c86eb10-ebe9-4c57-88d4-164a642a8ad2'\n+ ]\n- []\n",
+  "errorStack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   'session-3c86eb10-ebe9-4c57-88d4-164a642a8ad2'\n+ ]\n- []\n\n    at file:///Users/<local-user>/.codex/worktrees/dscord-kernel-ui/apps/ds-group/scripts/native-ui-smoke.mjs:147:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
+  "diagnosticDirectory": "<synthetic-path>/dscord-native-ui-uEl3gI",
+  "publicEvidence": {
+    "originalSha256": "406a9c7542a2e737c1214fe56927e70ec9969faef778d9bf079da3242819c9d4",
+    "origin": "platform-ui line",
+    "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+  }
+}

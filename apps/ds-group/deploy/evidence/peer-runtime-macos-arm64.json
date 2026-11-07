@@ -1,0 +1,59 @@
+{
+  "checkedAt": "2026-11-07T03:39:12.259Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "expectedDshVersion": "0.2.2-rc.1",
+  "installationKind": "npm-cli",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "level": "real-native-dsh-zero-model",
+  "sourceHashes": {
+    "package.json": "93707901148cc9e587e7baa0e471694dde73ff0e005b9cfb57f86a3702fa0aff",
+    "vendor/ds-bot/UPSTREAM.json": "dd5ffa8984430f9be6f50ab85a8c543d4efb1168672ecfbca7e5d720f5efb7f8",
+    "src/model-config.mjs": "a66c902469bd7837733e14879c230393eb625fdd1aa343725119e1565bc228e3",
+    "dsh-plugin/model-profile.mjs": "41e089adcd751a9f61fb38ee885f77c520e539a7730daaf81dc61eb8b3b0e728",
+    "scripts/dsh-node.mjs": "d53b5671962c8c1449dc7f446c9a490a3e27ef5d056d26eaa37c44841efd30d6",
+    "scripts/runtime-config.mjs": "f95138748cb15ef560ce287c31c168a215b0783898d156db7be72a25b0efbfc6",
+    "scripts/runtime-smoke.mjs": "cccddead14333425789963ac2375657dde495e4d35a160d63d0983911f97f643",
+    "dsh-plugin/index.mjs": "881afa4f656b46e8cfa75eb2e221a3cf9e05bc20f30591a8511140eb5c30c7ed",
+    "dsh-plugin/runtime.mjs": "d99669f3e21e45e148c8c3e08fef9e2a73b85c3028fec839388290d5cb5f85ac",
+    "dsh-plugin/runtime-dependencies.json": "5f6669ef1660c11856b39cf91b08484355ae1806a5b318a387bc685c50631a79"
+  },
+  "checks": {
+    "pinnedRuntimeVersion": true,
+    "pluginLoaded": true,
+    "allowedModelCatalog": true,
+    "nativeSessionCreated": true,
+    "importedRemoteCoreAndPrivateData": true,
+    "sessionIdentityAfterRestart": true,
+    "legacyIdentityAndInstructionsMigrated": true,
+    "interruptedRequestIsNotReplayed": true,
+    "customProviderAndNamespacedModelReuseNativeIdentity": true,
+    "sourceProviderSettingsPreservedAndCredentialScoped": true,
+    "savedModelSurvivesSourceDefaultChange": true,
+    "nativeModelOverridesPreserved": true,
+    "invalidConfiguredModelRejectedWithoutProfileWrite": true,
+    "missingCredentialRejectedWithoutProfileWrite": true,
+    "sourceProfileAndCredentialsUnmodified": true,
+    "gracefulStop": true,
+    "zeroModelClaims": true
+  },
+  "status": "passed",
+  "dshVersion": "0.2.2-rc.1",
+  "runtime": {
+    "id": "dscord-kernel",
+    "version": "0.4.0",
+    "upstreamVersion": "0.3.1",
+    "apiVersion": 1
+  },
+  "engine": {
+    "name": "DS-Bot",
+    "version": "0.3.1"
+  },
+  "modelCalls": 0,
+  "publicEvidence": {
+    "originalSha256": "6cf358ca1c52a42c423209fc1dc13087c53d1b542f9a10518fa0092a30285da3",
+    "origin": "standalone-runtime line",
+    "componentSource": "2f7a936 + 1c02640 + 5e716dd + 135c61f"
+  }
+}

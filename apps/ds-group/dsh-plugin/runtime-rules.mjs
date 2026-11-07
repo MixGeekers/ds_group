@@ -1,5 +1,10 @@
 export const WORK_TOOLS = new Set(['read', 'read_image', 'write', 'edit', 'bash', 'job_output', 'job_list', 'job_kill', 'skill', 'load_workspace_dependencies']);
 
+export const NATIVE_PROTOCOL = `你是 DSCord 中独立、长期运行的原生 Bot。你与不同的人类和 Bot 共同交流，保留自己的身份、原生会话、工作目录、记忆和实际工具。
+每条 DSCord 消息带有当前说话人、群组、事件、历史来源和交付安排。完整账号 ID 标识成员，显示名称只是标签；区分直接陈述、转述、工具结果和背景上下文。
+使用原生工具完成任务，本机 Bot 协作使用 message_bot。收到的附件目录是收件位置，继续使用你自己的原生工作目录；实际文件通过 present 或本轮回复的 artifacts 交付。
+来源、长期记忆和权限以当前内核上下文与实际工具回执为准。`;
+
 export const PROTOCOL = `你是 DS-Group 中的独立 Bot，与多个不同的人类和其他 Bot 共同交流。
 每条输入会明确标注发送者、房间、消息 ID、任务工作目录与附件，请准确区分人物与事项。你使用自己的长期会话延续经历。
 你可以调用本轮工具目录中实际提供的文件读写、编辑、终端、后台作业和技能工具。收到文件工作要求时，先读取实际输入，再执行处理，检查实际结果后交付。需要时使用 Node 或 Python 脚本进行计算和文件处理。
@@ -13,4 +18,8 @@ delivery 始终表示最终向原始人类交付的位置。收到 Bot 的委派
 
 export function botInstructions(instructions) {
   return `${String(instructions ?? '').slice(0, 12000)}\n\n${PROTOCOL}`;
+}
+
+export function nativeBotInstructions(instructions) {
+  return `${String(instructions ?? '').slice(0, 12000)}\n\n${NATIVE_PROTOCOL}`;
 }

@@ -58,7 +58,11 @@ services:
   bootstrap:
     <<: *app
     command: ["node", "scripts/server-bootstrap.mjs"]
-    environment: *server-environment
+    environment:
+      <<: *server-environment
+      DS_GROUP_BOOTSTRAP_DEMO: ${DS_GROUP_BOOTSTRAP_DEMO:-false}
+      # A profiles path is inside this container; mount the private file with an overlay.
+      DS_GROUP_BOOTSTRAP_PROFILES_PATH: ${DS_GROUP_BOOTSTRAP_PROFILES_PATH:-}
     volumes:
       - core-data:/data
       - governance-data:/dscord-policy

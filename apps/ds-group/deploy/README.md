@@ -2,11 +2,11 @@
 
 服务器提供聊天核心、PWA、Matrix 和 Web Push 接口。Bot 节点通过公网 HTTPS 或内网地址连接核心，可以分别运行在其他机器。服务器数据保存在 Docker 命名卷中。
 
-聊天客户端独立托管时，可通过 `DS_GROUP_WEB_MODE=api-only` 持久关闭 Core 的网页发布；原单服缺省仍托管 PWA。配置、CLI/Compose 入口及升级兼容见 [API-only 部署](api-only.md)。
+本指南对应 DSCord **0.4.0-alpha.1**。服务器、网页和节点使用同一发行版本；安装包与精确 npm 发布号以所选发行说明为准。[安装与连接](npm.md)
 
-中央默认归属、独立 administration 监听、三卷备份及真实发行部署验收见[中央平台部署与发行验证](platform-validation.md)。
+Core 可采用 `bundled` 托管网页，或通过 `DS_GROUP_WEB_MODE=api-only` 配合独立静态客户端。[API-only 部署](api-only.md) · [客户端部署](client/README.md)
 
-本文对应 `0.3.0` 源码候选，新增账号注册、个人 Bot 创建与 DSH 连接页。公开 npm 包当前为 `0.2.0-alpha.1`，候选安装步骤见 [npm 说明](npm.md)。
+Bot 节点的兼容宿主、唯一实例和原目录采用见[内核运行](kernel-runtime.md)。本页示例的域名、端口、账号和目录需要按自己的部署替换。
 
 ## 支持范围
 
@@ -15,9 +15,9 @@
 | Linux x86-64 | Docker Engine 和 Compose v2 |
 | Linux ARM64 | Docker Engine 和 Compose v2，包括 ARM 云服务器及 64 位系统的树莓派 |
 
-镜像内使用 Debian、Node 24.19.0 和 Synapse 1.164.2。Node、Synapse、Caddy 的镜像摘要均指向包含 amd64 与 arm64 的多架构索引。建议初始配置为 2 核 CPU、2 GB 内存和持久磁盘，实际容量取决于用户、消息及 Bot 数量。
+镜像内使用 Debian、Node 24.19.0 和 Synapse 1.164.2，版本与摘要见 [Dockerfile](../Dockerfile) 和 [Compose](compose.yaml)。资源需求取决于用户、消息、附件和 Bot 数量；本地模型的计算资源另计，应按自己的负载测量容量。
 
-这套 Compose 使用单实例核心与 Synapse SQLite。水平扩容、多副本共享写库和跨版本数据库迁移需要另行实施。发行 CI 会检查容器重建后数据保留以及备份恢复到新卷。
+这套 Compose 使用单实例核心与 Synapse SQLite，不提供水平多副本共享写库。升级前应备份，跨版本格式变化以对应发行的迁移说明为准。
 
 ## 启动服务器
 
@@ -41,30 +41,30 @@ DS_GROUP_MATRIX_PUBLIC_URL=https://chat.example.com
 
 ```sh
 docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
+curl --fail http://127.0.0.1:18100/readyz
 ```
 
 在浏览器打开配置的公开地址；默认本机入口为 `http://localhost:18100`。Core 的网页模式默认为 `bundled`，选择 `api-only` 时使用单独部署的聊天客户端。
 
 ### 注册与个人 Bot
 
-在登录窗口选择“注册账号”，填写自己的用户名、显示名称和密码。注册后进入“我的 Bot”创建 Bot，随后从 DSH 连接。显示名称可以重复，稳定账号 ID 用于区分成员。新 Bot 由所有者邀请进群，也可以直接私聊。
+在登录窗口选择“注册账号”，填写自己的用户名、显示名称和密码。Bot 在自己的 DSH 节点显式创建或选择，登录同一账号后加入服务器；网页“我的 Bot”管理这些成员。显示名称可以重复，完整账号 ID 用于区分成员。所属 Bot 可由所有者邀请进群，也可私聊。
 
 注册默认开放。管理员可在 Core 数据卷的 `/data/core-config.json` 中设置 `registrationMode` 为 `closed`，再重启 Core 关闭注册；恢复为 `open` 后重新开放。初始化会保留已有配置。每次客户端登录拥有独立设备会话，退出一台设备只注销该会话。独立管理后台的账号与普通聊天账号分别管理，初始化方法见[后台说明](../admin/README.md)。
 
 <a id="initial-accounts"></a>
 
-### 初始演示账号
+### 可选初始化成员
 
-当前 `server-bootstrap.mjs` 在空实例中仍会创建 Alice、Bob、`finance` 和 `hr` 四个演示身份，两个 Bot 归 Alice 所有。这是尚未拆出的初始化种子数据；当前脚本没有跳过它们的选项。个人接入流程使用上方注册的账号和自己创建的 Bot。
+新服务器默认使用空成员 registry。注册自己的账号后再连接 Bot。已有 registry 保留原成员，重跑 bootstrap 不用新模板覆盖它。
 
-需要检查演示账号时，管理员可读取其随机生成的初始密码。`credentials` 只适用于初始化记录中的账号，不提供后来注册用户的密码查询。
+需要本地演示时，可在首次 bootstrap 前显式设置 `DS_GROUP_BOOTSTRAP_DEMO=true`，创建示例成员；这不是生产部署的必需步骤。Compose 把该变量传给 bootstrap 服务，默认 `false`。
 
-```sh
-docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
-  node scripts/server-admin.mjs credentials alice
-```
+也可用 `DS_GROUP_BOOTSTRAP_PROFILES_PATH` 指向自定义 JSON 数组，每项包含 `localpart/name/kind`，Bot 可显式填 `ownerId`；所有 Bot 的所有者须属于同批初始人类成员。完整字段检查以 [server-bootstrap.mjs](../scripts/server-bootstrap.mjs) 为准。自定义模式和 demo 模式不能同时启用。
 
-输出含登录密码，仅在自己的管理员终端使用。Bot 初始离线，节点接入后才开始处理消息。
+Compose 使用自定义成员文件时，还需通过自己的 overlay 将私有 JSON 挂载到 bootstrap 容器，并把变量设置为容器内路径；仅填写宿主路径不会自动挂载文件。初始化成员不是模型、服务器地址或凭据模板。
+
+`credentials` 只能读取初始化成员保存的初始凭据，不提供后来注册用户的密码查询。仅在自己的管理员终端使用，不将输出写入公开日志。
 
 <a id="configuration"></a>
 
@@ -74,18 +74,18 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
 | --- | --- | --- |
 | Matrix 身份域 | 模板使用 `localhost` | 首次启动前决定自己的 `DS_GROUP_SERVER_NAME`，已有实例保留原值。 |
 | 公开地址与监听 | 本机 Core `18100`、Matrix `18008` | 填写用户和 Bot 都能访问的地址；端口可通过 Compose 变量调整。 |
-| 账号与 Bot | 引导脚本包含四个演示身份 | 注册自己的账号、创建自己的 Bot；CLI 使用 Bot 完整 ID 中 `@` 与 `:` 之间的账号部分。 |
-| Node / DSH | Node `>=24.19.0 <25`，DSH `0.2.1-rc.5` | 当前适配器依赖这些版本，安装位置通过 PATH 或 `DS_GROUP_DSH_CLI` / `DS_GROUP_DSH_RUNTIME` 指定。 |
+| 账号与 Bot | 新服默认空成员 registry | 注册自己的账号；演示或自定义初始化成员需显式启用。CLI 参数使用完整 Bot ID 的账号部分。 |
+| Node / DSH | Node `>=24.19.0 <25`，固定 SDK 基线 DSH `0.2.2-rc.1` | 支持范围来自 [package.json](../package.json)、[runtime-config.mjs](../scripts/runtime-config.mjs) 和[宿主契约](../dsh-connect/KERNEL.md)；安装位置可通过 PATH 或宿主变量指定。 |
 | DSH 配置来源 | CLI 回退到 `~/.dsh` 的 `desktop` profile | CLI 用 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 指定自己的来源；图形连接使用所在 DSH 宿主的实际 home/profile。 |
 | 节点桥接端口 | 仅演示 `finance` / `hr` 预设 `18091` / `18092` | 自定义 CLI Bot 必须设置空闲的 `DS_GROUP_BRIDGE_PORT`；图形连接页自动分配。 |
 | Bot 模型 | 来自 DSH 已配置的模型目录 | 在 DSH 连接页为每个 Bot 选择模型并保存；CLI 使用 `DS_GROUP_MODEL=provider/model`。服务商、端点与凭据在 DSH 中管理。 |
-| 调用额度 | 新预算库默认 `modelCallLimit: null`，表示不限次数 | 根据自己的额度设置新实例配置；开发者的历史测试授权不适用于用户部署。 |
+| CLI 调用额度 | 新预算库默认 `modelCallLimit: null` | 根据自己的额度配置；该账本不覆盖原生 DSH 连接的全部调用。 |
 
-模型选择贯穿节点准备、DSH 运行时和核心账本，账目按每次实际使用的 `provider/model` 记录。初次连接使用 DSH 默认模型或手动选择的模型，以后沿用该 Bot 保存的选择。运行中保存新选择后点击“重连”应用。
+图形原生节点使用 DSH 模型目录，选择和保存更新同一个 Bot。独立 CLI 节点从指定来源 profile 读取配置，在重连时应用准备好的选择。两种方式均不要求采用特定业务 provider 或模型。[模型与参与设置](../模型配置与迁移.md)
 
-Core 默认接受 DSH 可用模型。管理员可在 `core-config.json` 设置 `allowedModels` 为完整模型引用数组，重启 Core 后生效；省略或 `null` 表示开放，空数组暂停所有模型。调用次数与输出额度仍独立检查。旧版 Core 与节点应一同升级，迁移和凭据处理见[模型配置与迁移](../模型配置与迁移.md)。
+Core 的 `allowedModels`、`modelCallLimit` 和 `maxOutputTokens` 用于兼容 CLI 适配器。原生图形连接由 DSH 管理调用，不能将 CLI 预算宣传为它的硬上限；参与判断、记忆整理和嵌入也可能另外产生调用。部署者应结合 DSH 与服务商的额度控制。
 
-新预算数据库首次创建时读取 `core-config.json` 的 `modelCallLimit` 和 `maxOutputTokens`，后者默认 `8192`。如需限制新实例的调用次数，应在 Core 第一次启动、创建 `model-budget.sqlite` 前填写预算配置。已有数据库保留原额度和账目，修改 JSON 不会更新既存额度；当前未提供在线调整额度的管理入口。Bot 单次输出默认上限另为 `4096`，两项含义不同。模型生成需要用户自己的调用授权和费用预算。
+CLI 的 `allowedModels` 省略或为 `null` 时开放，空数组暂停该路径的新请求。新预算数据库首次读取次数上限与输出接纳上限，后者默认 `8192`；已有数据库保留原额度与账目，修改 JSON 不在线更新既存额度。独立 CLI 节点的单次输出默认 `4096`，与 Core 接纳上限不同。
 
 ### 数据目录按运行方式区分
 
@@ -123,7 +123,7 @@ Core 默认将连接的来源 IP 传给 Synapse，用于按访问地址计算登
 
 初始化生成的 Synapse 登录限制分别为地址每秒 1 次、突发 20 次，账号每秒 0.003 次、突发 5 次，以及失败尝试每秒 0.17 次、突发 3 次。网页会显示服务器返回的等待时间，由用户等待后重新提交。升级已有部署时，重新运行初始化服务并重建 Synapse，使生成配置生效。
 
-在手机上访问 HTTPS 地址并安装 PWA，然后在设置中主动启用通知。iOS/iPadOS 16.4 及以上需要先添加到主屏幕。Caddy 配置校验进入本地验证范围，公共证书签发和真实手机推送依赖部署域名及设备验证。
+在手机上访问 HTTPS 地址并安装 PWA，然后在设置中主动启用通知。iOS/iPadOS 16.4 及以上需要先添加到主屏幕。公共证书签发需要可用域名和网络入口；系统推送还取决于浏览器、设备权限及平台规则，页面显示订阅成功不等于每条通知都已送达。
 
 ## 接入远端 Bot
 
@@ -131,15 +131,17 @@ Core 默认将连接的来源 IP 传给 Synapse，用于按访问地址计算登
 
 ### DSH 图形连接
 
-在服务器网页注册并创建自己的 Bot，先在 Bot 机器的 DSH 模型设置中配置可用模型。随后通过 `Plugins → Add plugin` 安装同版本 `dscord` 候选包并启用，点击左侧 **DSCord**。
+先在服务器网页注册账号，并在 Bot 机器的 DSH 配置自己的模型。通过 `Plugins → Add plugin` 安装并启用同版本 `dscord`，点击左侧 **DSCord**。
 
-输入 Core/PWA 的服务器地址、账号和密码，登录后在“我的 Bot”中直接选择模型，点击“保存选择”，再点击“上线”。页面显示当前运行模型、已选模型及连接状态，并提供断开、重连、打开网页和本机配置目录入口。程序会为每个 Bot 创建独立目录、端口与 DSH 运行时。
+先在 DSCord 的本机 Bot 界面创建或选择 Bot，配置它的模型和职责。输入 Core/PWA 的服务器地址、账号和密码，登录后在本机 Bot 列表选择要加入服务器的 Bot。页面显示当前模型和连接状态，并提供断开、重连、打开网页和本机配置目录入口。各 Bot 的服务器连接配置独立保存，原生 Session 与工具继续由同一 DSH home 的唯一 DSCord 内核管理。
 
-当前候选安装使用本地 `.tgz` 绝对路径，公开 npm 版本升级后再使用包名安装。详细步骤见 [DSH 安装与连接](npm.md#在-dsh-中连接)。
+已有 `ds-bot` 团队升级时，先停用旧插件再重载 DSCord，由自有内核在原目录接管。只读健康接口与单实例检查见[内核运行与检查](kernel-runtime.md)。
+
+安装所选发行说明提供的包，使用本地 `.tgz` 时填写实际路径。详细步骤见 [DSH 安装与连接](npm.md#在-dsh-中连接)。
 
 ### CLI 节点导出
 
-管理员也可以导出自己要连接的 Bot。参数使用完整 Bot ID 中 `@` 与 `:` 之间的账号部分，**不是显示名称**。下方 `your-bot-account`、路径和端口均需要按自己的部署填写，服务器端与节点端的 `BOT_ACCOUNT` 保持一致。文件包含该 Bot 的 Matrix token 和限定节点凭据。
+独立 CLI 仅用于没有已有原生绑定的 Bot。含 `nativeBinding` 的导出配置只能从所属 DSH 图形连接，不能复制为另一台机器上的同一 Bot。管理员导出配置时，参数使用完整 Bot ID 中 `@` 与 `:` 之间的账号部分，**不是显示名称**。下方 `your-bot-account`、路径和端口均需要按自己的部署填写，服务器端与节点端的 `BOT_ACCOUNT` 保持一致。文件包含该 Bot 的 Matrix token 和限定节点凭据。
 
 在服务器端导出：
 
@@ -158,7 +160,7 @@ export DS_GROUP_DATA_DIR="$HOME/.local/share/dscord-nodes/$BOT_ACCOUNT"
 export DS_GROUP_BRIDGE_PORT=23100
 npm ci --ignore-scripts --no-audit --no-fund
 node scripts/server-admin.mjs import-node bot-node.json "$DS_GROUP_DATA_DIR"
-npm install --prefix "$DS_GROUP_DATA_DIR/dsh-cli" --no-audit --no-fund @deepseek-ai/dsh@0.2.1-rc.5
+npm install --prefix "$DS_GROUP_DATA_DIR/dsh-cli" --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1
 export DS_GROUP_DSH_RUNTIME="$DS_GROUP_DATA_DIR/dsh-cli"
 export DS_GROUP_DSH_SOURCE_HOME="/absolute/path/to/your/dsh-home"
 export DS_GROUP_DSH_SOURCE_PROFILE="your-profile"
@@ -183,7 +185,7 @@ node scripts/dsh-node.mjs stop "$BOT_ACCOUNT"
 
 默认附件后端为 Synapse 本地媒体目录。启用 `deploy/storage/compose.s3.yaml` 可以使用 S3-compatible 桶，Cloudflare R2 使用对应 S3 endpoint。带 provider 的 Synapse 扩展镜像保留本地上传和缓存，同时等待远端写入完成。
 
-`deploy/storage/compose.rclone.yaml` 提供已有 rclone remote 的内部网关接法，适用于后续 Drive、OneDrive 等 remote 验证。当前本地目录 remote 已完成限定 S3 协议测试，真实云账号另行验收。完整变量、镜像和启动命令见 [附件存储部署](storage/README.md)。
+`deploy/storage/compose.rclone.yaml` 提供已有 rclone remote 的内部网关接法，适用于后续 Drive、OneDrive 等 remote 验证。rclone 网关不代替云账号授权；不同 remote 的 OAuth、配额和读写行为取决于所配置的服务。完整变量、镜像和启动命令见 [附件存储部署](storage/README.md)。
 
 Core 的 `media.sqlite` 保存附件 ID、哈希、上传状态和 Matrix URI，房间与消息中的引用由 Matrix 保存。已有云盘文件的扫描、外部变更同步、搜索分页和导入仍需独立索引作业。
 
@@ -246,16 +248,7 @@ dc up --build --detach --wait
 
 使用已发布镜像时，将 `DS_GROUP_IMAGE` 设为选定版本，运行 `dc pull` 后执行 `dc up --no-build --detach --wait`。发行流水线生成的校验和用于核对下载包。
 
-当前验证覆盖同版本容器重建、备份及新卷恢复。将来涉及数据库迁移的版本需要增加对应迁移测试。版本回退时使用对应旧版程序和升级前备份恢复到新卷。
-
-## 自行运行发行冒烟检查
-
-```sh
-docker build --tag ds-group:ci .
-DS_GROUP_IMAGE=ds-group:ci node scripts/deploy-smoke.mjs
-```
-
-脚本创建随机命名的独立项目，使用自动分配的本机端口，验证登录、建群、消息、PWA、节点导出与真实适配进程接入、容器重建、请求去重、备份恢复及零模型调用。适配进程的推理桥接使用仅接受注册的夹具，Matrix 与核心是实际容器。结果写入 `.local/deploy-smoke.json`，测试创建的容器和数据卷在结束时清理。
+同版本重建、备份恢复与跨版本迁移是不同操作。涉及数据库格式变化时按对应发行说明迁移；回退应使用匹配的旧程序和升级前备份恢复到新卷。
 
 ## 上游部署资料
 

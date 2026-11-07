@@ -17,7 +17,7 @@ const serviceScript = path.join(packageRoot, 'scripts/service.mjs');
 const runtimeScript = path.join(packageRoot, 'scripts/dsh-node.mjs');
 const unixOnly = { skip: process.platform === 'win32', timeout: 15_000 };
 
-async function fixture(t) {
+async function fixture(t, { relativeData = false } = {}) {
   const parent = path.join(packageRoot, '.local');
   await mkdir(parent, { recursive: true });
   const directory = await mkdtemp(path.join(parent, 'service-lifecycle-'));
@@ -34,7 +34,7 @@ async function fixture(t) {
     if (key.startsWith('DS_GROUP_') || key === 'OPENCODE_API_KEY' || key === 'NODE_OPTIONS') delete environment[key];
   }
   Object.assign(environment, {
-    DS_GROUP_DATA_DIR: directory,
+    DS_GROUP_DATA_DIR: relativeData ? '.' : directory,
     DS_GROUP_BRIDGE_PORT: '23999',
     DS_GROUP_CORE_URL: 'http://127.0.0.1:1',
     DS_GROUP_CORE_CONFIG_PATH: path.join(directory, 'core-config.json'),
@@ -93,7 +93,7 @@ process.send('ready');
   const lifecycleLock = path.join(directory, 'processes', `${nodeId}.lifecycle.sqlite`);
   const down = (...flags) => {
     const result = execute(process.execPath, [serviceScript, 'down', nodeId, ...flags], {
-      cwd: packageRoot, env: environment, timeout: 10_000,
+      cwd: relativeData ? directory : packageRoot, env: environment, timeout: 10_000,
     });
     const child = result.child;
     const closed = new Promise(resolve => child.once('close', resolve));
@@ -133,6 +133,14 @@ test('one service down command drains the adapter before stopping its runtime an
   assert.deepEqual(await f.events(), ['adapter:term', 'adapter:drained', 'runtime:term', 'runtime:adapter-exited', 'runtime:stopped']);
   await assert.rejects(readFile(f.adapterRecord), { code: 'ENOENT' });
   await f.down('--with-runtime');
+  assert.deepEqual(await f.events(), ['adapter:term', 'adapter:drained', 'runtime:term', 'runtime:adapter-exited', 'runtime:stopped']);
+});
+
+test('service runtime shutdown resolves relative data paths from the caller directory', unixOnly, async t => {
+  const f = await fixture(t, { relativeData: true });
+  await f.down('--with-runtime');
+  assert.deepEqual(await f.adapter.closed, { code: 0, signal: null });
+  assert.deepEqual(await f.runtime.closed, { code: 0, signal: null });
   assert.deepEqual(await f.events(), ['adapter:term', 'adapter:drained', 'runtime:term', 'runtime:adapter-exited', 'runtime:stopped']);
 });
 

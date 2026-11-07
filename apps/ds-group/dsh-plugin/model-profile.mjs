@@ -6,6 +6,21 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { providerConfiguration } from '../scripts/runtime-config.mjs';
 
+async function nativeCredentialRefs(require, providerId, provider) {
+  const load = name => import(pathToFileURL(require.resolve(name)).href);
+  const [{ Context }, { default: LlmRuntime }, adapter] = await Promise.all([
+    '@deepseek-ai/cordis', '@deepseek-ai/dsh-llm', '@deepseek-ai/dsh-llm-pi-ai',
+  ].map(load));
+  const ctx = new Context();
+  try {
+    // These SDK plugins register descriptors only. Do not ask for models,
+    // discovery, authentication, agents or Sessions while importing a profile.
+    await ctx.plugin(LlmRuntime);
+    await ctx.plugin(adapter, { providers: { [providerId]: provider } });
+    return ctx.llm.listConfigurableProviders().find(entry => entry.provider === providerId)?.nativeAuth?.env || [];
+  } finally { await ctx.fiber.dispose(); }
+}
+
 export async function readModelProfile({ runtime, sourceHome, sourceProfile, env = process.env, previousSelection }) {
   const require = createRequire(path.join(runtime, 'package.json'));
   const sdk = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-app-boot')).href);
@@ -39,7 +54,11 @@ export async function readModelProfile({ runtime, sourceHome, sourceProfile, env
   let sourceCredentials;
   try { sourceCredentials = yaml.parse(await readFile(path.join(sourceHome, '.credentials.yaml'), 'utf8')); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
-  return providerConfiguration({ env, sourceProviders, sourceCredentials, sourceSelection, previousSelection });
+  const options = { env, sourceProviders, sourceCredentials, sourceSelection, previousSelection };
+  const prepared = providerConfiguration(options);
+  if (prepared.provider.apiKeyEnv) return prepared;
+  const sourceCredentialRefs = await nativeCredentialRefs(require, prepared.providerId, prepared.provider);
+  return providerConfiguration({ ...options, sourceCredentialRefs });
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {

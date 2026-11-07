@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "evidenceDateLocal": "2026-11-06",
+  "timezone": "America/Caracas",
+  "exportPolicy": "Explicit field whitelist; private reports remain under .local; screenshots are unmodified selected originals.",
+  "modelsInitiatedByThisUiWork": {
+    "remoteGenerationCalls": 0,
+    "localGenerationCalls": 0,
+    "boundary": "The concurrent natural scenario has its own model accounting. Its generation is not included in these UI counters."
+  },
+  "dshPackagedUi": {
+    "status": "passed",
+    "observedAtUtc": "2026-11-07T03:38:18.221Z",
+    "level": "packaged-plugin-in-real-dsh-web-ui-with-isolated-local-provider",
+    "physicalHosts": 1,
+    "hostVersion": "0.2.2-rc.1",
+    "npmVersion": "0.4.0-alpha.1",
+    "archiveSha256": "0f034db5f2e8c634a35595c071931e338e0369e99075be06095cb25e00fe5d7b",
+    "runtime": {
+      "id": "dscord-kernel",
+      "version": "0.4.0",
+      "upstreamVersion": "0.3.1",
+      "api": "/api/dscord/kernel"
+    },
+    "checkCount": 9,
+    "checks": [
+      "发行包通过固定DSH版本和私有依赖启动自有内核",
+      "纯读取state不会自动创建Chief或其他Bot",
+      "真实DSH表单显式创建首Bot，保留请求标识及所选模型",
+      "离线参与设置保持待同步，记忆请求访问实际内核",
+      "真实私有判断服务表单清空输入，停用配置按0600保存且不回显敏感值",
+      "原有Bot工作区按精确Bot身份显示并可打开，没有额外创建Bot",
+      "宿主原生控件与明暗主题真实渲染",
+      "DSH模型及provider配置保持不变",
+      "隔离环境本地与远端模型生成均为0"
+    ],
+    "browserExceptionCount": 0,
+    "localGenerationCalls": 0,
+    "remoteGenerationCalls": 0,
+    "privateConfigurationVerification": {
+      "inputCleared": true,
+      "sensitiveValueNotReturned": true,
+      "serviceEnabled": false,
+      "fileMode": "0600"
+    },
+    "initialFailures": [
+      {
+        "attempt": 1,
+        "observedAtUtc": "2026-11-07T03:32:58.840Z",
+        "status": "failed",
+        "category": "runtime-startup",
+        "checksReached": 0,
+        "cause": "内核尚未启动，首报告只记录布尔断言失败；同包第二次诊断取得具体schema错误。",
+        "correctionScope": "未修产品，先补充失败上下文。",
+        "localModelCalls": 0,
+        "remoteModelCalls": 0,
+        "testedArchiveSha256": "1445e2a2da43719286b0833277195818cbdd530edb689c4e68b7cc0a2acf1be3",
+        "dshVersion": "0.2.2-rc.1"
+      },
+      {
+        "attempt": 2,
+        "observedAtUtc": "2026-11-07T03:33:44.722Z",
+        "status": "failed",
+        "category": "runtime-schema",
+        "checksReached": 0,
+        "cause": "实际DSH拒绝basisRefs数组项中的required数组，内核启动失败。",
+        "correctionScope": "memory schema改用DSH value DSL支持的字段级required，保留标识、版本和未知字段校验；修补为5e716dd。",
+        "localModelCalls": 0,
+        "remoteModelCalls": 0,
+        "testedArchiveSha256": "1445e2a2da43719286b0833277195818cbdd530edb689c4e68b7cc0a2acf1be3",
+        "dshVersion": "0.2.2-rc.1"
+      },
+      {
+        "attempt": 3,
+        "observedAtUtc": "2026-11-07T03:34:43.959Z",
+        "status": "failed",
+        "category": "harness-timing",
+        "checksReached": 2,
+        "cause": "DSH首次预览说明遮罩晚于页面初始检查出现，阻止点击DSCord入口。",
+        "correctionScope": "测试等待并点击继续按钮；没有绕过宿主遮罩或修改产品交互。",
+        "localModelCalls": 0,
+        "remoteModelCalls": 0,
+        "testedArchiveSha256": "0f034db5f2e8c634a35595c071931e338e0369e99075be06095cb25e00fe5d7b",
+        "dshVersion": "0.2.2-rc.1"
+      },
+      {
+        "attempt": 4,
+        "observedAtUtc": "2026-11-07T03:35:38.636Z",
+        "status": "failed",
+        "category": "harness-expectation",
+        "checksReached": 2,
+        "cause": "用户显式创建的首Bot成为Main，测试仍要求mainBotIds为空，断言过严。",
+        "correctionScope": "保留纯state为空的断言；显式创建后只要求一个匹配身份，不得另生Chief，返回工作区后身份保持。",
+        "localModelCalls": 0,
+        "remoteModelCalls": 0,
+        "testedArchiveSha256": "0f034db5f2e8c634a35595c071931e338e0369e99075be06095cb25e00fe5d7b",
+        "dshVersion": "0.2.2-rc.1"
+      },
+      {
+        "attempt": 5,
+        "observedAtUtc": "2026-11-07T03:36:20.116Z",
+        "status": "failed",
+        "category": "harness-scope",
+        "checksReached": 7,
+        "cause": "接受DSH预览说明正常保存welcomeNoticeVersion，测试比较整个宿主设置而误判。",
+        "correctionScope": "把不变性检查限定到模型、provider及宿主凭据原件，允许正常宿主界面偏好记录。",
+        "localModelCalls": 0,
+        "remoteModelCalls": 0,
+        "testedArchiveSha256": "0f034db5f2e8c634a35595c071931e338e0369e99075be06095cb25e00fe5d7b",
+        "dshVersion": "0.2.2-rc.1"
+      }
+    ],
+    "intermediatePass": {
+      "observedAtUtc": "2026-11-07T03:36:59.732Z",
+      "checkCount": 9,
+      "laterStrengthening": "Final run waits for and opens the exact workspace Bot identity before taking its screenshot.",
+      "testedArchiveSha256": "0f034db5f2e8c634a35595c071931e338e0369e99075be06095cb25e00fe5d7b"
+    },
+    "limits": [
+      "No real Matrix server or business model is involved in this isolated DSH UI smoke.",
+      "This is macOS ARM64 on one physical host; Linux and container release evidence is separate."
+    ],
+    "createdBot": {
+      "name": "识雨",
+      "nativeBotId": "session-e77cc88a-d83f-439d-bc7d-2a7d5f46d07a",
+      "selectedModel": "second-test/local/assistant",
+      "totalBotsAfterExplicitCreation": 1,
+      "mainBotCount": 1
+    }
+  },
+  "liveCoreReadOnlyUi": {
+    "status": "passed",
+    "startedAtUtc": "2026-11-07T03:40:51.800Z",
+    "finishedAtUtc": "2026-11-07T03:41:04.999Z",
+    "level": "real-chromium-production-client-real-core-matrix-kernel-memory-readonly",
+    "physicalHosts": 1,
+    "syntheticAccounts": true,
+    "ownerId": "@he_shan:natural-diagnostic.local",
+    "checkCount": 5,
+    "checks": [
+      "productionClientRestoresExactSyntheticOwnerAndThreeStableOwnedBotIds",
+      "allThreeBotSettingsReadLiveOwnedKernelAndNaturalParticipationWithoutWriting",
+      "actualPersonAndProjectProfileRpcRenderIndependentSourcesForEachBot",
+      "realProductionMobileLightThemeKeepsOwnedBotSettingsWithinViewport",
+      "noStoryMessagesNoParticipationChangesAndNoBrowserExceptions"
+    ],
+    "bots": [
+      {
+        "id": "@bot-14735ea4-d90c-4bf6-84d9-6401ed48a051:natural-diagnostic.local",
+        "name": "识雨",
+        "ownerId": "@he_shan:natural-diagnostic.local",
+        "runtime": {
+          "id": "dscord-kernel",
+          "version": "0.4.0"
+        },
+        "observedActivity": "working",
+        "participation": {
+          "mode": "natural",
+          "applicationStatus": "applied",
+          "decisionProvider": {
+            "model": "gpt-6-luna",
+            "configured": true,
+            "available": true,
+            "sameWindowHeartbeatAtUtc": "2026-11-07T03:40:51.982Z"
+          }
+        },
+        "profiles": {
+          "person": {
+            "displayedEntities": 8,
+            "openedProfileId": "matrix:@tao_xue:natural-diagnostic.local",
+            "renderedClaimRows": 2,
+            "renderedSourceRows": 6
+          },
+          "project": {
+            "displayedEntities": 3,
+            "openedProfileId": "matrix:!1P_SaXB5WfPkF9qiAZv9DT63mfGnIf0WLAMchPmW-3M",
+            "renderedClaimRows": 0,
+            "renderedSourceRows": 5
+          }
+        }
+      },
+      {
+        "id": "@bot-51946082-c37d-46bf-b2f5-70c98764023b:natural-diagnostic.local",
+        "name": "知秋",
+        "ownerId": "@he_shan:natural-diagnostic.local",
+        "runtime": {
+          "id": "dscord-kernel",
+          "version": "0.4.0"
+        },
+        "observedActivity": "listening",
+        "participation": {
+          "mode": "natural",
+          "applicationStatus": "applied",
+          "decisionProvider": {
+            "model": "gpt-6-luna",
+            "configured": true,
+            "available": true,
+            "sameWindowHeartbeatAtUtc": "2026-11-07T03:40:51.989Z"
+          }
+        },
+        "profiles": {
+          "person": {
+            "displayedEntities": 7,
+            "openedProfileId": "matrix:@tan_edit:natural-diagnostic.local",
+            "renderedClaimRows": 3,
+            "renderedSourceRows": 7
+          },
+          "project": {
+            "displayedEntities": 4,
+            "openedProfileId": "matrix:!1P_SaXB5WfPkF9qiAZv9DT63mfGnIf0WLAMchPmW-3M",
+            "renderedClaimRows": 0,
+            "renderedSourceRows": 5
+          }
+        }
+      },
+      {
+        "id": "@bot-93550609-5d8e-475e-a7f5-497fee8e61ef:natural-diagnostic.local",
+        "name": "听澜",
+        "ownerId": "@he_shan:natural-diagnostic.local",
+        "runtime": {
+          "id": "dscord-kernel",
+          "version": "0.4.0"
+        },
+        "observedActivity": "listening",
+        "participation": {
+          "mode": "natural",
+          "applicationStatus": "applied",
+          "decisionProvider": {
+            "model": "gpt-6-luna",
+            "configured": true,
+            "available": true,
+            "sameWindowHeartbeatAtUtc": "2026-11-07T03:40:51.996Z"
+          }
+        },
+        "profiles": {
+          "person": {
+            "displayedEntities": 8,
+            "openedProfileId": "matrix:@tan_prod:natural-diagnostic.local",
+            "renderedClaimRows": 4,
+            "renderedSourceRows": 8
+          },
+          "project": {
+            "displayedEntities": 4,
+            "openedProfileId": "matrix:!1P_SaXB5WfPkF9qiAZv9DT63mfGnIf0WLAMchPmW-3M",
+            "renderedClaimRows": 0,
+            "renderedSourceRows": 5
+          }
+        }
+      }
+    ],
+    "browserExceptionCount": 0,
+    "prohibitedWriteCount": 0,
+    "storyMessagesSent": 0,
+    "participationChanges": 0,
+    "generationRequestsByThisUi": 0,
+    "normalReadSideEffects": [
+      {
+        "operation": "presence",
+        "method": "POST",
+        "count": 6
+      },
+      {
+        "operation": "read-receipt",
+        "method": "POST",
+        "count": 2
+      }
+    ],
+    "initialHarnessCorrection": {
+      "cause": "A global password-input selector also counted the hidden sign-in dialog.",
+      "correctionScope": "Restrict the assertion to the Bot settings subtree; no product change.",
+      "firstAttempt": "Retained as the private read-only UI attempt-01 report."
+    },
+    "limits": [
+      "Activities and profile counts are observations during this time window, not permanent Bot state.",
+      "Source row counts are rendered rows and can repeat a source across claims; they are not unique-source counts.",
+      "The opened project views had source history and zero current project claims; no missing fact was promoted to a known fact.",
+      "The UI read uses real Core, Synapse, native kernel and source-memory RPC on one physical host. It is not a physical multi-machine test."
+    ]
+  },
+  "buildAndBrowserScope": {
+    "buildCommand": "npm run build",
+    "buildResult": "passed",
+    "buildIncludes": [
+      "TS7 strict checks for chat and admin",
+      "Vite production chat and admin builds",
+      "PWA static cache generation"
+    ],
+    "versions": {
+      "react": "19.3.1",
+      "typescript": "7.0.2",
+      "vite": "8.3.5"
+    },
+    "fullBrowserCommand": "npm run test:browser",
+    "fullBrowserResult": "12 files passed",
+    "fullSuiteAssertionsAtRecordedRun": 154,
+    "finalKernelSettingsTargetedRun": {
+      "command": "node tests/kernel-settings.browser.mjs",
+      "status": "passed",
+      "level": "real-chromium-web-fixture-and-actual-dsh-controller-with-synthetic-native-runtime",
+      "checks": 13,
+      "notes": "13 checks including the final account-isolation assertion; the full-suite run immediately before that test-only addition had 12 checks in this file."
+    },
+    "dshClientModuleRun": {
+      "command": "node --test tests/dsh-connect-client.test.mjs",
+      "testsPassed": 12
+    },
+    "limits": [
+      "Most browser regressions use synthetic API fixtures; actual controller coverage still uses a synthetic native runtime.",
+      "Those fixtures are separate from the actual DSH archive run and actual Core read-only observations above.",
+      "The build retains Vite notices for the non-module theme script and the chat bundle size; both builds completed."
+    ]
+  },
+  "sourceEvidence": "source-sha256.json",
+  "screenshots": [
+    {
+      "file": "core-mobile-light.png",
+      "description": "真实Core手机明亮模式，合成账号与Bot设置",
+      "sha256": "5df5ea8fcbcbd5b9b3a8a8caa678f203e5290ac22b98e5481e71388d83a7ba3e",
+      "bytes": 48862,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "dsh-created-bot-light.png",
+      "description": "实际发行包在真实DSH中显式创建Bot后的设置界面",
+      "sha256": "96be8e1e4d23e9d34f150d15de274f3543991e99cc604ff312fffa240107b572",
+      "bytes": 118524,
+      "width": 1440,
+      "height": 1000
+    }
+  ],
+  "publicExportVerification": {
+    "strategy": "field-whitelist",
+    "knownPrivateValueScan": "passed",
+    "hostAuthorizationUrlsAndLocalPathsExcluded": true,
+    "selectedImagesReviewed": true,
+    "pngTextMetadata": "absent",
+    "imageHashes": "passed"
+  }
+}

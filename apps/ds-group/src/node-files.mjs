@@ -11,7 +11,8 @@ const maximumBytes = 50 * 1024 * 1024;
 
 export function eventAttachments(event) {
   const values = event.content?.['org.ds_group']?.attachments;
-  return Array.isArray(values) ? values.filter(value => value && typeof value.id === 'string' && value.id) : [];
+  return Array.isArray(values) ? values.filter(value => value && typeof value.id === 'string' && value.id).map(value => ({ ...value,
+    ...(event.room_id && event.event_id ? { source: { roomId: event.room_id, eventId: event.event_id, senderId: event.sender } } : {}) })) : [];
 }
 
 function filesFromEvents(events) {
@@ -45,6 +46,21 @@ export function selectInputAttachments(request) {
     && (candidate.senderId === event.senderId
       || candidate.senderId === request.botId && candidate.originSenderId === event.senderId));
   return previous ? filesFromEvents(batchEvents(previous, history.filter(candidate => candidate.eventId !== previous.eventId))) : [];
+}
+
+export function attachmentSourceFor(request, attachment) {
+  if (!request?.event) return null;
+  const events = [request.event, ...(request.history || []).toReversed()];
+  for (const event of events) {
+    const roomId = event.roomId || request.event.roomId;
+    if (!roomId || !event.eventId || !(event.attachments || []).some(file => ['id', 'contentUri', 'sha256', 'size']
+      .every(key => file[key] === attachment[key]))) continue;
+    // A reply/followup may carry an older file in the normalized current input.
+    // Prefer the proven origin attached during Matrix normalization when known.
+    const source = (event.attachments || []).find(file => file.id === attachment.id)?.source;
+    return source?.roomId && source?.eventId ? { roomId: source.roomId, eventId: source.eventId } : { roomId, eventId: event.eventId };
+  }
+  return null;
 }
 
 function localName(name) {
@@ -132,8 +148,12 @@ export class NodeFiles {
     }
     let response;
     try {
+      const source = attachmentSourceFor(request, attachment);
+      const downloadPath = source
+        ? `/api/rooms/${encodeURIComponent(source.roomId)}/attachments/${encodeURIComponent(attachment.id)}?eventId=${encodeURIComponent(source.eventId)}`
+        : `/api/attachments/${encodeURIComponent(attachment.id)}`;
       response = scoped ? await this.matrix.downloadMedia(attachment.contentUri, { signal })
-        : await this.fetch(new URL(`/api/attachments/${encodeURIComponent(attachment.id)}`, this.coreUrl), {
+        : await this.fetch(new URL(downloadPath, this.coreUrl), {
         headers: { Authorization: `Bearer ${this.accessToken}` },
         redirect: 'error',
         signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(120_000)]) : AbortSignal.timeout(120_000),

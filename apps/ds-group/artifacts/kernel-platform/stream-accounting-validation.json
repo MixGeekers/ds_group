@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T04:56:23.199Z",
+  "baseCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+  "evidenceLevel": "real-DSH-0.2.2-rc.1-with-local-scripted-provider",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "remoteModelCalls": 0,
+  "sourceHashes": {
+    "memory/native.mjs": "3055a598ca9453e24723c8cc14a484242c7422aed669196ff849ae92bd74ba30",
+    "tests/memory-stream-accounting.host.mjs": "68c9ef96875c9624d92716f93e95befa9e95c191690eb202b0e08ca8c933d7ae",
+    "tests/runtime-native.host.mjs": "4537e112708f37b59f72ee2478ef8fb767c9ddbb57f79958d02c408110d8f2c2"
+  },
+  "previous": {
+    "arm64": {
+      "file": "stream-accounting-before-linux-arm64.json",
+      "sha256": "d04eac6b3d1361e5d936d54121ea1ca1c279c1a8e73a1d9c71b4f6ecfecaefb3",
+      "sourceCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "status": "failed",
+      "providerCalls": 4,
+      "claims": 7,
+      "recordedUsageCalls": 7,
+      "toolCalls": 3,
+      "artifacts": 1
+    },
+    "amd64": {
+      "file": "stream-accounting-before-linux-amd64.json",
+      "sha256": "a9cadafc86312d23f5f5fce52f69a66d1a6d23fa3a51bd4276a5a0148de5ab01",
+      "sourceCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "status": "failed",
+      "providerCalls": 4,
+      "claims": 7,
+      "recordedUsageCalls": 7,
+      "toolCalls": 3,
+      "artifacts": 1
+    }
+  },
+  "cause": "Removing retired snapshots restarted the LLM waterfall after an outer admission observer had already claimed the call.",
+  "implementation": "Run the snapshot rewrite with the official prepend listener option, before ordinary claim/usage/native observers; no claim or usage records are subtracted afterwards.",
+  "officialEventBus": {
+    "test": "tests/memory-stream-accounting.host.mjs",
+    "dispatches": 2,
+    "before": {
+      "status": "failed-as-expected-with-ephemeral-loader-removing-only-prepend",
+      "admission": 4,
+      "lateNative": 2,
+      "provider": 2,
+      "logSha256": "3edfe1f96013a5802096f3426e05874c108d43848c4bf0bfde0692cd6bcd93b9"
+    },
+    "after": {
+      "status": "passed",
+      "admission": 2,
+      "lateNative": 2,
+      "provider": 2,
+      "logSha256": "e5643635e42be9e20aa6677e944e919da631536039ae6512fc8eaa002af6358f"
+    },
+    "scope": "Official Cordis parent/child plugin contexts, existing admission observer and later dynamically registered ordinary native observer; original frozen request retained."
+  },
+  "work": {
+    "status": "passed",
+    "checks": [
+      "asynchronousAdmissionAndDuplicate",
+      "realReadComputeWriteReadAndValidatedArtifact",
+      "nativeToolReceiptsAndEveryGenerationLedger",
+      "configuredProviderAndModelMatchRuntimeWireAndCoreLedger",
+      "completedReplayAndCancellationDoNotExecuteAgain",
+      "runningAndQueuedCancellationStopsBackgroundProcess"
+    ],
+    "sourceHashes": {
+      "dsh-plugin/runtime.mjs": "d99669f3e21e45e148c8c3e08fef9e2a73b85c3028fec839388290d5cb5f85ac",
+      "dsh-plugin/runtime-rules.mjs": "1657aa77114ca3a6268bad0e6d071e7bdfae045580a8b9b7ea58358c4211588b",
+      "dsh-plugin/work-files.mjs": "62a350cf088970ab540079b1722b7ecf0e5f6d0fb17f9b0a20f01b9250d95a17",
+      "scripts/runtime-work-smoke.mjs": "7bd125d5aeb7d776c27d02676405b7e263c89781176c6459661f04ffd1074199"
+    },
+    "taskProviderCalls": 4,
+    "taskClaims": 4,
+    "recordedUsageCalls": 4,
+    "completedTaskClaims": 4,
+    "taskToolCalls": 3,
+    "artifactSha256": "a8d92f639928d06c7f08954a86efbd26f2205fd4f9bdeda46ffcd8e5bef7870c",
+    "totalScriptedProviderCallsIncludingCancellation": 6,
+    "cancellation": {
+      "runningStatus": "cancelled",
+      "queuedStatus": "cancelled",
+      "backgroundProcessStopped": true
+    },
+    "reportSha256": "f6649b161f73c846da4d63d1f7b8590dec5a375c4e17c901e04ed80ba3f487f6"
+  },
+  "native": {
+    "status": "passed",
+    "checks": [
+      "nativeMembersRetainSeparateIdentitiesAndCompleteTools",
+      "backgroundObservationAndViewsDoNotSendAUserTurn",
+      "nativeRequestRunsWithOriginalToolsAndIndependentUsage",
+      "nativeAutomaticMemoryReviewRetainsItsOwnObservedStream",
+      "retiredSnapshotRewriteCountsOneNativeObservationAndBridgeCall",
+      "restartKeepsNativeIdentityAndDoesNotReplayCompletedWork"
+    ],
+    "sourceHashes": {
+      "dsh-plugin/runtime.mjs": "d99669f3e21e45e148c8c3e08fef9e2a73b85c3028fec839388290d5cb5f85ac",
+      "dsh-connect/native-team.mjs": "1d0374a23861dd8b26d196cd7b6f0686797e86db0e0f1b7837b639d73748bd35",
+      "dsh-connect/native-bridge.mjs": "ebe06beff6f3729c12cf6231419439e339dd01f878507a6d298aadf53d3e0bb5",
+      "memory/native.mjs": "3055a598ca9453e24723c8cc14a484242c7422aed669196ff849ae92bd74ba30",
+      "tests/runtime-native.host.mjs": "4537e112708f37b59f72ee2478ef8fb767c9ddbb57f79958d02c408110d8f2c2"
+    },
+    "providerCalls": 4,
+    "observedCalls": 4,
+    "bridgeCalls": [
+      {
+        "requestId": "native-once",
+        "calls": 1
+      },
+      {
+        "requestId": "native-next",
+        "calls": 1
+      },
+      {
+        "requestId": "native-two",
+        "calls": 1
+      }
+    ],
+    "legacyClaimCalls": 0,
+    "providerKinds": [
+      "generation",
+      "memory",
+      "generation",
+      "generation"
+    ],
+    "reportSha256": "c654b3fa1a1ce59f3c8f0e36c83c9556c23aef30bec4dea0ac557205961fc57b"
+  },
+  "orderingContract": "Existing and later ordinary observers are covered. A later observer explicitly prepended ahead of this rewrite would require coordinated ordering; Cordis exposes prepend, not numeric listener priority.",
+  "limits": [
+    "Post-fix runtime checks here are macOS arm64. Linux amd64/arm64 incrementals belong to deployment validation.",
+    "Local scripted provider checks do not replace business-model behavior or the full natural run."
+  ],
+  "commands": [
+    "DS_GROUP_DSH_RUNTIME=ISOLATED_DSH_0_2_2_RC1 node scripts/runtime-work-smoke.mjs",
+    "DS_GROUP_DSH_RUNTIME=ISOLATED_DSH_0_2_2_RC1 node tests/runtime-native.host.mjs",
+    "DSH_HARNESS=ISOLATED_DSH_0_2_2_RC1 node --import ./tests/kernel-peer-resolution.mjs --test tests/memory-stream-accounting.host.mjs"
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-07T07:26:36.749Z",
+  "originalReportSha256": "416430f8d2a2b4a9fae914fb444a962e5bb0443599e85d160821198b931d6c08",
+  "originalScoresUnchanged": true,
+  "independentReviewFile": "natural-followup-reviewed.json",
+  "independentReviewSha256": "7c65a3b37644592bcf9c894cebb7905606db2f1b4905d220f0c6815cd3d5ded5",
+  "coverage": {
+    "runs": 5,
+    "feedbackMessages": 7,
+    "newActualBotMessages": 15,
+    "actualDeliveredAttachmentsDownloaded": 8,
+    "originalUploadsDownloaded": 4,
+    "sourceInputHashesVerified": 29
+  },
+  "allActualBotMessagesReviewed": true,
+  "actualCoreDownloadHashAndAudienceVerified": 8,
+  "originalReuploadsByteVerified": 4,
+  "inputChecks": {
+    "sourceHashesVerified": 29,
+    "originalManifestFileHashChecks": 98,
+    "uniqueProtectedOriginalFiles": 23,
+    "allBeforeAndAfterManifestHashesEqual": true,
+    "originalProtectedCurrentBytesStillMatch": true,
+    "liveReusedHomeStateExcludedFromImmutableInputs": true
+  },
+  "localExecution": {
+    "repair084Delivered15testsPassed": true,
+    "repair084OriginalCoveragePreserved": true,
+    "repair084OnlyDownloadedThreeFilesReadable": true,
+    "repair084Independent17ContractPassed": true,
+    "original17ActuallyRerunByTwoBotsAfterOriginalAttachments": true
+  },
+  "finalHandoff": {
+    "size": 12048,
+    "sha256": "20880ffc20c59d5a0c6caee2321f8a9ace6da74f86e69a0fb066d9c50d5f7311",
+    "onlyChangedLine": 67,
+    "onlyTapeLineChanged": true,
+    "originalHumanEventId": "$q0WY_Z-Gg065sum5dP1zC0jYdOgm3UntlQSbInfPW3Q",
+    "originalHumanRoomId": "!xdKelVojc_xhVyZK6jRGW94YfBftWm5ba5Q-iyyWL50",
+    "originalHumanSenderId": "@shen_yao:natural-full.local",
+    "originalHumanPreviouslyExposedInNativeSession": {
+      "run": "platform-natural-source-feedback-02",
+      "userMessageSeq": 1829,
+      "knowledgeFrameSeq": 1830
+    },
+    "newRawSourceQueryIn04": false,
+    "tapeReturnCorrected": true,
+    "labelLocationPreserved": true,
+    "versionTablesBudgetBoxesAndOtherTextByteForBytePreserved": true
+  },
+  "accounting": {
+    "classificationVersion": 2,
+    "rawStarts": 91,
+    "rawEnded": 91,
+    "normalCompleted": 86,
+    "aborted": 5,
+    "failed": 0,
+    "truncated": 0,
+    "unknownEnded": 0,
+    "unfinished": 0,
+    "originalReportClassificationsPreserved": true,
+    "usageOnAbortedPreserved": true,
+    "notVerifiedProviderHttpRequests": true,
+    "billedCostComplete": false
+  },
+  "privacyScan": {
+    "publicFiles": [
+      "natural-followup-review.md",
+      "natural-followup-reviewed.json",
+      "natural-followup-review-validation.json"
+    ],
+    "credentialFilesRead": 11,
+    "privateTokenCandidates": 19,
+    "dshAuthorizationUrls": 10,
+    "privateLiteralMatches": 0,
+    "authorizationPatternMatches": 0,
+    "homeOrTemporaryPathMatches": 0,
+    "privateMessageBodiesPublished": 0
+  },
+  "newModelCallsByReviewer": 0
+}

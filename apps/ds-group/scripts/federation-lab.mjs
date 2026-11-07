@@ -320,7 +320,7 @@ async function up() {
     }
     await docker(["start", server.container]);
     await waitReady(`${server.matrixUrl}/_matrix/client/versions`);
-    await bootstrapServer(options);
+    await bootstrapServer({ ...options, demo: true });
     const auth = await new AdminAuth(server.dataRoot).initialize();
     try {
       if (!auth.list().length) {

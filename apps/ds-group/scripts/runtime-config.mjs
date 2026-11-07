@@ -4,7 +4,7 @@ import path from 'node:path';
 import { homedir } from 'node:os';
 import { LEGACY_MODEL, modelError, modelReference, modelSelection } from '../src/model-config.mjs';
 
-export const DSH_VERSION = '0.2.1-rc.5';
+export const DSH_VERSION = '0.2.2-rc.1';
 // Compatibility alias for the original zero-model smoke fixtures.
 export const MODEL = modelReference(LEGACY_MODEL).model;
 
@@ -95,7 +95,7 @@ export async function resolveDsh({ env = process.env, platform = process.platfor
 
 export function providerConfiguration({ env = process.env, sourceProviders = {}, sourceSelection, sourceCredentials = {}, sourceCredentialRefs = [], previousSelection } = {}) {
   const reference = env.DS_GROUP_MODEL || previousSelection?.model
-    || (env.OPENCODE_API_KEY?.trim() ? LEGACY_MODEL : sourceSelection?.model);
+    || sourceSelection?.model || (env.OPENCODE_API_KEY?.trim() ? LEGACY_MODEL : undefined);
   const route = modelReference(reference);
   const inherited = reference === previousSelection?.model ? previousSelection
     : reference === sourceSelection?.model ? sourceSelection
@@ -114,7 +114,7 @@ export function providerConfiguration({ env = process.env, sourceProviders = {},
   if (endpoint) provider.baseURL = httpUrl(endpoint, 'DS_GROUP_OPENCODE_BASE_URL', { originOnly: false });
   // Keep the original environment-only deployment usable during migration.
   if (!sourceProvider && reference === LEGACY_MODEL) provider.models = [{ id: route.model }];
-  if (provider.models?.length && !provider.models.some(model => model.id === route.model)) {
+  if (Array.isArray(provider.models) && !provider.models.some(model => model.id === route.model)) {
     throw modelError('MODEL_UNAVAILABLE', 'The selected model is absent from this provider’s configured models.');
   }
   const credentials = { version: 1, records: {}, refs: {} };
@@ -122,7 +122,7 @@ export function providerConfiguration({ env = process.env, sourceProviders = {},
     provider.apiKeyEnv = 'DSCORD_NODE_MODEL_API_KEY';
     credentials.refs[provider.apiKeyEnv] = suppliedKey;
   } else if (provider.apiKeyEnv) {
-    const key = sourceCredentials.refs?.[provider.apiKeyEnv] || env[provider.apiKeyEnv];
+    const key = sourceCredentials?.refs?.[provider.apiKeyEnv] || env[provider.apiKeyEnv];
     if (typeof key !== 'string' || !key.trim()) {
       throw modelError('MISSING_CREDENTIAL', 'The selected provider credential is unavailable. Set it in DSH Models or the node environment.');
     }
@@ -130,9 +130,10 @@ export function providerConfiguration({ env = process.env, sourceProviders = {},
   } else {
     const recordKey = `llm-pi-ai/${route.provider}`;
     for (const ref of sourceCredentialRefs) {
-      if (typeof sourceCredentials.refs?.[ref] === 'string') credentials.refs[ref] = sourceCredentials.refs[ref];
+      const value = sourceCredentials?.refs?.[ref] || env[ref];
+      if (typeof value === 'string' && value.trim()) credentials.refs[ref] = value;
     }
-    if (sourceCredentials.records?.[recordKey]) credentials.records[recordKey] = structuredClone(sourceCredentials.records[recordKey]);
+    if (sourceCredentials?.records?.[recordKey]) credentials.records[recordKey] = structuredClone(sourceCredentials.records[recordKey]);
   }
   return { selection, providerId: route.provider, provider, credentials };
 }

@@ -7,7 +7,7 @@ import { NativeBridge } from '../dsh-connect/native-bridge.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
 import { parseBotOutput } from '../src/bot-node.mjs';
 
-async function fixture(t, { idle = Promise.resolve(), send, cwd } = {}) {
+async function fixture(t, { idle = Promise.resolve(), send, cwd, beforeObserve, beforeView } = {}) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'native-bridge-'));
   const handlers = new Map(); let cancelled = 0; let turn = 0;
   const ctx = { get(name) { return name === 'workingDirectory' && cwd ? { get: () => cwd } : undefined; }, on(name, handler) { handlers.set(name, handler); return () => handlers.delete(name); } };
@@ -16,10 +16,14 @@ async function fixture(t, { idle = Promise.resolve(), send, cwd } = {}) {
   native.agent = async () => ({ whenIdle: () => idle, cancel: () => cancelled++, ctx: { tools: { schemas: () => ['create_bot','remember','bash'].map(name => ({ name })) } } });
   const calls = [];
   const event = async (type, data, sessionId = 'native-one') => handlers.get('session/event')?.({ id: sessionId }, { type, data });
-  native.call = async (_endpoint, payload) => {
+  native.call = async (endpoint, payload) => {
+    if (endpoint === 'observe') { await beforeObserve?.(); return { accepted: payload.inputs.length }; }
+    if (endpoint === 'attention-view') { await beforeView?.(); return { schema: 2, currentClaims: [], recentSources: [], historyGaps: [] }; }
+    assert.equal(endpoint, 'send');
+    assert.equal(payload.requestId, JSON.parse(payload.text.split('\n').at(-1)).requestId);
     calls.push(JSON.parse(payload.text.split('\n').at(-1))); turn++;
     await event('turn/start', { turn });
-    await event('user/message', { content: [{ type: 'text', text: payload.text }], source: { kind: 'user' } });
+    await event('user/message', { content: [{ type: 'text', text: payload.text }], source: payload.source });
     if (send) return send({ event, turn, payload });
     await event('assistant/message', { turn, message: { content: [{ type: 'text', text: calls.at(-1).currentMessage.body }] } });
     await event('turn/end', { turn, reason: { kind: 'completed' } });
@@ -47,6 +51,84 @@ test('native inputs keep original tools, distinguish interleaved rooms and persi
   assert.equal((await restarted.turn(a)).text, first.text);
   await assert.rejects(restarted.turn({ ...a, event: { ...a.event, body: 'changed' } }), { code: 'REQUEST_ID_CONFLICT' });
   await restarted.detach();
+});
+
+const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
+const deadline = promise => Promise.race([promise, new Promise((_, reject) => { const timer = setTimeout(() => reject(new Error('Cancellation did not settle')), 1500); timer.unref(); })]);
+
+for (const stage of ['beforeObserve', 'beforeView']) {
+  test(`cancellation during ${stage} never sends the task or cancels unrelated native work`, async t => {
+    const entered = deferred(), gate = deferred();
+    const f = await fixture(t, { [stage]: async () => { entered.resolve(); await gate.promise; } });
+    const pending = f.bridge.turn(f.request(`cancel-${stage}`)); await entered.promise;
+    await f.bridge.cancel(`cancel-${stage}`); gate.resolve();
+    const result = await pending;
+    assert.equal(result.status, 'cancelled'); assert.equal(f.calls.length, 0); assert.equal(f.cancelled(), 0);
+  });
+  test(`detach during ${stage} drains the request without a later send`, async t => {
+    const entered = deferred(), gate = deferred();
+    const f = await fixture(t, { [stage]: async () => { entered.resolve(); await gate.promise; } });
+    const pending = f.bridge.turn(f.request(`detach-${stage}`)); await entered.promise;
+    await deadline(f.bridge.detach());
+    assert.equal((await pending).status, 'unknown'); gate.resolve(); await new Promise(resolve => setImmediate(resolve));
+    assert.equal(f.calls.length, 0); assert.equal(f.cancelled(), 0);
+  });
+}
+
+test('task control cancels while the native Bot remains busy without cancelling that other work', async t => {
+  const f = await fixture(t, { idle: new Promise(() => {}) });
+  const pending = f.bridge.turn(f.request('cancel-before-idle'), { control: async () => ({ cancelRequested: true }) });
+  const result = await deadline(pending);
+  assert.equal(result.status, 'cancelled'); assert.equal(f.calls.length, 0); assert.equal(f.cancelled(), 0);
+});
+
+test('an aborted transport settles its queued task before another binding releases the native queue', async t => {
+  const f = await fixture(t), ahead = deferred(), started = deferred();
+  const blocking = f.native.enqueue(f.node.nativeBotId, () => { started.resolve(); return ahead.promise; });
+  await started.promise;
+  const controller = new AbortController();
+  const pending = f.bridge.turn(f.request('abort-queued'), { signal: controller.signal });
+  await new Promise(resolve => setTimeout(resolve, 10)); controller.abort();
+  try {
+    assert.equal((await deadline(pending)).status, 'unknown'); assert.equal(f.calls.length, 0);
+  } finally { ahead.resolve(); await blocking; await pending; }
+});
+
+test('cancellation during native admission waits for admission and then stops this actual turn', async t => {
+  const entered = deferred(), gate = deferred();
+  const f = await fixture(t, { send: async () => { entered.resolve(); await gate.promise; } });
+  const pending = f.bridge.turn(f.request('cancel-admission')); await entered.promise;
+  await f.bridge.cancel('cancel-admission'); assert.equal(f.cancelled(), 0);
+  gate.resolve(); const result = await pending;
+  assert.equal(result.status, 'cancelled'); assert.equal(f.cancelled(), 1); assert.equal(f.calls.length, 1);
+});
+
+test('a cancellation lookup that finishes after the native turn does not cancel different work', async t => {
+  const f = await fixture(t, { send: async () => {} }), lookup = deferred(), gate = deferred();
+  const agentOf = f.native.agent;
+  const pending = f.bridge.turn(f.request('late-cancel'));
+  while (!f.bridge.run?.sent) await new Promise(resolve => setImmediate(resolve));
+  f.native.agent = async id => { lookup.resolve(); await gate.promise; return agentOf(id); };
+  const cancellation = f.bridge.cancel('late-cancel'); await lookup.promise;
+  await f.event('assistant/message', { turn: 1, message: { content: [{ type: 'text', text: 'Finished before lookup.' }] } });
+  await f.event('turn/end', { turn: 1, reason: { kind: 'completed' } });
+  gate.resolve(); await cancellation; await pending;
+  assert.equal(f.cancelled(), 0);
+});
+
+test('cancellation removes its own admitted inbox item and leaves unrelated native work running', async t => {
+  const f = await fixture(t), inbox = [{ id: 'unrelated', source: { rpcId: 'someone-else' } }]; let cancelled = 0;
+  f.native.agent = async () => ({ whenIdle: async () => {}, cancel: () => cancelled++, session: { id: 'native-one' },
+    inbox: { nextTurn: inbox, nextStep: [], remove(id) { const index = inbox.findIndex(message => message.id === id); if (index >= 0) inbox.splice(index, 1); } } });
+  const call = f.native.call;
+  f.native.call = async (endpoint, payload) => {
+    if (endpoint !== 'send') return call(endpoint, payload);
+    inbox.push({ id: 'mine', source: { rpcId: payload.requestId }, content: [{ type: 'text', text: payload.text }] });
+  };
+  const pending = f.bridge.turn(f.request('cancel-inbox'));
+  while (!f.bridge.run?.sent) await new Promise(resolve => setImmediate(resolve));
+  await f.bridge.cancel('cancel-inbox'); assert.equal((await pending).status, 'cancelled');
+  assert.deepEqual(inbox.map(message => message.id), ['unrelated']); assert.equal(cancelled, 0);
 });
 
 test('disconnect while original Bot is busy returns promptly and never cancels its native work', async t => {

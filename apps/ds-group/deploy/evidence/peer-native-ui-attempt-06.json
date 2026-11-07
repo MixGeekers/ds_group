@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 2,
+  "checkedAt": "2026-11-07T03:36:59.732Z",
+  "status": "passed",
+  "level": "packaged-plugin-in-real-dsh-web-ui-with-isolated-local-provider",
+  "expectedDshVersion": "0.2.2-rc.1",
+  "remoteModelCalls": 0,
+  "localModelCalls": 0,
+  "checks": [
+    "archiveLoadsWithPinnedDshAndPrivateDependencies",
+    "readingStateDoesNotCreateChiefOrOtherBots",
+    "realDshFormExplicitlyCreatesFirstBotWithStableRequestAndChosenModel",
+    "offlineDesiredParticipationStaysPendingAndMemoryReadUsesOwnedKernel",
+    "realDshPrivateDecisionFormClearsKeyAndSavesDisabledServiceWith0600Mode",
+    "packagedBotWorkspaceReadsSameOwnedKernelWithoutExtraBotCreation",
+    "hostNativeControlsAndLightDarkThemeRender",
+    "dshProviderConfigurationUnchanged",
+    "zeroLocalAndRemoteModelGeneration"
+  ],
+  "browserErrors": [],
+  "screenshots": [
+    "<synthetic-path>/dsh-kernel-light.png",
+    "<synthetic-path>/dsh-kernel-dark.png",
+    "<synthetic-path>/dsh-kernel-workspace.png"
+  ],
+  "dshVersion": "0.2.2-rc.1",
+  "package": {
+    "version": "0.4.0-alpha.1",
+    "archive": "<synthetic-path>/dscord-0.4.0-alpha.1.tgz",
+    "sha256": "0f034db5f2e8c634a35595c071931e338e0369e99075be06095cb25e00fe5d7b"
+  },
+  "initial": {
+    "nativeMode": true,
+    "nativeBundled": true,
+    "runtime": {
+      "available": true,
+      "mode": "native",
+      "runtime": {
+        "id": "dscord-kernel",
+        "version": "0.4.0",
+        "upstreamVersion": "0.3.1",
+        "apiVersion": 1,
+        "api": "/api/dscord/kernel",
+        "instanceId": "0b3d1862-5f2d-4ce1-bac4-a8895a442bea",
+        "status": "running",
+        "home": "<synthetic-path>/bot",
+        "dataVersion": 1,
+        "hostCompatibility": {
+          "minimum": "0.2.2-rc.1",
+          "sessionSource": "native-agent-inbox"
+        },
+        "memoryBackend": "source-aware-v1",
+        "adoption": {
+          "at": "2026-11-07T03:37:01.564Z",
+          "from": "new-home",
+          "snapshot": null,
+          "sha256": null,
+          "inflightSnapshot": null,
+          "botIds": [],
+          "sessionPolicy": "preserve-native-identities",
+          "tasksReplayed": false,
+          "prepared": true
+        },
+        "migrationWork": {
+          "turns": [],
+          "queued": []
+        }
+      }
+    },
+    "lastError": null
+  },
+  "runtime": {
+    "id": "dscord-kernel",
+    "version": "0.4.0",
+    "upstreamVersion": "0.3.1",
+    "api": "/api/dscord/kernel"
+  },
+  "bot": {
+    "nativeBotId": "session-74fabe66-4161-474d-a5d8-50f95257d084",
+    "model": "second-test/local/assistant",
+    "name": "识雨",
+    "mainBotIds": [
+      "session-74fabe66-4161-474d-a5d8-50f95257d084"
+    ]
+  },
+  "publicEvidence": {
+    "originalSha256": "0819290be0e7a50c779849b719d46db0fa9fa8a3ebc91a92730970d2c0e04b71",
+    "origin": "platform-ui line",
+    "evidenceScope": "historical UI harness attempt; use its own package hash and outcome"
+  }
+}

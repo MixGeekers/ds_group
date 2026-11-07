@@ -17,12 +17,16 @@ const runtimeUrl = new URL('../dsh-plugin/runtime.mjs', import.meta.url).href;
 const hook = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (context.parentURL === runtimeUrl) {
-      if (specifier === '../vendor/ds-bot/index.js') return {
-        url: `data:text/javascript,${encodeURIComponent('export const createRuntime = (_ctx, config) => globalThis.__dsGroupIdentityRuntimes.get(config.home);')}`,
+      if (specifier === '../dsh-connect/native-team.mjs') return {
+        url: `data:text/javascript,${encodeURIComponent('export const startNativeTeam = async (_ctx, config) => { const rt = globalThis.__dsGroupIdentityRuntimes.get(config.home); await rt.load(); return rt; };')}`,
         shortCircuit: true,
       };
       if (specifier === '@deepseek-ai/dsh-llm') return {
         url: `data:text/javascript,${encodeURIComponent('export const createUserMessage = () => { throw new Error("Unexpected model task in identity test"); };')}`,
+        shortCircuit: true,
+      };
+      if (specifier === '@deepseek-ai/dsh-tool-executor-native') return {
+        url: `data:text/javascript,${encodeURIComponent('export class NativeToolExecutor { describe(tools) { return { schemas: tools }; } }')}`,
         shortCircuit: true,
       };
     }
@@ -72,7 +76,7 @@ async function fixture(t, { nodeState, bots = [], beforeCreate, updateFailures =
     },
     async resolveAgent(sessionId) {
       if (!agents.has(sessionId)) agents.set(sessionId, { session: { id: sessionId }, ctx: {
-        on() {}, tools: { presentAs() {}, guard() {}, schemas: () => [{ name: 'read_file' }] },
+        on() {}, tools: { setExecutor() {}, guard() {}, schemas: () => [{ name: 'read_file' }] },
       } });
       return agents.get(sessionId);
     },

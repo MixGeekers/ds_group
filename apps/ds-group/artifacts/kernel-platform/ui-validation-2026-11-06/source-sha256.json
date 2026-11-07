@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "commits": {
+    "parentIntegration": "2f7a93691d50f04ded6a0ecef49147f33815cdc3",
+    "botUiContract": "da2468258701725093b4005c04c7512db1581c5a",
+    "memorySchemaFix": "5e716dd5b345fba18a3e2f758b091bc2bd1f5111",
+    "dshUiSmokeDriver": "ff76c07ee540c377b1d75f82785b4b933a4fd5ba",
+    "liveScenarioCoordinatorReportedSource": "b3add9b4c42e384313cc0fb164009cf8b20fb4b7"
+  },
+  "archive": {
+    "filename": "dscord-0.4.0-alpha.1.tgz",
+    "sha256": "0f034db5f2e8c634a35595c071931e338e0369e99075be06095cb25e00fe5d7b",
+    "version": "0.4.0-alpha.1",
+    "members": [
+      {
+        "path": "package.json",
+        "sha256": "b808cc687c3027a5b0d3c1324948d5302d6d4fd164b9564f94afb5666f42f62a",
+        "bytes": 1704
+      },
+      {
+        "path": "dsh-connect/client.js",
+        "sha256": "6b375cc98ccadca8432ca263058a38fd04bb9b87db8ba521608a255c96f57cc2",
+        "bytes": 1666133
+      },
+      {
+        "path": "dsh-connect/index.mjs",
+        "sha256": "215325eed12dd492169f40ba8a77fe7b0ec553a468f0b6afabbaa206aaa60fbe",
+        "bytes": 2219
+      },
+      {
+        "path": "dsh-connect/controller.mjs",
+        "sha256": "fac0ad06a692030d327bfd47c3b63728863cfce30834e145a411ba55b08e6996",
+        "bytes": 23944
+      },
+      {
+        "path": "dsh-connect/kernel-runtime.mjs",
+        "sha256": "271108002935c72dc5ee23458454f7611bec56bfc562bf3147d1bd89051844dc",
+        "bytes": 6626
+      },
+      {
+        "path": "dsh-connect/native-team.mjs",
+        "sha256": "f350f2b1b2d3f299356941480c5907de59ea91a4c2691b41fb503e0a226a97c3",
+        "bytes": 3791
+      },
+      {
+        "path": "dsh-connect/native-bots.mjs",
+        "sha256": "97302d3e079d10974415449d1ee6ad04ea25ec5aad0dd72f9b220985edc4c925",
+        "bytes": 4453
+      },
+      {
+        "path": "memory/native.mjs",
+        "sha256": "89636eb4c539142c762f850c0fd1176659d193dbf12d1133ce021be103f74f79",
+        "bytes": 29260
+      },
+      {
+        "path": "vendor/ds-bot/client.js",
+        "sha256": "cf262e6328342a4a00e8c73147d5ad446fe610fa20b37f23cd97452e5a1dc49e",
+        "bytes": 1609539
+      },
+      {
+        "path": "dist/web/index.html",
+        "sha256": "ea9bd4361e9fdf51c9d03474c1158320b282996fe0154898d3cde4acf46dd8c2",
+        "bytes": 1149
+      },
+      {
+        "path": "dist/web/assets/index-BqlrCiJR.css",
+        "sha256": "a66e0564daca518a415dc71ca6ec79dcdb785d28cf5d854fa77b38636e913c24",
+        "bytes": 74580
+      },
+      {
+        "path": "dist/web/assets/index-Hkq9lg6C.js",
+        "sha256": "1826c18b2790c26152e7f5e6f9e193fce3d29fda368977247c0bc55ae5e28ee0",
+        "bytes": 601779
+      }
+    ]
+  },
+  "repositoryFiles": [
+    {
+      "path": "scripts/native-ui-smoke.mjs",
+      "sha256": "dd836891fd63c9eea3f26212c1b818b3e19202210c86eb6091e5b5192a1458a5"
+    },
+    {
+      "path": "tests/kernel-settings.browser.mjs",
+      "sha256": "d019332cd4f72e3a0f4fe2260edb519371502fdf3a7430254cdb3ff01b509529"
+    }
+  ],
+  "privateReadOnlyDriverSha256": "c3f2e660bca22205fbc8c89dcf480e0b7503d8f8f10a25ffce3f7d38245987c8",
+  "scopeNotes": [
+    "Archive members are the actual files from the tested npm archive, not a later rebuild.",
+    "The live scenario source commit was supplied by the coordinator; the browser did not attest to its server checkout.",
+    "The source memory schema hash matches the published fix commit."
+  ],
+  "privateInputDigests": [
+    {
+      "label": "native-ui.json",
+      "sha256": "ae1815bec3b382354735d3b08a9a1f0b7a13eda262350758a8c973a2f7a98ad8"
+    },
+    {
+      "label": "native-ui-attempt-01.json",
+      "sha256": "b47088f700b57f033bfa9d1389a307d8f3e2b6baa0b0b16b9d3bc52a72e3ea84"
+    },
+    {
+      "label": "native-ui-attempt-02.json",
+      "sha256": "a579743bd53c41bcd8b5653c0736a7432fbe1aae5560ecb79e7da44a09f44990"
+    },
+    {
+      "label": "native-ui-attempt-03.json",
+      "sha256": "09d5917b8f59546a9e367a816fe1c36262c99dbaf46612464fe91e4b4c92d4c0"
+    },
+    {
+      "label": "native-ui-attempt-04.json",
+      "sha256": "406a9c7542a2e737c1214fe56927e70ec9969faef778d9bf079da3242819c9d4"
+    },
+    {
+      "label": "native-ui-attempt-05.json",
+      "sha256": "acba60fce9781fd4af210ee8058a75833cbe94b29406ad33aafc0521bb7211c5"
+    },
+    {
+      "label": "native-ui-attempt-06.json",
+      "sha256": "0819290be0e7a50c779849b719d46db0fa9fa8a3ebc91a92730970d2c0e04b71"
+    },
+    {
+      "label": "natural-readonly-ui/report.json",
+      "sha256": "84a6008cd06a06dca4d57e14c30d14bad7083efe055620fb73109a20eabd3e42"
+    },
+    {
+      "label": "natural-readonly-ui/attempt-01.json",
+      "sha256": "71581c8ca88133ddd1259b9e436393928b37da5e6578f962704b3cf36561abcd"
+    },
+    {
+      "label": "kernel-settings-browser/report.json",
+      "sha256": "2c5cbcb2813f2905ece1a043d67aa6612fb5c8be75c8fb45b1835a239047beea"
+    }
+  ]
+}

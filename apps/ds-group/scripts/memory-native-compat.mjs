@@ -10,7 +10,7 @@ const directory = await mkdtemp(join(packageRoot, '.local/memory-compat-'));
 const host = new MemoryTestHost(directory), hash = value => createHash('sha256').update(value).digest('hex');
 const report = { startedAt: new Date().toISOString(), status: 'failed', model: MODEL, checks: [], turns: [] };
 async function owner(endpoint, payload) {
-  const response = await fetch(`http://127.0.0.1:${host.port}/api/bot`, { method: 'POST',
+  const response = await fetch(`http://127.0.0.1:${host.port}/api/dscord/kernel`, { method: 'POST',
     headers: { 'content-type': 'application/json', cookie: host.cookie }, body: JSON.stringify({ endpoint, payload }), signal: AbortSignal.timeout(300000) });
   const result = await response.json(); if (!result.ok) throw new Error(JSON.stringify(result.error)); return result.value;
 }

@@ -1,0 +1,60 @@
+{
+  "checkedAt": "2026-11-07T04:45:45.353Z",
+  "platform": "linux",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "expectedDshVersion": "0.2.2-rc.1",
+  "installationKind": "npm-cli",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "level": "real-native-dsh-zero-model",
+  "sourceHashes": {
+    "package.json": "da6ab6973d638510d9eacf5e7c2afef365b983ae40d7c80f7a6f5aa6d90afae1",
+    "vendor/ds-bot/UPSTREAM.json": "adc448224527c0510c49f5750b866a741e12dd0c7d700de095bd2ae447114b43",
+    "src/model-config.mjs": "a66c902469bd7837733e14879c230393eb625fdd1aa343725119e1565bc228e3",
+    "dsh-plugin/model-profile.mjs": "41e089adcd751a9f61fb38ee885f77c520e539a7730daaf81dc61eb8b3b0e728",
+    "scripts/dsh-node.mjs": "d53b5671962c8c1449dc7f446c9a490a3e27ef5d056d26eaa37c44841efd30d6",
+    "scripts/runtime-config.mjs": "f95138748cb15ef560ce287c31c168a215b0783898d156db7be72a25b0efbfc6",
+    "scripts/runtime-smoke.mjs": "cccddead14333425789963ac2375657dde495e4d35a160d63d0983911f97f643",
+    "dsh-plugin/index.mjs": "881afa4f656b46e8cfa75eb2e221a3cf9e05bc20f30591a8511140eb5c30c7ed",
+    "dsh-plugin/runtime.mjs": "d99669f3e21e45e148c8c3e08fef9e2a73b85c3028fec839388290d5cb5f85ac",
+    "dsh-plugin/runtime-dependencies.json": "a72a7c7d232a357947c1c6c2fcebe3ca761891605d8bbcb6807056f677aa1fee"
+  },
+  "checks": {
+    "pinnedRuntimeVersion": true,
+    "pluginLoaded": true,
+    "allowedModelCatalog": true,
+    "nativeSessionCreated": true,
+    "importedRemoteCoreAndPrivateData": true,
+    "sessionIdentityAfterRestart": true,
+    "legacyIdentityAndInstructionsMigrated": true,
+    "interruptedRequestIsNotReplayed": true,
+    "customProviderAndNamespacedModelReuseNativeIdentity": true,
+    "sourceProviderSettingsPreservedAndCredentialScoped": true,
+    "savedModelSurvivesSourceDefaultChange": true,
+    "nativeModelOverridesPreserved": true,
+    "invalidConfiguredModelRejectedWithoutProfileWrite": true,
+    "missingCredentialRejectedWithoutProfileWrite": true,
+    "sourceProfileAndCredentialsUnmodified": true,
+    "gracefulStop": true,
+    "zeroModelClaims": true
+  },
+  "status": "passed",
+  "dshVersion": "0.2.2-rc.1",
+  "runtime": {
+    "id": "dscord-kernel",
+    "version": "0.4.0",
+    "upstreamVersion": "0.3.1",
+    "apiVersion": 1
+  },
+  "engine": {
+    "name": "DS-Bot",
+    "version": "0.3.1"
+  },
+  "modelCalls": 0,
+  "publicEvidence": {
+    "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+    "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+    "originalSha256": "c3a812a6b3a1ca86a4c2ff324dc01555f88dd9dfb30fbd910ca5af9a2fd4e226",
+    "environment": "Linux ARM64 native Docker"
+  }
+}

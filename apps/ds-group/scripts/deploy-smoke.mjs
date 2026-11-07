@@ -17,7 +17,7 @@ const composeFiles = ['-f', path.join(packageRoot, 'deploy', 'compose.yaml')];
 const portBase = process.env.DS_GROUP_SMOKE_PORT_BASE === undefined ? 0 : Number(process.env.DS_GROUP_SMOKE_PORT_BASE);
 if (!Number.isInteger(portBase) || portBase < 0 || portBase > 65525 || (portBase > 0 && portBase < 1024)) throw new Error('Invalid DS_GROUP_SMOKE_PORT_BASE');
 const env = { ...process.env, DS_GROUP_IMAGE: process.env.DS_GROUP_IMAGE || 'ds-group:ci',
-  DS_GROUP_MEDIA_BACKEND: 'local', DS_GROUP_WEB_MODE: 'bundled',
+  DS_GROUP_MEDIA_BACKEND: 'local', DS_GROUP_WEB_MODE: 'bundled', DS_GROUP_BOOTSTRAP_DEMO: 'true',
   DS_GROUP_HTTP_PORT: String(portBase), DS_GROUP_MATRIX_PORT: String(portBase ? portBase + 8 : 0),
   DS_GROUP_ADMIN_PORT: String(portBase ? portBase + 10 : 0), DS_GROUP_BIND: '127.0.0.1', DS_GROUP_SERVER_NAME: `${name}.local`,
   DS_GROUP_PUBLIC_URL: 'http://localhost:18100', DS_GROUP_MATRIX_PUBLIC_URL: 'http://localhost:18008' };
@@ -85,9 +85,14 @@ async function checkRemoteAdapter(bundle, coreUrl, token) {
   const directory = await mkdtemp(path.join(path.dirname(reportPath), `${name}-node-`));
   let registrations = 0;
   let statusReads = 0;
+  let kernelReads = 0;
+  let attentionReads = 0;
+  const observedEvents = new Set();
   const unexpectedRequests = [];
-  const bridge = http.createServer((incoming, response) => {
-    incoming.resume();
+  const bridge = http.createServer(async (incoming, response) => {
+    const chunks = [];
+    for await (const chunk of incoming) chunks.push(chunk);
+    const input = chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {};
     if (incoming.url === '/api/ds-group-node/bots' && incoming.method === 'POST') {
       registrations++;
       response.writeHead(200, { 'Content-Type': 'application/json' });
@@ -96,6 +101,19 @@ async function checkRemoteAdapter(bundle, coreUrl, token) {
       statusReads++;
       response.writeHead(200, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ status: 'ready', model: null }));
+    } else if (incoming.url === '/api/ds-group-node/kernel/state' && incoming.method === 'POST') {
+      kernelReads++;
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ runtime: { id: 'dscord-kernel', version: '0.4.0', upstreamVersion: '0.3.1', apiVersion: 1, available: true },
+        work: { status: 'idle', activeTasks: 0, tasks: [] } }));
+    } else if (incoming.url === '/api/ds-group-node/observe' && incoming.method === 'POST') {
+      for (const event of input.events || []) observedEvents.add(event.event_id);
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ observed: input.events?.length || 0 }));
+    } else if (incoming.url === '/api/ds-group-node/attention/view' && incoming.method === 'POST') {
+      attentionReads++;
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ available: false, runtime: { status: 'idle' }, memory: { available: false } }));
     } else {
       unexpectedRequests.push(`${incoming.method} ${incoming.url}`);
       response.writeHead(500, { 'Content-Type': 'application/json' });
@@ -132,15 +150,18 @@ async function checkRemoteAdapter(bundle, coreUrl, token) {
         try { observed = Boolean(database.prepare('SELECT event_id FROM messages WHERE event_id=?').get(sent.event_id)); }
         finally { database.close(); }
       } catch (error) { if (error.code !== 'ERR_SQLITE_ERROR') throw error; }
-      if (connected?.status === 'idle' && !connected.lastError && observed) { synchronized = true; break; }
+      if (connected?.status === 'idle' && !connected.lastError && observed && observedEvents.has(sent.event_id)) { synchronized = true; break; }
       await new Promise(resolve => setTimeout(resolve, 200));
     }
     assert.ok(synchronized, `Remote adapter did not sync a real Matrix event: ${diagnostics}`);
     assert.equal(registrations, 1);
     assert.ok(statusReads > 0, 'Adapter must read runtime status without generating a reply');
-    assert.deepEqual(unexpectedRequests, [], 'Deployment smoke permits registration and runtime status only');
+    assert.ok(kernelReads > 0, 'Adapter must publish its kernel read view');
+    assert.ok(observedEvents.has(sent.event_id), 'The real Matrix event must reach the background observation bridge');
+    assert.deepEqual(unexpectedRequests, [], 'Deployment smoke permits registration, observation and read-only bridge operations');
     report.adapter = { core: 'real-container', matrix: 'real-container', adapter: 'real-host-process',
-      inferenceBridge: 'registration-and-status-fixture', statusReads, generationCalls: 0 };
+      inferenceBridge: 'registration-observation-and-read-only-fixture', statusReads, kernelReads, attentionReads,
+      observedEventCount: observedEvents.size, sentEventObserved: true, generationCalls: 0 };
   } finally {
     if (child && child.exitCode === null) {
       child.kill('SIGTERM');
@@ -166,6 +187,8 @@ if (process.env.DS_GROUP_PLATFORM) {
 
 try {
   await compose(['up', '--no-build', '--detach', '--wait', '--wait-timeout', '180']);
+  report.containerRuntime = JSON.parse(await compose(['exec', '-T', 'core', 'node', '-e', 'console.log(JSON.stringify({platform:process.platform,arch:process.arch,node:process.version}))']));
+  if (process.env.DS_GROUP_PLATFORM) assert.equal(`${report.containerRuntime.platform}/${report.containerRuntime.arch === 'x64' ? 'amd64' : report.containerRuntime.arch}`, process.env.DS_GROUP_PLATFORM);
   let url = await endpoint();
   const initial = await request(url, '/api/bootstrap');
   assert.equal(initial.participants.length, 4);

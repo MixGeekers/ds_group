@@ -56,6 +56,44 @@ test('send preserves identity-independent routing, task reference and Matrix rep
   }), { event_id: '$message' });
 });
 
+test('threaded file delivery keeps the root, explicit reply, mentions and original task thread separate', async t => {
+  const attachment = { id: 'artifact', name: '结果.txt', contentUri: 'mxc://test/file', mimeType: 'text/plain', size: 5, sha256: 'a'.repeat(64) };
+  const baseUrl = await mockServer(t, (request, response, content) => {
+    assert.equal(request.method, 'PUT');
+    assert.equal(content.msgtype, 'm.file');
+    assert.equal(content.url, attachment.contentUri);
+    assert.deepEqual(content['m.relates_to'], { rel_type: 'm.thread', event_id: '$thread-root', 'm.in_reply_to': { event_id: '$quoted-event' }, is_falling_back: false });
+    assert.equal(content['org.ds_group'].threadRootId, '$thread-root');
+    assert.equal(content['org.ds_group'].replyTo, '$quoted-event');
+    assert.equal(content['org.ds_group'].originThreadRootId, '$original-thread');
+    assert.equal(content['org.ds_group'].taskId, 'original-task');
+    assert.deepEqual(content['org.ds_group'].attachments, [attachment]);
+    assert.deepEqual(content['m.mentions'], { user_ids: ['@owner:test'] });
+    response.end(JSON.stringify({ event_id: '$threaded-file' }));
+  });
+  const client = new MatrixClient({ baseUrl });
+  assert.deepEqual(await client.send('!room:test', '结果', { transactionId: 'thread-file', threadRootId: '$thread-root', replyTo: '$quoted-event',
+    taskId: 'original-task', originThreadRootId: '$original-thread', attachments: [attachment], mMentions: { user_ids: ['@owner:test'] } }), { event_id: '$threaded-file' });
+});
+
+test('a thread continuation without an explicit reply uses the standard root fallback and validates thread references', async t => {
+  const contents = [];
+  const baseUrl = await mockServer(t, (_request, response, content) => {
+    contents.push(content);
+    response.end(JSON.stringify({ event_id: `$sent-${contents.length}` }));
+  });
+  const client = new MatrixClient({ baseUrl });
+  await client.send('!room:test', '线程消息', { threadRootId: '$root' });
+  assert.deepEqual(contents[0]['m.relates_to'], { rel_type: 'm.thread', event_id: '$root', 'm.in_reply_to': { event_id: '$root' }, is_falling_back: true });
+  assert.equal(contents[0]['org.ds_group'].replyTo, undefined);
+  await client.send('!room:test', '普通消息', { originThreadRootId: '$source-thread' });
+  assert.equal(contents[1]['m.relates_to'], undefined, 'Origin provenance alone does not put a delivery into a thread');
+  assert.equal(contents[1]['org.ds_group'].originThreadRootId, '$source-thread');
+  for (const options of [{ threadRootId: '' }, { threadRootId: 42 }, { originThreadRootId: null }]) {
+    assert.throws(() => client.send('!room:test', '无效引用', options), /non-empty strings/);
+  }
+});
+
 test('timeline returns events in chronological order and sync keeps its cursor', async t => {
   const baseUrl = await mockServer(t, (request, response) => {
     response.setHeader('Content-Type', 'application/json');

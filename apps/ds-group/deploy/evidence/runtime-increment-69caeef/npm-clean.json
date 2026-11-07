@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "runId": "npm-smoke-bec2b0f7-6699-4572-bf35-e46cdd7ddbcd",
+  "startedAt": "2026-11-07T04:59:10.278Z",
+  "status": "passed",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "scope": "clean-npm-tarball-install-real-matrix-core-zero-model",
+  "checks": [
+    "clean-production-install",
+    "installed-cli-and-relative-data-paths",
+    "installed-runtime-import-closure",
+    "real-synapse-bootstrap-and-idempotency",
+    "installed-core-health-and-prebuilt-pwa",
+    "real-two-human-login-message-and-attachment-roundtrip",
+    "zero-model-and-immutable-install"
+  ],
+  "modelCalls": 0,
+  "tarball": {
+    "name": "dscord-0.4.0-alpha.1.tgz",
+    "sha256": "0cdd801dc83df8c7fb3451cab985d169f6dcf85fbb9fb183e6181c03b950d54d",
+    "sha1": "92d537c0a4d5055933a7616088ed2f34de7a2b97"
+  },
+  "scriptSha256": "9c982f2d2b0a1b93c91fbfeb182bc5fedc851f7ed471445ae79a76e8749dbe1c",
+  "version": "0.4.0-alpha.1",
+  "synapse": {
+    "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+    "nonRootUid": 501,
+    "hostPort": 21008
+  },
+  "web": {
+    "assetCount": 7,
+    "manifest": true,
+    "serviceWorker": true
+  },
+  "humanLoginAttempts": {
+    "alice": 1,
+    "bob": 1,
+    "retries": 0
+  },
+  "matrix": {
+    "humanSenders": 2,
+    "messageRetrySameEvent": true,
+    "replyRelation": true,
+    "attachmentBytes": 78,
+    "attachmentSha256": "316507b6a8ae91dcd290557539d369936c2d977883eddf65dbd0851d1503d454"
+  },
+  "botStatuses": [
+    {
+      "id": "finance",
+      "status": "offline"
+    },
+    {
+      "id": "hr",
+      "status": "offline"
+    }
+  ],
+  "installation": {
+    "fileCount": 251,
+    "filesUnchanged": true,
+    "runtimeDataOutsidePackage": true
+  },
+  "loadedCoreSha256": "054bb2170a7c449795319fb26960389e54ffd7bc1d896e9f9c86c8033d099fb3",
+  "coreStopped": true,
+  "synapseStopped": true,
+  "completedAt": "2026-11-07T04:59:40.028Z",
+  "publicEvidence": {
+    "productBase": "9898c624431f76123f6dc03346503af8e65ab744",
+    "patches": [
+      "9770272",
+      "a542444",
+      "69caeef"
+    ],
+    "gates": [
+      "9565006",
+      "9e1dda6"
+    ],
+    "sourceArchiveSha256": null,
+    "originalSha256": "f7d7845cc6b1ad6f56be9cd53fb0ab34956fa040f7fd371b97351bf86e3d355f",
+    "npmArchiveSha256": "0cdd801dc83df8c7fb3451cab985d169f6dcf85fbb9fb183e6181c03b950d54d",
+    "environment": "macOS ARM64 Node and Linux ARM64 Synapse"
+  }
+}
