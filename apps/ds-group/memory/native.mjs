@@ -9,19 +9,21 @@ import { generateReviewWithBudget, prepareReviewBatch, prepareReviewProposal } f
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 import { memoryModelOptions } from './model-options.mjs';
 import { contactReadView } from './contacts.mjs';
+import { nativeMemoryInput, automaticReviewAllowed } from './ingress.mjs';
 
 const textOf = message => (message?.content || []).filter(block => block.type === 'text').map(block => block.text).join('\n');
 const RULES = `# Source-aware memory
 You are the same native Bot in every conversation. remember/recall/forget and contacts use one persistent store.
 Full account IDs identify people. Equal display names do not imply the same person. Keep subject, original author, relayer and Bot interpretation separate.
-The per-step speakerFacts are current source-backed claims about this exact speaker, not a new message. Apply relevant language and report-format preferences without requiring the person to repeat them; keep scope, uncertainty and conflicting claims visible. Casual conversation does not automatically require a work plan.
+The per-step currentClaims/speakerFacts are current source-backed claims, not a new message. Apply relevant language and report-format preferences without requiring the person to repeat them; keep scope, uncertainty and conflicting claims visible. Casual conversation does not automatically require a work plan.
+Read recentSources for newer human corrections not yet organized into memory, and changes for invalidated evidence or derived drafts that require review. A later Bot file/readback does not independently confirm its contents or override a human correction. claimState distinguishes statement, proposal, confirmed and uncertain; inference stays an inference even if repeated. The view records what this Bot has observed, not what every room member knows, wants or privately believes. Use review_memory for bounded on-demand review of a person/project or repeated error, and memory_source to inspect exact original evidence. Neither tool proves task completion or successful delivery; use runtime receipts for those.
 Room decisions apply to that room/project. Recall returns exact source references, validity and unresolved conflicting claims. Never present a reported claim or inference as the person's own statement.
 Separate confirmed decisions, proposals and unknowns when revising plans or files. A change to one field does not confirm changes to other fields. Your earlier drafts, summaries and generated files are derived work, not independent confirmation about the real world; reconcile them against the person's later corrections before reusing them.
 When asked to remember, call remember before saying it is saved. Automatic review also keeps durable facts. Use recall before answering from old memories, especially after compaction, corrections or restart. When the current user explicitly requests recall or a fresh history/status check, call recall in this turn even if an identical question was recently answered. A previous turn’s result is not a fresh lookup for a new request. For another room use scope room:<ID>, or all and name the source room in your answer. Expired, withdrawn and superseded facts are historical only.
 Use replaceId from recall for corrections to one fact. Distinct concurrent claims remain visible until resolved. Deduplicate relays by original evidence; repetition is not corroboration. Contacts are identity records; claims and opinions belong to the Bot that learned them.
 Tools and native tasks continue normally. Memory summaries are pointers to records, not a second editable fact store.`;
 const REVIEW = `Maintain this Bot's durable source-aware memories. Return ONLY JSON {"changes":[...]} (empty if nothing durable).
-Read source bodies as statements by their authorId, NOT by one universal user. Each change: {op:"add"|"replace"|"forget",text,subjectId,predicate,kind:"stated"|"reported"|"observation"|"inference",saidBy,sourceIds:[exact source id],scope:"own"|"team"|"room:<exact room ID>",replaceId?,validUntil?}.
+Read source bodies as statements by their authorId, NOT by one universal user. Each change: {op:"add"|"replace"|"forget",text,subjectId,predicate,kind:"stated"|"reported"|"observation"|"inference",saidBy,sourceIds:[exact source id],scope:"own"|"team"|"room:<exact room ID>",replaceId?,validUntil?,claimState?:"statement"|"proposal"|"confirmed"|"uncertain",facets?:["preference"|"decision"|"relationship"|"question"|"commitment"|"experience"],entityIds?:[exact person IDs],projectIds?:[exact project IDs],basisRefs?:[{id:existing memory ID,revision:exact revision}]}.
 Use exact identity IDs from the input; for project facts use the room identity or an explicitly named project. Use short stable predicates for one attribute. Save durable facts, decisions, preferences, assignments and corrections. Skip transient chatter, questions, test instructions and mere acknowledgements.
 Direct statements are stated; quotes/relays are reported with saidBy identifying who actually said it, and subjectId who it concerns. Bot interpretations are inference. Tool results are observation from tool:<name>, never statements by the human who requested the task. Save a tool result only when it is durable task evidence the user asked to keep. A Bot relay is never a new direct human statement. Keep originRefs and source IDs; never count repeats as independent evidence.
 Default scope to the source room, own for native personal chat. Stable personal communication preferences stated as usual/general behavior belong in own unless the person limits them to a room or task; a one-time request or mood is not a permanent preference. Use team only when explicitly shared team-wide. Different room values can coexist.
@@ -50,6 +52,11 @@ export function installNativeMemory(rt) {
     subjectId: string('Full identity ID of whom/what the fact concerns, as shown by contacts or source context'),
     predicate: string('Stable attribute such as report-language, release-window, member-of or role'),
     kind: string('stated, reported, observation or inference'), saidBy: string('Full original speaker identity ID for a quoted/reported statement'),
+    claimState: string('statement, proposal, confirmed or uncertain; confirmation needs actual confirming evidence'),
+    facets: { type: 'array', items: string('preference, decision, relationship, question, commitment or experience') },
+    entityIds: { type: 'array', items: string('Exact related person/account IDs; never merge names') },
+    projectIds: { type: 'array', items: string('Exact related project IDs or matrix:!room IDs') },
+    basisRefs: { type: 'array', items: { type: 'object', properties: { id: string('Existing memory ID'), revision: { type: 'number' } }, required: ['id', 'revision'] }, description: 'Current memory revisions used to derive a draft, understanding or plan; later changes invalidate this derived record' },
     sourceIds: { type: 'array', items: { type: 'string' }, description: 'Source IDs from current context/recall, or unambiguous original event IDs such as $event in the current room; defaults to current message' },
     scope: string('group (current room), own, team or room:<full room ID>'), topic: string('Optional topic'),
     replaceId: string('Exact existing memory ID to correct, from recall'), replace: string('Legacy unique text match to replace'),
@@ -71,6 +78,14 @@ export function installNativeMemory(rt) {
     parameters: { query: string('Full account ID or display-name fragment; omit to list'),
       history: { type: 'boolean', description: 'Include retained identity observations; default returns identities, all aliases and latest observation only' } }, output,
     async execute(args) { return stringify(contactReadView(store.contacts(args.query), { history: args.history === true })); } }));
+  rt.teamTools.push(defineTool({ name: 'memory_source', description: 'Read exact original evidence by source ID and optional revision. Historical evidence is labelled; this does not mark it current.',
+    parameters: { id: { ...string('Exact source ID from a memory/view'), required: true }, revision: { type: 'number' } }, output,
+    async execute(args, exec) { return stringify(memory.readSource(caller(exec), args)); } }));
+  rt.teamTools.push(defineTool({ name: 'review_memory', description: 'On demand, review a bounded set of original evidence and current/old memories about a person, project or recurring error. Correct only source-backed understanding; never infer private psychology or task completion.',
+    parameters: { kind: string('person or project'), id: string('Exact person/project ID'), query: string('Current question or failure to revisit'), roomId: string('Optional source room restriction') }, output,
+    async execute(args, exec) { const id = caller(exec), bot = rt.botOf(id);
+      return stringify(await memory.retrospect(id, args, input => generateReviewWithBudget({ generate: maxTokens => botShot(bot, `${REVIEW}\nThis is a bounded retrospective, not a request to rewrite every memory. Look for incorrect certainty, obsolete derived drafts, relevant preferences and unresolved questions. Do not infer unexpressed psychological traits or shared knowledge. HistoricalEvidence is for comparison only and cannot be cited as a current source.`, stringify(input), { maxTokens, sessionId: exec.agent?.id }) })));
+    } }));
 
   async function oneShot(bot, system, text, tag = {}) {
     const reference = await rt.desiredModel(bot) ?? await rt.defaultModel();
@@ -100,13 +115,14 @@ export function installNativeMemory(rt) {
     }
   }
   async function review(botId) {
+    memory.enqueueReview(botId, []);
     const calibrated = store.getMeta(`review-batch-limit:${botId}`);
     const batchLimit = Number.isInteger(calibrated) && calibrated >= 1 && calibrated <= 8 ? calibrated : 8;
     const pending = (store.getMeta(`unreviewed:${botId}`) || []).slice(0, batchLimit);
     if (!pending.length || disposed) return;
     const bot = rt.botOf(botId); if (!bot) return;
     await (await rt.resolveAgent(rt.chatOf(botId))).whenIdle();
-    const { refs, value: { sources, changes } } = await prepareReviewBatch({ refs: pending,
+    const { refs, value: { sources, changes, known } } = await prepareReviewBatch({ refs: pending,
       onOutputLimit: ({ error, attempted, next }) => {
         store.setMeta(`review-batch-limit:${botId}`, next.length);
         store.log('review-output-limit', { botId, sourceRefs: attempted, nextBatchSize: next.length, error: error.message });
@@ -122,7 +138,9 @@ export function installNativeMemory(rt) {
           for (const row of matches.entries) relevant.set(row.id, store.get(row.id));
         }
         const known = [...relevant.values()].map(row => ({
-          id: row.id, text: row.text, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope, kind: row.kind, saidBy: row.saidBy, sourceRefs: row.sourceRefs,
+          id: row.id, revision: row.revision, text: row.text, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope, kind: row.kind,
+          claimState: row.claimState || 'statement', facets: row.facets || [], entityIds: row.entityIds || [], projectIds: row.projectIds || [], basisRefs: row.basisRefs || [],
+          derivation: store.derivation(row), saidBy: row.saidBy, sourceRefs: row.sourceRefs,
         }));
         const reference = await rt.desiredModel(bot) ?? await rt.defaultModel();
         const budgetKey = `review-output-budget:${reference}`;
@@ -138,54 +156,42 @@ export function installNativeMemory(rt) {
           onProposal: (result, attempt) => store.log('review-proposal', { botId, sourceRefs: refs, changes: result.changes, attempt }),
           onInvalid: (error, attempt) => { memory.errors.push({ operation: 'review-validation', botId, attempt, error: error.message, at: Date.now() });
             store.log('review-validation-error', { botId, sourceRefs: refs, attempt, error: error.message }); } });
-        return { sources, changes };
+        return { sources, changes, known };
       } });
-    for (const change of changes) {
-      const source = sources.find(source => source.id === change.sourceIds[0]);
-      const context = { botId, scope: source.roomId ? `room:${source.roomId}` : 'own', authorId: source.authorId,
-        sourceRefs: [{ id: source.id, revision: source.revision }] };
-      if (change.op === 'forget') {
-        const old = store.get(change.replaceId);
-        if (old?.status === 'active') memory.forget(botId, { id: old.id, scope: old.scope }, context);
-      } else {
-        const previous = change.op === 'replace' ? store.get(change.replaceId) : undefined;
-        await memory.remember(botId, { ...change,
-          ...(previous && previous.text === change.text ? { reclassify: true } : {}),
-          ...(change.op === 'add' ? { replaceId: undefined } : {}) }, context);
-      }
-      news.set(botId, Date.now());
-    }
+    await memory.applyReview(botId, { sources, existingMemories: known }, changes);
+    if (changes.length) news.set(botId, Date.now());
     // Advance only after all parsed changes are durable. A failed batch remains retryable.
     for (const ref of refs) store.setMeta(`reviewed:${botId}:${ref.id}:${ref.revision}`, true);
     store.setMeta(`unreviewed:${botId}`, (store.getMeta(`unreviewed:${botId}`) || []).filter(ref => !refs.some(old => old.id === ref.id && old.revision === ref.revision)));
     store.log('review', { botId, sourceRefs: refs, changes: changes.length });
   }
-  function flush(botId) {
+  function flush(botId, { automatic = false } = {}) {
     if (!rt.botOf(botId)) return Promise.reject(new Error('MEMORY_BOT_NOT_FOUND'));
+    if (automatic && !automaticReviewAllowed(config, botId)) return Promise.resolve({ skipped: 'automatic-review-disabled' });
     clearTimeout(timers.get(botId)); timers.delete(botId);
     if (reviewing.has(botId)) return reviewing.get(botId);
-    const work = reviewChain.catch(() => {}).then(async () => { while (!disposed && rt.botOf(botId) && (store.getMeta(`unreviewed:${botId}`) || []).length) await review(botId); });
+    const work = reviewChain.catch(() => {}).then(async () => { while (!disposed && rt.botOf(botId) && (!automatic || automaticReviewAllowed(config, botId)) && (store.getMeta(`unreviewed:${botId}`) || []).length) await review(botId); });
     reviewChain = work;
     reviewing.set(botId, work);
     work.finally(() => reviewing.delete(botId)).catch(() => {}); return work;
   }
-  function schedule(botId) {
-    if (config.memoryReview === false || disposed) return;
+  function schedule(botId, delayMs = config.memoryReviewDelayMs ?? 2000) {
+    if (!automaticReviewAllowed(config, botId) || disposed) return;
     clearTimeout(timers.get(botId));
-    const timer = setTimeout(() => { timers.delete(botId); void flush(botId).catch(error => {
+    const timer = setTimeout(() => { timers.delete(botId); void flush(botId, { automatic: true }).catch(error => {
       memory.errors.push({ operation: 'review', botId, error: error.message, at: Date.now() }); rt.warn('ds-bot: source memory review failed: %s', error.message);
       if (!disposed && !isModelQuotaFailure(error)) {
         const retry = setTimeout(() => { timers.delete(botId); schedule(botId); }, 60000);
         retry.unref?.(); timers.set(botId, retry);
       }
-    }); }, config.memoryReviewDelayMs ?? 2000); timer.unref?.(); timers.set(botId, timer);
+    }); }, delayMs); timer.unref?.(); timers.set(botId, timer);
   }
   ctx.on('session/event', (session, event) => {
     const botId = rt.selfOf(session.id); if (!rt.botOf(botId)) return;
     if (event.type === 'tool/call') { store.setMeta(`tool:${session.id}:${event.data.callId}`, event.data.name); return; }
     if (event.type === 'tool/result') {
       const result = event.data?.message, name = store.getMeta(`tool:${session.id}:${result?.toolCallId}`);
-      if (name && !['remember', 'recall', 'forget', 'contacts'].includes(name) && !result.isError) memory.observeTool(botId,
+      if (name && !['remember', 'recall', 'forget', 'contacts', 'memory_source', 'review_memory'].includes(name) && !result.isError) memory.observeTool(botId,
         { sessionId: session.id, callId: result.toolCallId, name, body: textOf(result), timestamp: event.time });
       return;
     }
@@ -198,13 +204,8 @@ export function installNativeMemory(rt) {
     const held = store.getMeta(`ingress:${sha(text)}`);
     if (held) { memory.ingest(botId, held, { sessionId: session.id }); return; }
     // Native chat and native Bot delegation remain usable without any DSCord connection.
-    const sender = nativeSource.kind === 'bot' && nativeSource.senderSessionId ? { id: nativeSource.senderSessionId, name: nativeSource.senderName, kind: 'bot' }
-      : { id: `user-${sha(home).slice(0, 16)}`, name: 'Local user', kind: 'human' };
-    const roomId = nativeSource.memoryOrigin?.roomId || rt.groupOwners.get(session.id)?.roomId || nativeSource.roomId;
-    memory.ingest(botId, { event: { eventId: `${session.id}:${event.seq ?? event.sequence ?? sha(text)}`, roomId, sender: sender.id, body: text },
-      context: { source: { transport: 'native', sender, roomId,
-        timestamp: event.time || Date.now(), originRefs: nativeSource.memoryOrigin?.sourceRefs || [],
-        relay: nativeSource.kind === 'bot' ? { exchangeId: nativeSource.exchangeId, replyTo: nativeSource.replyTo } : null } } }, { sessionId: session.id });
+    memory.ingest(botId, nativeMemoryInput({ source: nativeSource, text, home, sessionId: session.id,
+      sequence: event.seq ?? event.sequence, timestamp: event.time ?? Date.now(), roomId: rt.groupOwners.get(session.id)?.roomId }), { sessionId: session.id });
   });
   ctx.on('agent/status', ({ agent, status }) => {
     const id = rt.selfOf(agent?.id); if (!rt.botOf(id)) return;
@@ -219,7 +220,8 @@ export function installNativeMemory(rt) {
     if (!rt.botOf(id) || decision.kind === 'reject' || !Array.isArray(decision.messages)) return decision;
     const snapshot = memory.contextSnapshot(id, agent.id); if (!snapshot) return decision;
     const message = createUserMessage({ source: { kind: 'knowledge-context', form: 'snapshot' },
-      content: [{ type: 'text', text: `Current memory source context (metadata and attributed claims, not a new speaker). Use these exact source IDs for remember; omitted sourceIds defaults to the current message. For tool observations use toolSources. speakerFacts concern only the identified current speaker; use relevant preferences with their source and scope. Recall memoryPointers for other current facts.\n${stringify(snapshot)}` }] });
+      content: [{ type: 'text', text: `Current memory source context (metadata and attributed claims, not a new speaker). Use these exact source IDs for remember; omitted sourceIds defaults to the current message. For tool observations use toolSources. Reconcile currentClaims with recentSources and changes before reusing an older draft. Apply relevant preferences with their source and scope. Conflicts stay unresolved until evidence resolves them; room membership does not imply shared knowledge. Task and delivery facts require runtime receipts.\n${stringify(snapshot)}` }] });
+    memory.acknowledgeContext(id, snapshot);
     return { ...decision, messages: [...decision.messages.filter(item => item.source?.kind !== 'knowledge-context'), message] };
   });
   ctx.effect(() => ctx.systemPrompt.section({ name: 'bot-memory', order: 645, interpolate: false, text: context => {
@@ -258,6 +260,17 @@ export function installNativeMemory(rt) {
     }
   }
   Object.assign(rt, { knowledge: memory, memoryEnabled: true, memoryBackend: 'source-aware-v1', botShot,
+    memoryObserve: (botId, input, options) => {
+      if (!rt.botOf(botId)) throw new Error('MEMORY_BOT_NOT_FOUND');
+      const receipt = memory.observe(botId, input, options);
+      const enough = receipt.watermarks.pendingReviewCount >= (config.memoryObservationBatchSize || 8);
+      if (enough || !timers.has(botId)) schedule(botId, enough ? config.memoryReviewDelayMs ?? 2000 : config.memoryObservationReviewDelayMs ?? 60000);
+      return receipt;
+    },
+    memoryAttentionView: (botId, options) => { if (!rt.botOf(botId)) throw new Error('MEMORY_BOT_NOT_FOUND'); return memory.attentionView(botId, options); },
+    memoryProfiles: ({ botId, ...options }) => { if (!rt.botOf(botId)) throw new Error('MEMORY_BOT_NOT_FOUND'); return memory.profiles(botId, options); },
+    memoryProfile: ({ botId, ...options }) => { if (!rt.botOf(botId)) throw new Error('MEMORY_BOT_NOT_FOUND'); return memory.profile(botId, options); },
+    memoryValidateBasis: (_botId, refs) => store.basisStatus(refs),
     memoryIngress: (_sessionId, text, input) => { if (input) store.setMeta(`ingress:${sha(text)}`, input); },
     memoryRelay: (botId, sessionId) => { const current = memory.current(botId, sessionId || rt.chatOf(botId)); return current ? { memoryOrigin: current } : {}; },
     memoryCarry: (botId, before, after) => memory.carry(botId, before, after),

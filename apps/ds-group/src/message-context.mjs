@@ -19,6 +19,7 @@ export function messageSource(event, participants) {
   const meta = metadata(event);
   const replyTo = meta.replyTo || event.content?.['m.relates_to']?.['m.in_reply_to']?.event_id;
   return { transport: 'matrix', eventId: event.event_id, roomId: event.room_id,
+    ...(event.type === 'm.room.redaction' && (event.redacts || event.content?.redacts) ? { retractsEventId: event.redacts || event.content.redacts } : {}),
     ...(event.content?.['m.relates_to']?.rel_type === 'm.replace' ? { replacesEventId: event.content['m.relates_to'].event_id } : {}),
     sender: speakerOf(event.sender, participants), timestamp: event.origin_server_ts ?? null,
     threadRootId: threadOf(event), ...(replyTo ? { replyTo } : {}),
@@ -27,6 +28,16 @@ export function messageSource(event, participants) {
       roomId: meta.originRoomId || null, eventId: meta.originEventId || null,
       taskId: meta.taskId || null,
     } } : {}) };
+}
+
+/** The observation and addressed-message paths use the same source contract. */
+export function observedMemoryInput(event, participants = [], room = {}) {
+  const source = messageSource(event, participants);
+  const content = event.content?.['m.new_content'] || event.content || {};
+  return { event: { eventId: event.event_id, roomId: event.room_id, senderId: event.sender,
+    senderKind: source.sender.kind, body: content.body || '', timestamp: event.origin_server_ts ?? null },
+    context: { source, room: { id: event.room_id, name: room.name || event.room_id, topic: room.topic || '' },
+      members: (room.members || []).map(id => speakerOf(id, participants)) } };
 }
 
 export function conversationContext({ event, participants, room = {}, history = [], earlierCount = 0, reply, threadRoot }) {
@@ -58,6 +69,7 @@ export function nativeMessage({ input, bot, files }) {
     self: { nativeBotId: bot.id, matrixId: input.botId, name: bot.name, role: bot.role || '' },
     context: { ...context, history: context.history ? { ...context.history, count: input.history?.length || 0 } : undefined },
     currentMessage: input.event, recentRoomHistory: input.history || [],
+    ...(input.memoryView ? { memoryView: input.memoryView } : {}),
     historyWarnings: input.historyWarnings || [], attachmentWarnings: input.attachmentWarnings || [],
     attachmentsDirectory: files.workdir, files: files.files,
     replyRoute: { requestId: input.requestId, eventId: input.event.eventId, roomId: input.event.roomId,
@@ -67,6 +79,7 @@ export function nativeMessage({ input, bot, files }) {
     + '\n本次说话人以 context.source.sender 的完整 ID 为准，名称只是显示标签；同名的人或 Bot 不是同一身份。'
     + '\ncontext 标明当前群组、话题和消息来源。recentRoomHistory 是这个群的近期历史，不代表全部历史；引用和转述保留各自作者，不把 Bot 转述当作原作者亲口说的话。'
     + '\n你仍保留其他群和本地对话的经历；切换群组时以这次 context 为当前对话，使用跨群知识时说明来源，不把其他群的说法当成本群已经达成的决定。记录长期记忆时一并保留相关的人、群 ID 和来源事件。'
+    + '\n若有 memoryView，它是本 Bot 当前有预算的来源视图：核对 currentClaims、recentSources 和 changes 后再沿用旧稿，提议、确认、转述和推断分别保留。它不证明其他成员都知晓，也不证明任务已完成或附件已送达；工作状态以实际任务及投递回执为准。'
     + '\n直接回答当前发送者，接入层按本次 requestId 的投递记录发送；之前任务的回复目标不会改变本次目标。'
     + '\n需要交付文件时，调用 present 或在最终回复列出 {"text":"说明","artifacts":[{"path":"文件绝对路径","name":"文件名"}]}，逐个包括本轮要发的文件。重发已有文件、终端生成的文件也一样；只说文件名、哈希或“已附上”不构成交付。附件目录只是收件位置，你仍使用原生工作目录和全部工具。'
     + '\n本机 Bot 协作继续使用 message_bot；跨 DSCord 节点可使用 {"text":"说明","delegate":{"to":"完整 Bot ID","body":"任务"}}，并在任务内容中带上相关来源。'

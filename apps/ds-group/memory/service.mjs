@@ -1,5 +1,7 @@
-import { MemoryStore, sourceId, identityId, canonicalIdentity, sha } from './store.mjs';
+import { MemoryStore, sourceId, identityId, canonicalIdentity, canonical, sha } from './store.mjs';
 import { OmbreBackend } from './ombre.mjs';
+import { assembleAttentionView, memoryProfiles, memoryProfile, reviewPacket } from './views.mjs';
+import { prepareReviewProposal, validateReviewProposal } from './review.mjs';
 import { join } from 'node:path';
 
 export class MemoryService {
@@ -16,12 +18,49 @@ export class MemoryService {
     const pending = new Map();
     for (const ref of [...(this.store.getMeta(`unreviewed:${botId}`) || []), ...refs]) {
       const head = this.store.source(ref.id);
-      if (!head || head.revision !== ref.revision || this.store.getMeta(`reviewed:${botId}:${ref.id}:${ref.revision}`)) continue;
+      if (!head || head.withdrawn || head.eventKind === 'redaction-notice' || head.revision !== ref.revision || this.store.getMeta(`reviewed:${botId}:${ref.id}:${ref.revision}`)) continue;
       pending.set(`${ref.id}:${ref.revision}`, ref);
     }
     this.store.setMeta(`unreviewed:${botId}`, [...pending.values()]);
   }
-  ingest(botId, input, { contextual = false, sessionId } = {}) {
+  // Observation never moves the active native Session or claims that a model has
+  // understood the evidence. The cursor belongs to the caller's stream only.
+  observe(botId, input, options = {}) {
+    const inputs = Array.isArray(input) ? input : [input];
+    if (!inputs.length || inputs.length > 256) throw new Error('MEMORY_OBSERVATION_BATCH');
+    return this.store.transaction(() => {
+      const streamKey = options.streamId && `observation-stream:${botId}:${options.streamId}`;
+      if (streamKey && (options.cursor === undefined || options.cursor === null || canonical(options.cursor)?.length > 2048)) throw new Error('MEMORY_STREAM_CURSOR_REQUIRED');
+      // Display labels and membership sightings may change during a retry. They
+      // do not change immutable event authorship or its source bytes.
+      const digest = sha(canonical(inputs.map(({ event = {}, context = {} }) => {
+        const source = context.source || event.source || {};
+        return { eventId: event.eventId, body: event.body || '', roomId: source.roomId || event.roomId,
+          authorId: source.sender?.id || event.senderId || event.sender, withdrawn: !!event.withdrawn,
+          revision: event.revision || 1, replaces: source.replacesEventId, retracts: source.retractsEventId,
+          originRefs: source.originRefs || [], relay: source.relay || null };
+      })));
+      const previous = streamKey && this.store.getMeta(streamKey);
+      if (previous && canonical(previous.cursor) === canonical(options.cursor)) {
+        if (previous.digest !== digest) throw new Error('MEMORY_STREAM_CONTENT_CONFLICT');
+        return { ...previous.receipt, watermarks: this.store.watermarks(botId), duplicate: true };
+      }
+      if (streamKey && Object.hasOwn(options, 'afterCursor') && canonical(previous?.cursor ?? null) !== canonical(options.afterCursor ?? null)) throw new Error('MEMORY_STREAM_CONFLICT');
+      if (previous && typeof previous.cursor === 'number' && typeof options.cursor === 'number' && options.cursor <= previous.cursor) throw new Error('MEMORY_STREAM_CONFLICT');
+      const contexts = inputs.map(item => this.ingest(botId, item, { contextual: true }));
+      const refs = [...new Map(contexts.flatMap(item => item.sourceRefs).map(ref => [`${ref.id}:${ref.revision}`, ref])).values()];
+      this.enqueueReview(botId, refs);
+      const receipt = { sourceRefs: refs, watermarks: this.store.watermarks(botId), duplicate: false,
+        ...(streamKey ? { stream: { id: options.streamId, cursor: options.cursor ?? null } } : {}) };
+      if (streamKey) this.store.setMeta(streamKey, { cursor: options.cursor ?? null, digest, receipt });
+      return receipt;
+    });
+  }
+  onObservedMessage(botId, input, options) { return this.observe(botId, input, options); }
+  ingest(botId, input, options = {}) {
+    return this.store.transaction(() => this.ingestOne(botId, input, options));
+  }
+  ingestOne(botId, input, { contextual = false, sessionId } = {}) {
     const contextRefs = [];
     if (!contextual) {
       for (const previous of input.history || []) {
@@ -41,28 +80,51 @@ export class MemoryService {
     const roomId = source.roomId || event.roomId;
     const sender = source.sender || { id: event.senderId || event.sender, name: event.senderName || event.senderId || event.sender, kind: event.senderKind || 'human' };
     if (!sender.id || !event.eventId) throw new Error('EVENT_IDENTITY_REQUIRED');
-    const authorId = identityId(transport, sender.id);
+    const account = id => id.startsWith(`${transport}:`) ? id : identityId(transport, id);
+    const authorId = account(sender.id);
     const members = context.members || context.participants || [];
     for (const member of [...members, sender]) {
       if (!member.id) continue;
-      this.store.contact({ id: identityId(transport, member.id), name: member.name || member.id, kind: member.kind || 'human', ownerId: member.ownerId,
-        source: { transport, roomId, eventId: event.eventId }, observedAt: source.timestamp || event.timestamp || this.store.clock() });
+      this.store.contact({ id: account(member.id), name: member.name || member.id, kind: member.kind || 'human', ownerId: member.ownerId,
+        source: { transport, roomId, eventId: event.eventId }, observedAt: source.timestamp ?? event.timestamp ?? this.store.clock() });
     }
     if (roomId) {
-      const roomIdentity = identityId(transport, roomId);
+      const roomIdentity = account(roomId);
       this.store.contact({ id: roomIdentity, name: context.room?.name || this.store.getContact(roomIdentity)?.name || roomId, kind: 'group',
-        observedAt: source.timestamp || event.timestamp || this.store.clock() });
+        observedAt: source.timestamp ?? event.timestamp ?? this.store.clock() });
     }
     const id = sourceId(transport, roomId, source.replacesEventId || event.eventId);
     const edited = source.replacesEventId ? this.store.getMeta(`edit:${id}:${event.eventId}`) : undefined;
     const revision = edited || (source.replacesEventId ? (this.store.source(id)?.revision || 0) + 1 : event.revision || 1);
-    const observed = this.store.observe({ id, body: event.body || '', authorId, authorKind: sender.kind || 'human', roomId,
-      transport, eventId: event.eventId, timestamp: source.timestamp || event.timestamp || this.store.clock(),
+    let observed, notice;
+    if (source.retractsEventId) {
+      const targetId = sourceId(transport, roomId, source.retractsEventId), old = this.store.source(targetId);
+      notice = this.store.observe({ id, body: '', authorId, authorKind: sender.kind || 'unknown', transport, roomId,
+        eventId: event.eventId, eventKind: 'redaction-notice', targetEventId: source.retractsEventId, targetSourceId: targetId,
+        timestamp: source.timestamp ?? event.timestamp ?? this.store.clock() });
+      const key = `redaction:${targetId}:${event.eventId}`, applied = this.store.getMeta(key);
+      if (old) {
+        observed = applied ? this.store.source(targetId, applied) : old.withdrawn ? old : this.store.observe({ ...old, body: '', revision: old.revision + 1,
+          withdrawn: true, retractedBy: authorId, retractionEventId: event.eventId });
+        this.store.setMeta(key, observed.revision);
+      } else observed = notice;
+      this.store.setMeta(`pending-redaction:${targetId}`, { by: authorId, eventId: event.eventId, timestamp: notice.timestamp });
+    } else observed = this.store.observe({ id, body: event.body || '', authorId, authorKind: sender.kind || 'human', roomId,
+      transport, eventId: event.eventId, timestamp: source.timestamp ?? event.timestamp ?? this.store.clock(),
       replyTo: source.replyTo || context.replyTo || null, relay: source.relay || null,
+      threadRootId: source.threadRootId || null, projectIds: source.projectIds || context.projectIds || [],
       originRefs: source.originRefs || [], revision, withdrawn: Boolean(event.withdrawn) });
+    if (!source.retractsEventId) {
+      const pendingRedaction = this.store.getMeta(`pending-redaction:${observed.id}`), head = this.store.source(observed.id);
+      if (pendingRedaction) observed = head.withdrawn ? head : this.store.observe({ ...head, body: '', revision: head.revision + 1,
+        withdrawn: true, retractedBy: pendingRedaction.by, retractionEventId: pendingRedaction.eventId });
+    }
     if (source.replacesEventId) this.store.setMeta(`edit:${id}:${event.eventId}`, revision);
+    const sourceRefs = [...new Map([notice, observed].filter(Boolean).map(item => [`${item.id}:${item.revision}`, { id: item.id, revision: item.revision }])).values()];
+    this.store.observeFor(botId, sourceRefs);
     const scope = roomId ? `room:${roomId}` : 'own';
-    const current = { botId, ...(sessionId ? { sessionId } : {}), scope, roomId, transport, authorId, sourceRefs: [{ id: observed.id, revision: observed.revision }], timestamp: observed.timestamp,
+    const current = { botId, ...(sessionId ? { sessionId } : {}), scope, roomId, transport, authorId, sourceRefs, timestamp: observed.timestamp,
+      room: context.room, threadRootId: source.threadRootId || null, history: context.history, projectIds: source.projectIds || context.projectIds || [],
       contextSources: [...new Map(contextRefs.map(ref => [ref.id, ref])).values()].map(ref => ({ ...ref, eventId: this.store.source(ref.id, ref.revision)?.eventId,
         authorId: this.store.source(ref.id, ref.revision)?.authorId })) };
     if (contextual) return current;
@@ -84,17 +146,22 @@ export class MemoryService {
     const latest = this.store.getMeta(`current:${botId}`);
     return !sessionId || !latest?.sessionId || latest.sessionId === sessionId ? latest : undefined;
   }
-  contextSnapshot(botId, sessionId) {
+  contextSnapshot(botId, sessionId, options = {}) {
     const current = this.current(botId, sessionId);
     if (!current) return undefined;
-    const accessible = this.store.list({ botId, scopes: ['own', 'team', current.scope] });
-    const speakerFacts = accessible.filter(row => canonicalIdentity(row.subjectId) === canonicalIdentity(current.authorId))
-      .slice(-8).map(row => ({ id: row.id, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope,
-        text: row.text.slice(0, 1000), truncated: row.text.length > 1000, kind: row.kind, saidBy: row.saidBy,
-        sourceRefs: row.sourceRefs, conflicts: this.store.conflicts(row) }));
-    const memoryPointers = accessible.slice(-8).map(row => ({ id: row.id, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope }));
-    const contact = this.store.getContact(current.authorId);
-    return { ...current, speaker: contact ? { id: contact.id, name: contact.name, aliases: contact.aliases } : { id: current.authorId }, speakerFacts, memoryPointers };
+    return this.attentionView(botId, { ...options, sessionId, context: current });
+  }
+  attentionView(botId, options = {}) { return assembleAttentionView(this, botId, options); }
+  profiles(botId, options = {}) { return memoryProfiles(this, botId, options); }
+  profile(botId, options = {}) { return memoryProfile(this, botId, options); }
+  reviewPacket(botId, options = {}) { return reviewPacket(this, botId, options); }
+  acknowledgeContext(botId, view) {
+    const through = view?.watermarks?.receivedThrough;
+    if (view?.self?.nativeBotId !== botId || !Number.isSafeInteger(through) || through < 0 || through > this.store.watermarks(botId).receivedThrough) throw new Error('MEMORY_CONTEXT_ACK_INVALID');
+    // This receipt acknowledges assembly of a bounded view, never full-history
+    // loading, model comprehension or a successful external action.
+    this.store.setMeta(`context-through:${botId}`, Math.max(through, this.store.getMeta(`context-through:${botId}`) || 0));
+    return { through, version: view.version, meaning: 'bounded-view-assembled' };
   }
   carry(botId, before, after) {
     const current = this.current(botId, before);
@@ -112,6 +179,7 @@ export class MemoryService {
       authorId: `tool:${name}`, authorKind: 'tool', roomId: current.roomId, timestamp: timestamp || this.store.clock(),
       originRefs: current.sourceRefs, toolName: name });
     const ref = { id: source.id, revision: source.revision };
+    this.store.observeFor(botId, [ref]);
     this.setCurrent(botId, { ...current, toolSources: [...(current.toolSources || []), { ...ref, name }].slice(-12) });
     this.enqueueReview(botId, [ref]);
     return source;
@@ -121,7 +189,7 @@ export class MemoryService {
     if (requested === 'own' || requested === 'team' || requested.startsWith('room:')) return requested;
     throw new Error('Use scope own, team, group, or room:<full room ID>');
   }
-  remember(botId, args, context = this.current(botId)) { return this.serial(botId, async () => {
+  prepareMemory(botId, args, context) {
     if (!context) throw new Error('MEMORY_SOURCE_REQUIRED');
     const refs = args.sourceRefs || (args.sourceIds?.length ? args.sourceIds.map(id => {
       const source = this.resolveSource(id, context);
@@ -146,9 +214,11 @@ export class MemoryService {
     }
     const previous = replaces ? this.store.get(replaces) : null;
     const subjectId = canonicalIdentity(args.subjectId || previous?.subjectId || source?.authorId || context.authorId);
-    const row = this.store.prepare({ ...args, botId, scope, subjectId, predicate: args.predicate || previous?.predicate, sourceRefs: refs, replaces,
+    return this.store.prepare({ ...args, botId, scope, subjectId, predicate: args.predicate || previous?.predicate, sourceRefs: refs, replaces,
       expectedRevision: args.expectedRevision ?? previous?.revision,
       kind, saidBy });
+  }
+  async persistPrepared(row) {
     if (row.status !== 'pending') return this.describe(row);
     const receipt = this.backend ? await this.backend.save(row) : { bodyDigest: row.bodyDigest, backend: 'local-exact', bodyDurable: true };
     let saved = this.store.activate(row.id, receipt);
@@ -158,10 +228,63 @@ export class MemoryService {
       catch (error) { this.errors.push({ operation: 'index', id: saved.id, error: error.message, at: Date.now() }); }
     }
     return this.describe(saved);
+  }
+  remember(botId, args, context = this.current(botId)) { return this.serial(botId, () => this.persistPrepared(this.prepareMemory(botId, args, context))); }
+  applyReview(botId, packet, proposal) { return this.serial(botId, async () => {
+    const changes = validateReviewProposal({ changes: proposal }, packet.sources, packet.existingMemories);
+    const verify = () => {
+      for (const ref of changes.flatMap(change => change.sourceRefs)) if (this.store.source(ref.id)?.revision !== ref.revision) throw new Error('MEMORY_REVIEW_SOURCE_STALE');
+      for (const change of changes.filter(change => change.op !== 'add')) {
+        const expected = packet.existingMemories.find(row => row.id === change.replaceId), now = this.store.get(change.replaceId);
+        if (!now || now.status !== 'active' || now.revision !== expected.revision) throw new Error('MEMORY_REVISION_CONFLICT');
+      }
+    };
+    verify();
+    const prepared = changes.map(change => {
+      if (change.op === 'forget') return { change };
+      const source = packet.sources.find(source => source.id === change.sourceRefs[0].id);
+      const context = { botId, scope: source.roomId ? `room:${source.roomId}` : 'own', authorId: source.authorId, sourceRefs: change.sourceRefs };
+      const old = change.op === 'replace' && this.store.get(change.replaceId);
+      return { change, row: this.prepareMemory(botId, { ...change, replaceId: old?.id,
+        expectedRevision: old?.revision, ...(old?.text === change.text ? { reclassify: true } : {}) }, context) };
+    });
+    // Stage external bodies before one local publication transaction. Source or
+    // target changes while awaiting IO leave every staged fact non-current.
+    for (const item of prepared) if (item.row?.status === 'pending') item.receipt = this.backend ? await this.backend.save(item.row)
+      : { bodyDigest: item.row.bodyDigest, backend: 'local-exact', bodyDurable: true };
+    const rows = this.store.transaction(() => {
+      verify();
+      return prepared.map(({ change, row, receipt }) => change.op === 'forget'
+        ? this.store.forget(change.replaceId, packet.existingMemories.find(old => old.id === change.replaceId).revision)
+        : row.status === 'pending' ? this.store.activate(row.id, receipt) : row);
+    });
+    if (this.backend) for (const row of rows.filter(row => row.status === 'active')) {
+      try { this.store.indexed(row.id, await this.backend.index(row)); }
+      catch (error) { this.errors.push({ operation: 'index', id: row.id, error: error.message, at: Date.now() }); }
+    }
+    return rows.map(row => this.describe(this.store.get(row.id)));
   }); }
+  async retrospect(botId, options, generate) {
+    if (typeof generate !== 'function') throw new Error('MEMORY_REVIEW_GENERATOR_REQUIRED');
+    const packet = this.reviewPacket(botId, options);
+    if (!packet.sources.length) return { mode: 'no-evidence', packetVersion: packet.version, changes: [] };
+    const changes = await prepareReviewProposal({ input: packet, generate });
+    const rows = await this.applyReview(botId, packet, changes);
+    return { mode: 'source-checked-review', packetVersion: packet.version, changes: rows, profile: options?.kind && options.id ? this.profile(botId, options) : undefined };
+  }
+  readSource(botId, { id, revision }) {
+    const allowed = [...this.store.observations(botId),
+      ...this.store.list({ botId, history: true }).flatMap(row => [...row.sourceRefs, ...this.store.evidenceRoots(row.sourceRefs)])];
+    revision ??= Math.max(0, ...allowed.filter(ref => ref.id === id).map(ref => ref.revision));
+    if (!allowed.some(ref => ref.id === id && ref.revision === revision)) throw new Error('MEMORY_SOURCE_NOT_OBSERVED');
+    const source = this.store.source(id, revision); if (!source) throw new Error('SOURCE_NOT_FOUND');
+    const head = this.store.source(id);
+    return { ...source, currentRevision: head.revision, derivation: head.withdrawn ? 'source-withdrawn' : source.revision !== head.revision ? 'source-revised' : 'current' };
+  }
   describe(row) {
     return { id: row.id, revision: row.revision, text: row.text, botId: row.botId, scope: row.scope,
-      subjectId: row.subjectId, predicate: row.predicate, kind: row.kind, saidBy: row.saidBy,
+      subjectId: row.subjectId, predicate: row.predicate, kind: row.kind, claimState: row.claimState || 'statement',
+      facets: row.facets || [], entityIds: row.entityIds || [], projectIds: row.projectIds || [], basisRefs: row.basisRefs || [], saidBy: row.saidBy,
       validFrom: row.validFrom, validUntil: row.validUntil, derivation: this.store.derivation(row),
       conflicts: this.store.conflicts(row), sourceRefs: row.sourceRefs,
       evidenceRoots: this.store.evidenceRoots(row.sourceRefs),

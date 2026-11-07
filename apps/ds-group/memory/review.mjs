@@ -58,7 +58,16 @@ export function validateReviewProposal(result, sources, existingMemories = []) {
       const metadataOnly = previous.text === change.text && canonical(sorted(previous.sourceRefs)) === canonical(sorted(sourceRefs));
       if (change.subjectId && previous.subjectId && canonicalIdentity(change.subjectId) !== canonicalIdentity(previous.subjectId) && !metadataOnly) fail('MEMORY_REVIEW_SUBJECT', index);
     }
-    return { ...change, sourceIds: sourceRefs.map(ref => ref.id), sourceRefs };
+    const previous = known.get(change.replaceId);
+    if (previous && change.expectedRevision !== undefined && previous.revision !== change.expectedRevision) fail('MEMORY_REVIEW_REVISION', index);
+    if (change.claimState !== undefined && !['statement', 'proposal', 'confirmed', 'uncertain'].includes(change.claimState)) fail('MEMORY_REVIEW_CLAIM_STATE', index);
+    for (const field of ['entityIds', 'projectIds', 'facets']) if (change[field] !== undefined && (!Array.isArray(change[field])
+      || change[field].length > 32 || change[field].some(value => typeof value !== 'string' || !value.trim() || value.length > 512))) fail('MEMORY_REVIEW_ENTITIES', index);
+    if (change.basisRefs !== undefined && (!Array.isArray(change.basisRefs) || change.basisRefs.length > 32 || change.basisRefs.some(ref => {
+      const basis = known.get(ref?.id);
+      return !basis || ref.revision !== basis.revision || basis.derivation && basis.derivation !== 'current';
+    }))) fail('MEMORY_REVIEW_BASIS', index);
+    return { ...change, ...(previous?.revision !== undefined ? { expectedRevision: previous.revision } : {}), sourceIds: sourceRefs.map(ref => ref.id), sourceRefs };
   });
 }
 

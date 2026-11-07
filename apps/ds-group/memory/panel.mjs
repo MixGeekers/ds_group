@@ -37,6 +37,11 @@ export function createMemoryPanel(rt, memory, { flush, botShot }) {
   return async function memoryEndpoint(endpoint, body) {
     await rt.load();
     const panel = panelOf(body);
+    if (endpoint === 'memory-profiles' || endpoint === 'memory-profile') {
+      if (!panel.keeper) throw new Error('No Bot is left in this group chat');
+      const options = { ...body, ...(panel.roomId ? { roomId: panel.roomId } : {}) };
+      return endpoint === 'memory-profiles' ? memory.profiles(panel.keeper.id, options) : memory.profile(panel.keeper.id, options);
+    }
     if (endpoint === 'memory-view') return view(panel);
     if (endpoint === 'memory-history') {
       let rows = changes(panel);
