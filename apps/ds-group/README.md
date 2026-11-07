@@ -2,7 +2,7 @@
 
 人类与独立 Bot 共同参与的聊天协作框架。Matrix Synapse 管理成员、聊天记录与附件，独立 DSH 宿主运行 DSCord 自有内核，吸收 DS-Bot 0.3.1 并扩展多人来源、记忆、自然参与及管理接口。节点负责消息队列、工具工作、委派与成果回传。前端采用 React 19.3.1、TypeScript 7.0.2 与 Vite，提供 Discord 式 PWA、深浅主题和中英文界面。
 
-当前源码包含中央身份与默认归属服务、独立聊天客户端、每服管理后台，以及分层准入的跨服务器协作。本轮增加 Bot 所有人、幂等创建、持续观察、人物与项目视图、可配置的 LISTEN/WAIT/SPEAK 决策和节点管理通道。真实自然协作与发行验证按本轮计划持续收敛。[多人平台实施与验收](多人平台实施与验收.md) · [连接、账号与存储设计](../../架构与设计/DSCord连接、账号与存储.md)
+当前源码包含中央身份与默认归属服务、独立聊天客户端、每服管理后台，以及分层准入的跨服务器协作。本轮增加 Bot 所有人、幂等创建、持续观察、人物与项目视图、可配置的 LISTEN/WAIT/SPEAK 决策和节点管理通道。生活与工作验收使用四个人类角色、三个 Bot 和 96 条连续消息，包含两次原生压缩与两次重启。各项行为结果、修复及发行证据见[多人平台实施与验收](多人平台实施与验收.md)和[本轮证据目录](artifacts/kernel-platform/目录.md)。[连接、账号与存储设计](../../架构与设计/DSCord连接、账号与存储.md)
 
 独立后台的管理 UI 位于 `admin/`，各实例通过独立管理会话配置伙伴、成员和房间准入。接口、运行方法及逐层验证见[独立后台与治理切片](admin/README.md)和[协作空间 API 契约](artifacts/governance/contract.json)。
 
@@ -114,7 +114,7 @@ node scripts/service.mjs up finance
 
 - Node 24.19.0 及以上的 24.x 与 npm。
 - 可运行 Linux 容器的 Docker，用于固定 Synapse 容器。
-- DSH 0.2.1-rc.5，可使用官方 npm CLI 或现有桌面版。通过 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 指定独立安装，见部署说明。
+- DSH 0.2.2-rc.1，可使用官方 npm CLI 或相同 SDK 版本的桌面版。通过 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 指定独立安装，见部署说明。
 - 在 DSH 中配置自己的模型，以 `DS_GROUP_DSH_SOURCE_HOME` / `DS_GROUP_DSH_SOURCE_PROFILE` 指定该配置来源，用 `DS_GROUP_MODEL` 选择已有的 `provider/model`。CLI 回退的 `~/.dsh` / `desktop` 需要与实际安装核对。节点所需凭据保存到私有数据目录，旧环境配置的兼容方式见[模型配置与迁移](模型配置与迁移.md)。
 
 首次启动会准备固定运行依赖，下载固定官方 Synapse 镜像，创建本项目演示成员和房间。详细 DSH 接缝与依赖准备见 [节点说明](dsh-plugin/README.md)。
@@ -135,7 +135,7 @@ node scripts/service.mjs up finance
 
 人类和 Bot 都是 Matrix 房间成员。消息的 `sender` 来自 Matrix 账号，`org.ds_group` 扩展保存回应目标、引用、任务 ID、原始发起者和原始房间。
 
-节点只处理明确指向自己的消息，其余群消息保留为可引用背景。每个 Bot 的处理串行，两个节点可以同时生成。收到消息、保存游标、准备模型请求和保存生成结果各有持久记录。发送采用确定的 Matrix transaction ID，重连补发继续使用原 ID。
+节点持续观察自己所在房间的消息。仅点名模式处理明确指向自己的请求，影子模式额外记录参与判断，自然模式根据上下文选择旁听、等待或发言。等待中的建议在工作状态变化后重新判断，排队的新请求保持独立归属。每个 Bot 的处理串行，多个节点可以同时生成。收到消息、保存游标、准备模型请求和保存生成结果各有持久记录。发送采用确定的 Matrix transaction ID，重连补发继续使用原 ID。
 
 Bot 使用宿主工具执行工作，最终输出文字、可选 `artifacts` 和 `delegate`。节点核对文件实际存在及哈希，上传成果后持久发送。跨 Bot 请求携带任务附件引用，结果沿原任务返回。私聊交付任务的协作经过 Bot 间私聊，最后由原 Bot 交给人类。独立 Bot 主 Session 延续跨群聊与私聊的经历。
 
