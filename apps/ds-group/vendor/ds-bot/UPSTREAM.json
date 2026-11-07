@@ -12,7 +12,7 @@
     },
     {
       "file": "src/host/channel.js",
-      "purpose": "Expose memory backend state and forward original DSCord message context; explicit kernel API identity, structured durable ingress, ownership claims, observation, attention and profile endpoints"
+      "purpose": "Expose memory backend state and forward original DSCord message context; explicit kernel API identity, structured durable ingress, ownership claims, observation, attention and profile endpoints; propagate caller cancellation to on-demand memory operations"
     },
     {
       "file": "src/host/delivery.js",
@@ -48,7 +48,7 @@
     },
     {
       "file": "src/host/home-lock.js",
-      "purpose": "Prevent same-process and paused-live-PID double writers"
+      "purpose": "Hold a SQLite write transaction for cross-process home ownership, atomically publish initialized lock files, and retain compatible live-PID conflict handling"
     },
     {
       "file": "src/host/store.js",
@@ -69,6 +69,10 @@
     {
       "file": "src/host/local-agents/adapter.js",
       "purpose": "Keep knowledge/tool/background producers as context, preserve speaker labels and never consume them as human question answers"
+    },
+    {
+      "file": "src/host/learning.js",
+      "purpose": "Join learning work whose source-aware memory calls are canceled during runtime shutdown"
     }
   ],
   "previousBase": {
