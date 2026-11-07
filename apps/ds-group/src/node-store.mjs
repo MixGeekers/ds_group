@@ -1,4 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
+import { createHash } from 'node:crypto';
 
 /** Durable Matrix inbox and send outbox for one Bot identity. */
 export class NodeStore {
@@ -18,6 +19,19 @@ export class NodeStore {
         sender_id TEXT NOT NULL,
         event_json TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS room_member_observations (
+        sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+        room_id TEXT NOT NULL,
+        member_id TEXT NOT NULL,
+        event_key TEXT NOT NULL,
+        event_id TEXT,
+        display_name TEXT,
+        membership TEXT NOT NULL,
+        origin_ts INTEGER,
+        received_at INTEGER NOT NULL,
+        UNIQUE(room_id,event_key)
+      );
+      CREATE INDEX IF NOT EXISTS room_member_history ON room_member_observations(room_id,member_id,origin_ts,sequence);
       CREATE TABLE IF NOT EXISTS inbox (
         event_id TEXT PRIMARY KEY REFERENCES messages(event_id),
         status TEXT NOT NULL,
@@ -107,6 +121,9 @@ export class NodeStore {
     if (!this.db.prepare('PRAGMA table_info(inbox)').all().some(column => column.name === 'attention_json')) {
       this.db.exec('ALTER TABLE inbox ADD COLUMN attention_json TEXT');
     }
+    if (!this.db.prepare('PRAGMA table_info(messages)').all().some(column => column.name === 'room_context_json')) {
+      this.db.exec('ALTER TABLE messages ADD COLUMN room_context_json TEXT');
+    }
     this.db.exec('INSERT OR IGNORE INTO observation_events(event_id,room_id,message_sequence,event_json) SELECT event_id,room_id,sequence,event_json FROM messages ORDER BY sequence');
     this.db.exec(`INSERT OR IGNORE INTO message_redactions(event_id,redaction_event_id,room_id)
       SELECT COALESCE(json_extract(event_json,'$.redacts'),json_extract(event_json,'$.content.redacts')),event_id,room_id
@@ -154,23 +171,78 @@ export class NodeStore {
     return row ? JSON.parse(row.value) : {};
   }
 
+  memberProfile(row) {
+    return { id: row.member_id, displayname: row.display_name, membership: row.membership,
+      observedAt: row.received_at, eventTimestamp: row.origin_ts, observedSequence: row.sequence,
+      eventId: row.event_id, source: 'matrix-member-state' };
+  }
+
+  /** Labels are scoped observations. They never replace a global account name. */
+  noteMemberProfile(roomId, event) {
+    const memberId = event.state_key;
+    if (typeof memberId !== 'string' || !memberId || typeof event.content?.membership !== 'string') return undefined;
+    const timestamp = Number.isSafeInteger(event.origin_server_ts) ? event.origin_server_ts : null;
+    const eventId = typeof event.event_id === 'string' && event.event_id ? event.event_id : null;
+    const eventKey = eventId ? `event:${eventId}` : `state:${createHash('sha256')
+      .update(JSON.stringify([memberId, event.sender || null, timestamp, event.content])).digest('hex')}`;
+    const result = this.db.prepare(`INSERT OR IGNORE INTO room_member_observations
+      (room_id,member_id,event_key,event_id,display_name,membership,origin_ts,received_at) VALUES (?,?,?,?,?,?,?,?)`)
+      .run(roomId, memberId, eventKey, eventId, typeof event.content.displayname === 'string' ? event.content.displayname : null,
+        event.content.membership, timestamp, Date.now());
+    if (!result.changes) return undefined;
+    return this.memberProfile(this.db.prepare('SELECT * FROM room_member_observations WHERE sequence=?').get(Number(result.lastInsertRowid)));
+  }
+
+  /** A historical message uses the profile known for its source time. */
+  roomContextAt(event, baseRoom = this.roomContext(event.room_id)) {
+    const room = { ...baseRoom, memberProfiles: { ...(baseRoom.memberProfiles || {}) } };
+    if (!Number.isSafeInteger(event.origin_server_ts)) return room;
+    const members = new Set(room.members || []);
+    for (const [id, profile] of Object.entries(room.memberProfiles)) {
+      if (!Number.isSafeInteger(profile.eventTimestamp) || profile.eventTimestamp <= event.origin_server_ts) continue;
+      const older = this.db.prepare(`SELECT * FROM room_member_observations WHERE room_id=? AND member_id=?
+        AND origin_ts<=? ORDER BY origin_ts DESC,sequence DESC LIMIT 1`).get(event.room_id, id, event.origin_server_ts);
+      if (older) {
+        room.memberProfiles[id] = this.memberProfile(older);
+        if (older.membership === 'join') members.add(id); else members.delete(id);
+      } else { delete room.memberProfiles[id]; members.delete(id); }
+    }
+    room.members = [...members];
+    return room;
+  }
+
+  roomContextForEvent(eventOrId) {
+    const eventId = typeof eventOrId === 'string' ? eventOrId : eventOrId?.event_id;
+    if (typeof eventId !== 'string') return {};
+    const row = this.db.prepare('SELECT room_context_json,event_json FROM messages WHERE event_id=?').get(eventId);
+    if (row?.room_context_json) return JSON.parse(row.room_context_json);
+    const event = typeof eventOrId === 'object' ? eventOrId : row ? JSON.parse(row.event_json) : undefined;
+    return event ? this.roomContextAt(event) : {};
+  }
+
   noteRoomState(roomId, events) {
     const room = this.roomContext(roomId);
     const members = new Set(room.members || []);
+    const profiles = { ...(room.memberProfiles || {}) };
     const parents = new Set(room.parentSpaceIds || []);
     for (const event of events) {
       if (event.type === 'm.room.name') room.name = event.content?.name || '';
       if (event.type === 'm.room.topic') room.topic = event.content?.topic || '';
       if (event.type === 'm.room.create') room.creatorId = event.sender || event.content?.creator;
       if (event.type === 'm.room.member' && event.state_key) {
-        if (event.content?.membership === 'join') members.add(event.state_key);
-        else members.delete(event.state_key);
+        const profile = this.noteMemberProfile(roomId, event);
+        const previous = profiles[event.state_key];
+        if (profile && !(Number.isSafeInteger(profile.eventTimestamp) && Number.isSafeInteger(previous?.eventTimestamp)
+          && profile.eventTimestamp < previous.eventTimestamp)) {
+          profiles[event.state_key] = profile;
+          if (profile.membership === 'join') members.add(event.state_key); else members.delete(event.state_key);
+        }
       }
       if (event.type === 'm.space.parent' && event.state_key) {
         if (event.content?.via?.length) parents.add(event.state_key); else parents.delete(event.state_key);
       }
     }
-    Object.assign(room, { members: [...members], parentSpaceIds: [...parents] });
+    Object.assign(room, { members: [...members], memberProfiles: profiles, parentSpaceIds: [...parents] });
     this.db.prepare('INSERT OR REPLACE INTO node_meta VALUES (?, ?)').run(`room:${roomId}`, JSON.stringify(room));
   }
 
@@ -236,10 +308,14 @@ export class NodeStore {
       .all(event.room_id, event.sender, '$.content."org.ds_group".fileBatch.id', batchId).map(row => this.visibleMessage(JSON.parse(row.event_json)));
   }
 
-  ingest(events, cursor, onAccepted, { route, now = Date.now() } = {}) {
+  ingest(events, cursor, onAccepted, { route, roomContext, now = Date.now() } = {}) {
     return this.transaction(() => {
       let accepted = 0;
       for (const event of events) {
+        if (typeof event.room_id === 'string' && (event.type === 'm.room.member' || event.type === 'm.room.name'
+          || event.type === 'm.room.topic' || event.type === 'm.room.create' || event.type === 'm.space.parent')) {
+          this.noteRoomState(event.room_id, [event]);
+        }
         const redacted = event.type === 'm.room.message' && event.unsigned?.redacted_because;
         if (redacted?.type === 'm.room.redaction' && typeof redacted.event_id === 'string'
           && typeof event.event_id === 'string' && typeof event.room_id === 'string' && typeof redacted.sender === 'string') {
@@ -260,8 +336,9 @@ export class NodeStore {
         if (event.type !== 'm.room.message' || typeof event.event_id !== 'string'
           || typeof event.room_id !== 'string' || typeof event.sender !== 'string'
           || typeof event.content?.body !== 'string') continue;
-        const result = this.db.prepare('INSERT OR IGNORE INTO messages(event_id,room_id,sender_id,event_json) VALUES (?,?,?,?)')
-          .run(event.event_id, event.room_id, event.sender, JSON.stringify(event));
+        const result = this.db.prepare('INSERT OR IGNORE INTO messages(event_id,room_id,sender_id,event_json,room_context_json) VALUES (?,?,?,?,?)')
+          .run(event.event_id, event.room_id, event.sender, JSON.stringify(event),
+            JSON.stringify(this.roomContextAt(event, roomContext ? roomContext(event.room_id) : this.roomContext(event.room_id))));
         if (!result.changes) continue;
         this.db.prepare('INSERT OR IGNORE INTO observation_events(event_id,room_id,message_sequence,event_json) VALUES (?,?,?,?)')
           .run(event.event_id, event.room_id, Number(result.lastInsertRowid), JSON.stringify(event));

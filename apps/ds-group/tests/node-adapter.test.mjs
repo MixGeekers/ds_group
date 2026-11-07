@@ -45,6 +45,28 @@ test('heartbeat refreshes the model after an independent runtime restart and cle
   } finally { store.close(); }
 });
 
+test('heartbeat reports observed runtime identity and version without inventing a legacy version during outages', async () => {
+  let available = true;
+  const { node, store } = fixture({ bridge: { runtimeStatus: async () => {
+    if (!available) throw new Error('offline');
+    return { model: 'synthetic/model', mode: 'native', runtime: { id: 'dscord-kernel', version: 'observed-test-version' } };
+  } } });
+  node.executionMode = 'native';
+  const sent = []; node.sendHeartbeat = async heartbeat => sent.push(heartbeat);
+  try {
+    await node.heartbeat(); available = false; await node.heartbeat();
+    assert.equal(sent[0].engine, 'DSCord kernel observed-test-version');
+    assert.equal(sent[1].engine, 'Native Bot runtime');
+    assert.equal(sent[1].engine.includes('0.2.7'), false);
+    const legacy = fixture();
+    try {
+      legacy.node.sendHeartbeat = async heartbeat => sent.push(heartbeat);
+      await legacy.node.heartbeat();
+      assert.equal(sent[2].engine, 'Bot bridge (legacy)');
+    } finally { legacy.store.close(); }
+  } finally { store.close(); }
+});
+
 test('synthetic response protocol accepts text/JSON and validates explicit delegation', () => {
   assert.deepEqual(parseBotOutput('普通回复', finance.id, participants), { text: '普通回复' });
   assert.deepEqual(parseBotOutput('```json\n{"text":"收到","delegate":{"to":"@hr:ds-group.local","body":"整理名单"}}\n```', finance.id, participants),

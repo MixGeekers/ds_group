@@ -12,7 +12,7 @@ import { NodeDelivery, createDeliveryClient } from './node-delivery.mjs';
 import { normalizeDelivery } from './delivery-policy.mjs';
 import { runtimeSettings } from '../scripts/runtime-config.mjs';
 import { createNodeWorkClient, scopedTaskRequest } from './node-work.mjs';
-import { conversationContext, messageSource, threadOf } from './message-context.mjs';
+import { conversationContext, messageSource, speakerOf, threadOf } from './message-context.mjs';
 import { normalizeAttentionConfig, reliableAttentionRoute, attentionMessage, attentionConflict,
   participationDelay, trailingBotTurns } from './attention.mjs';
 import { ATTENTION_POLICY_VERSION, DecisionError, validateDecision, createOpenAIDecisionProvider } from './decision-provider.mjs';
@@ -166,6 +166,7 @@ export class BotNode {
     this.nativeBinding = nativeBinding;
     this.nodeTools = [];
     this.roomRosters = new Map();
+    this.roomRosterTimes = new Map();
     this.transferAttempts = transferAttempts;
     this.transferRetryDelayMs = transferRetryDelayMs;
     this.controlIntervalMs = controlIntervalMs;
@@ -239,7 +240,10 @@ export class BotNode {
       for (let batch = this.store.observationBatch(); batch.events.length; batch = this.store.observationBatch()) {
         try {
           await attentionCall(signal => this.observe({ botId: this.participant.id, events: batch.events,
-            cursor: batch.cursor, watermark: batch.watermark }, { signal }), this.attention.providerTimeoutMs, this.controller.signal);
+            cursor: batch.cursor, watermark: batch.watermark,
+            rooms: Object.fromEntries([...new Set(batch.events.map(event => event.room_id))].map(roomId => [roomId, this.roomContextFor(roomId)])),
+            eventRooms: Object.fromEntries(batch.events.map(event => [event.event_id, this.store.roomContextForEvent(event)])),
+          }, { signal }), this.attention.providerTimeoutMs, this.controller.signal);
           this.store.acknowledgeObservation(batch.after, batch.watermark.sequence);
           this.lastObservationError = null;
         } catch {
@@ -266,21 +270,22 @@ export class BotNode {
       if (!batch) return false;
       const anchor = batch.events.at(-1);
       const recent = this.store.messagesThrough(batch.roomId, batch.watermark.sequence, config.historyLimit);
-      const messages = recent.map(event => attentionMessage(event, this.participants));
-      const room = this.store.roomContext(batch.roomId);
-      if (this.roomRosters.has(batch.roomId)) room.members = this.roomRosters.get(batch.roomId).map(person => person.id);
+      const messages = recent.map(event => this.attentionMessageFor(event));
+      const room = this.roomContextFor(batch.roomId);
       const sameRoom = event => event?.room_id === batch.roomId ? event : undefined;
       const context = conversationContext({ event: anchor, participants: this.participants, room,
+        sourceRoom: this.store.roomContextForEvent(anchor),
         history: recent.filter(event => event.event_id !== anchor.event_id),
         reply: sameRoom(this.store.message(metadataOf(anchor).replyTo || anchor.content?.['m.relates_to']?.['m.in_reply_to']?.event_id)),
-        threadRoot: sameRoom(this.store.message(batch.threadRootId)) });
-      const self = { id: this.participant.id, name: this.participant.name, role: this.roleOf(),
+        replyRoom: this.store.roomContextForEvent(metadataOf(anchor).replyTo || anchor.content?.['m.relates_to']?.['m.in_reply_to']?.event_id),
+        threadRoot: sameRoom(this.store.message(batch.threadRootId)), threadRootRoom: this.store.roomContextForEvent(batch.threadRootId) });
+      const self = { id: this.participant.id, name: this.senderName(this.participant.id, room), role: this.roleOf(),
         interests: this.participant.interests || [], instructions: this.participant.instructions || '' };
       const workView = { runtime: { nodeState: this.state, nativeState: 'unknown' }, tasks: this.store.activeTaskView(batch.roomId) };
       const input = { version: 1, policyVersion: ATTENTION_POLICY_VERSION, self, context,
         roomId: batch.roomId, threadRootId: batch.threadRootId, watermark: batch.watermark, eventIds: batch.eventIds,
         trigger: { reason: batch.reason, expiresAt: batch.expiresAt },
-        currentMessages: batch.events.map(event => attentionMessage(event, this.participants)), recentMessages: messages, workView };
+        currentMessages: batch.events.map(event => this.attentionMessageFor(event)), recentMessages: messages, workView };
       const id = `attention-${randomUUID()}`;
       this.store.beginAttentionDecision(id, batch, input);
       let providerAttempted = false;
@@ -369,7 +374,35 @@ export class BotNode {
     this.store.attentionOutcome(item.event_id, reason);
   }
 
-  senderName(id) { return this.participants.find(p => p.id === id)?.name || id; }
+  senderName(id, room) { return speakerOf(id, this.participants, room).name; }
+
+  roomContextFor(roomId) {
+    const room = this.store.roomContext(roomId);
+    const people = this.roomRosters.get(roomId);
+    if (!people) return room;
+    room.members = people.map(person => person.id);
+    room.memberProfiles = { ...(room.memberProfiles || {}) };
+    for (const person of people) if (!Object.hasOwn(room.memberProfiles, person.id)) {
+      room.memberProfiles[person.id] = { id: person.id, displayname: typeof person.name === 'string' ? person.name : null,
+        membership: 'join', observedAt: this.roomRosterTimes.get(roomId) || null, observedSequence: 0,
+        eventTimestamp: null, eventId: null, source: 'room-directory' };
+    }
+    return room;
+  }
+
+  attentionMessageFor(event) {
+    const source = messageSource(event, this.participants, this.store.roomContextForEvent(event));
+    return { ...attentionMessage(event, this.participants), source, senderName: source.sender.name };
+  }
+
+  mergeRoomIdentity(person) {
+    const previous = this.participants.find(existing => existing.id === person.id);
+    if (previous && previous.kind !== person.kind && previous.kind !== 'unknown' && person.kind !== 'unknown') throw new Error('A room participant changed identity kind');
+    if (!previous) { this.participants.push({ ...person, name: person.id }); return; }
+    if (person.kind === 'unknown') return;
+    for (const key of ['id', 'kind', 'ownerId', 'localpart', 'role', 'instructions']) if (person[key] !== undefined) previous[key] = person[key];
+    if (person.identitySource !== undefined) previous.identitySource = person.identitySource;
+  }
 
   roleOf(participant = this.participant) {
     return participant.role || legacyBotRoles.get(participant.localpart)?.role || '通用助手';
@@ -400,7 +433,9 @@ export class BotNode {
       });
       const home = this.participant.id.slice(this.participant.id.indexOf(':') + 1);
       for (const people of this.roomRosters.values()) for (const person of people) {
-        if (person.id.slice(person.id.indexOf(':') + 1) !== home && !updated.some(existing => existing.id === person.id)) updated.push(person);
+        if (person.id.slice(person.id.indexOf(':') + 1) !== home && !updated.some(existing => existing.id === person.id)) {
+          updated.push(existing.get(person.id) || { ...person, name: person.id });
+        }
       }
       this.participants.splice(0, this.participants.length, ...updated);
     })();
@@ -435,15 +470,8 @@ export class BotNode {
         try {
           const { participants } = await this.work.directory(roomId);
           this.roomRosters.set(roomId, participants);
-          for (const person of participants) {
-            const previous = this.participants.find(existing => existing.id === person.id);
-            if (previous && previous.kind !== person.kind && previous.kind !== 'unknown' && person.kind !== 'unknown') throw new Error('A room participant changed identity kind');
-            if (previous && person.kind !== 'unknown') {
-              delete previous.identitySource;
-              Object.assign(previous, person);
-            }
-            if (!previous) this.participants.push(person);
-          }
+          this.roomRosterTimes.set(roomId, Date.now());
+          for (const person of participants) this.mergeRoomIdentity(person);
         } catch (error) {
           // Preserve the sync position and inbox. Admission rechecks the exact sender before any work.
           this.onError(`Room work directory unavailable: ${error.message}`);
@@ -459,7 +487,8 @@ export class BotNode {
         if (original) this.taskUpdate(original, { status: 'cancelled', stage: 'cancelled',
           summary: route.cancel ? '任务已取消' : '任务要求已更新，等待处理新要求' });
       }
-    }, { route: event => reliableAttentionRoute(event, { botId: this.participant.id, store: this.store, participants: this.participants }) });
+    }, { route: event => reliableAttentionRoute(event, { botId: this.participant.id, store: this.store, participants: this.participants }),
+      roomContext: roomId => this.roomContextFor(roomId) });
   }
 
   async start() {
@@ -472,6 +501,7 @@ export class BotNode {
       ...(this.nativeBinding ? { nativeBinding: this.nativeBinding } : {}) });
     this.nodeTools = setup?.tools || [];
     this.model = setup?.model;
+    this.bridgeMode = setup?.mode || this.executionMode;
     await this.heartbeat();
     this.processing = this.processLoop();
     this.syncing = this.syncLoop();
@@ -531,12 +561,12 @@ export class BotNode {
     }
     const events = [];
     for (const [roomId, room] of Object.entries(response.rooms?.join || {})) {
-      this.store.noteRoomState(roomId, [...(room.state?.events || []), ...(room.timeline?.events || [])]);
+      this.store.noteRoomState(roomId, room.state?.events || []);
       this.store.noteRoomMembership(roomId, 'join');
       events.push(...await this.collectRoomEvents(roomId, room));
     }
     for (const [roomId, room] of Object.entries(response.rooms?.leave || {})) {
-      this.store.noteRoomState(roomId, [...(room.state?.events || []), ...(room.timeline?.events || [])]);
+      this.store.noteRoomState(roomId, room.state?.events || []);
       this.store.noteRoomMembership(roomId, 'leave');
       events.push(...(room.timeline?.events || []).map(event => ({ ...event, room_id: roomId })));
     }
@@ -581,17 +611,18 @@ export class BotNode {
     const followupFiles = ownFiles.length || replyTo ? [] : this.delivery.inputFiles(item);
     const history = this.store.historyBefore(event.event_id);
     const inRoom = value => value?.room_id === event.room_id ? value : undefined;
-    const room = this.store.roomContext(event.room_id);
-    if (this.roomRosters.has(event.room_id)) room.members = this.roomRosters.get(event.room_id).map(person => person.id);
+    const room = this.roomContextFor(event.room_id);
+    const sourceRoom = this.store.roomContextForEvent(event);
     return { requestId: `matrix-${digest(`${this.participant.id}\0${event.event_id}`)}`, botId: this.participant.id,
       ...(this.executionMode === 'native' ? { mode: 'native', executionMode: 'native' } : {}),
-      context: item.attention?.kind === 'natural' ? item.attention.context : conversationContext({ event, participants: this.participants, room, history,
+      context: item.attention?.kind === 'natural' ? item.attention.context : conversationContext({ event, participants: this.participants, room, sourceRoom, history,
         earlierCount: Math.max(0, this.store.historyCountBefore(event.event_id) - history.length),
-        reply: inRoom(replied), threadRoot: inRoom(this.store.message(threadOf(event))) }),
-      event: { eventId: event.event_id, roomId: event.room_id, senderId: event.sender, senderName: this.senderName(event.sender),
-        botIdentity: { id: this.participant.id, name: this.participant.name, role: this.roleOf() },
+        reply: inRoom(replied), replyRoom: this.store.roomContextForEvent(replyTo),
+        threadRoot: inRoom(this.store.message(threadOf(event))), threadRootRoom: this.store.roomContextForEvent(threadOf(event)) }),
+      event: { eventId: event.event_id, roomId: event.room_id, senderId: event.sender, senderName: this.senderName(event.sender, sourceRoom),
+        botIdentity: { id: this.participant.id, name: this.senderName(this.participant.id, room), role: this.roleOf() },
         availableBots: this.participants.filter(person => person.kind === 'bot' && person.id !== this.participant.id)
-          .map(person => ({ id: person.id, name: person.name, role: this.roleOf(person) })),
+          .map(person => ({ id: person.id, name: this.senderName(person.id, room), role: this.roleOf(person) })),
         senderKind: this.participants.find(person => person.id === event.sender)?.kind,
         body: event.content['m.new_content']?.body ?? event.content.body, to: Array.isArray(meta.to) ? meta.to : [], attachments: uniqueAttachments([...ownFiles, ...referencedFiles, ...followupFiles]),
         delivery: this.delivery.publicRoute(item),
@@ -606,8 +637,8 @@ export class BotNode {
         ...(originThreadRootId ? { originThreadRootId } : {}),
       },
       history: item.attention?.kind === 'natural' ? item.attention.history : history.map(previous => ({ eventId: previous.event_id, roomId: previous.room_id,
-        source: messageSource(previous, this.participants),
-        senderId: previous.sender, senderName: this.senderName(previous.sender), senderKind: this.participants.find(person => person.id === previous.sender)?.kind,
+        source: messageSource(previous, this.participants, this.store.roomContextForEvent(previous)),
+        senderId: previous.sender, senderName: this.senderName(previous.sender, this.store.roomContextForEvent(previous)), senderKind: this.participants.find(person => person.id === previous.sender)?.kind,
         body: previous.content['m.new_content']?.body ?? previous.content.body, attachments: eventAttachments(previous), taskId: metadataOf(previous).taskId,
         kind: metadataOf(previous).kind, originSenderId: metadataOf(previous).originSenderId, fileBatch: metadataOf(previous).fileBatch })),
     };
@@ -980,7 +1011,7 @@ export class BotNode {
     try {
       if (this.work) {
         const admission = await this.work.admit(item.event, this.nodeTools, this.files?.maxBytes);
-        for (const person of admission.participants) if (!this.participants.some(existing => existing.id === person.id)) this.participants.push(person);
+        for (const person of admission.participants) this.mergeRoomIdentity(person);
         request = scopedTaskRequest(request, admission, item.event);
         if (this.executionMode === 'native' && admission.mode !== 'native') throw Object.assign(new Error('Core has not admitted this native Bot binding'), { status: 403 });
         if (admission.mode === 'native') request.mode = 'native';
@@ -1055,6 +1086,14 @@ export class BotNode {
         signal: AbortSignal.any([this.controller.signal, AbortSignal.timeout(2000)]),
       }).catch(() => null);
       this.model = runtime?.model ?? null;
+      const identity = runtime?.runtime;
+      const observedEngine = identity?.id === 'dscord-kernel' ? 'DSCord kernel'
+        : typeof runtime?.engine === 'string' && runtime.engine ? runtime.engine
+          : typeof identity?.id === 'string' && identity.id ? identity.id : null;
+      const version = typeof identity?.version === 'string' ? identity.version
+        : typeof runtime?.engineVersion === 'string' ? runtime.engineVersion : null;
+      const fallback = (runtime?.mode || this.bridgeMode || this.executionMode) === 'native' ? 'Native Bot runtime' : 'Bot bridge (legacy)';
+      this.engine = observedEngine ? `${observedEngine}${version ? ` ${version}` : ''}` : fallback;
     }
     const snapshot = this.store.snapshot();
     const attention = this.attentionStatus();
@@ -1065,7 +1104,8 @@ export class BotNode {
     await this.sendHeartbeat({ id: this.participant.localpart, botId: this.participant.id, name: this.participant.name,
       runtimeId: this.runtimeId, status: this.lastError && this.state === 'idle' ? 'error' : this.state,
       processed: snapshot.processed, pending: snapshot.pending, sessionId: snapshot.sessionId,
-      lastError: this.lastError || snapshot.lastError, model: this.model, engine: 'DS-Bot 0.2.7',
+      lastError: this.lastError || snapshot.lastError, model: this.model,
+      engine: this.engine || ((this.bridgeMode || this.executionMode) === 'native' ? 'Native Bot runtime' : 'Bot bridge (legacy)'),
       ...(this.executionMode ? { executionMode: this.executionMode } : {}),
       attention, kernel: { ...(kernel || {}), attention }, kernelControl: { version: 1 } });
   }
