@@ -78,7 +78,11 @@ async function start() {
   await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); });
   for (let attempt = 0; attempt < 240; attempt++) {
     if (child.exitCode !== null || child.signalCode !== null) throw new Error(`Isolated DSH exited before kernel readiness (${child.exitCode ?? child.signalCode})`);
-    try { return await api('kernel-info'); } catch { await sleep(500); }
+    try { return await api('kernel-info'); } catch {
+      const output = await readFile(path.join(directory, 'host.log'), 'utf8');
+      if (/JsonSchemaError|ERR_MODULE_NOT_FOUND/.test(output)) throw new Error('The owned kernel could not load its tools or dependencies; inspect the private host log');
+      await sleep(500);
+    }
   }
   throw new Error('The owned kernel did not become ready in the isolated DSH host');
 }
@@ -129,7 +133,12 @@ try {
 export { inject } from ${JSON.stringify(pathToFileURL(path.join(packageRoot, 'dsh-connect/index.mjs')).href)};
 export async function apply(ctx) {
  ctx.effect(() => ctx.connection.fetch.register({ path:'/api/dscord-kernel-ci', methods:['POST'], requestBody:'buffered', async fetch(request) {
-  await request.json();
+  const input=await request.json();
+  if(input.endpoint==='tool-schemas') {
+   const resolved=await ctx.sessionController.resolveAgent(input.payload.sessionId);
+   if(resolved.error)return Response.json({ok:false,error:resolved.error});
+   return Response.json({ok:true,value:resolved.agent.ctx.tools.schemas(resolved.agent).map(tool=>tool.name)});
+  }
   try { await startNativeTeam(ctx); return Response.json({ok:true,value:{started:true}}); }
   catch(error) { return Response.json({ok:true,value:{started:false,code:error.code}}); }
  }}));
@@ -160,15 +169,31 @@ export async function apply(ctx) {
   assert.deepEqual(conflict, { started: false, code: 'DSCORD_KERNEL_CONFLICT' });
   assert.equal(kernelInfo(await api('kernel-info')).instanceId, first.instanceId);
   report.checks.push('duplicateSameHomeRuntimeRejectedAndFirstOwnerRetained');
+  const created = await api('create-bot', { name: 'Kernel CI', role: 'Synthetic zero-model member',
+    model: 'kernel-zero-model/blocked', main: true, greet: false, requestId: 'kernel-ci-explicit-member',
+    owner: { id: '@owner:kernel-ci.local', kind: 'human' }, source: { transport: 'synthetic-ci' } });
+  const createdState = await api('state');
+  assert.equal(createdState.bots.length, 1);
+  const member = createdState.bots.find(bot => bot.id === created.id);
+  assert.ok(member?.sessionId, 'Explicit Bot creation must create an actual native Session');
+  const tools = await api('tool-schemas', { sessionId: member.sessionId }, '/api/dscord-kernel-ci');
+  const requiredTools = ['read', 'write', 'bash', 'remember', 'recall', 'forget', 'contacts', 'memory_source', 'review_memory'];
+  for (const name of requiredTools) assert.ok(tools.includes(name), `Native Session did not register ${name}`);
+  report.nativeMember = { botId: member.id, sessionId: member.sessionId, toolCount: tools.length, requiredTools };
+  report.checks.push('explicitNativeMemberAndRealMemoryToolSchemasWithoutGeneration');
   const lifecycle = await stop();
   assert.equal(lifecycle.instanceId, first.instanceId);
   const second = kernelInfo(await start());
   assert.notEqual(second.instanceId, first.instanceId);
   assert.equal(second.home, first.home);
   assert.deepEqual(second.adoption, first.adoption);
-  assert.deepEqual((await api('state')).bots, []);
+  const restored = await api('state');
+  assert.equal(restored.bots.length, 1);
+  assert.equal(restored.bots[0].id, member.id);
+  assert.equal(restored.bots[0].sessionId, member.sessionId);
+  assert.equal(kernelInfo(await api('kernel-info')).instanceId, second.instanceId);
   await stop();
-  report.checks.push('gracefulOwnerReleaseAndSameHomeRestart', 'healthDoesNotCreateBotsAfterRestart');
+  report.checks.push('gracefulOwnerReleaseAndSameHomeRestart', 'explicitBotAndNativeSessionSurviveRestart', 'healthKeepsExplicitMemberCountAfterRestart');
   assert.deepEqual(calls, []);
   for (const [filename, sha256] of Object.entries(report.sourceHashes)) assert.equal(hash(await readFile(path.join(packageRoot, filename))), sha256);
   report.checks.push('zeroProviderRequests', 'sourceFilesUnmodified');

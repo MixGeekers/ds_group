@@ -122,6 +122,7 @@ jobs:
         run: node .local/release-unpacked/scripts/platform-deploy-smoke.mjs
         env:
           DS_GROUP_IMAGE: ds-group:ci-${{ matrix.arch }}
+          DS_GROUP_PLATFORM: linux/${{ matrix.arch }}
           DS_GROUP_PLATFORM_SMOKE_PORT_BASE: '24220'
           DS_GROUP_PLATFORM_SMOKE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/platform-deploy-smoke.json
       - name: Upload deployment result
@@ -163,6 +164,11 @@ jobs:
         run: |
           node scripts/release-pack.mjs
           node scripts/release-verify.mjs --extract .local/release-unpacked
+      - name: Kernel and memory tool contracts use the official pinned SDK
+        run: npm --prefix .local/release-unpacked run test:kernel-host
+        env:
+          DSH_HARNESS: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
+          DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
       - name: Owned kernel has one lifecycle and a pure zero-model health API
         run: node .local/release-unpacked/scripts/kernel-runtime-smoke.mjs
         env:
@@ -176,6 +182,12 @@ jobs:
           DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
           DS_GROUP_RUNTIME_SMOKE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/runtime-smoke.json
           OPENCODE_API_KEY: ci-synthetic-key-no-generation
+      - name: Complete native tools, observation and automatic review use only a local provider
+        run: node .local/release-unpacked/tests/runtime-native.host.mjs
+        env:
+          DS_GROUP_DSH_CLI: ${{ github.workspace }}/apps/ds-group/.local/dsh-install/node_modules/.bin/dsh
+          DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
+          DSCORD_NATIVE_NODE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/runtime-native-host.json
       - name: Native tools, artifacts and cancellation with a local scripted provider
         run: node .local/release-unpacked/scripts/runtime-work-smoke.mjs
         env:
@@ -198,6 +210,7 @@ jobs:
           path: |
             apps/ds-group/.local/kernel-runtime-smoke.json
             apps/ds-group/.local/runtime-smoke.json
+            apps/ds-group/.local/runtime-native-host.json
             apps/ds-group/.local/runtime-work-smoke.json
             apps/ds-group/.local/cross-server-runtime-smoke.json
           include-hidden-files: true

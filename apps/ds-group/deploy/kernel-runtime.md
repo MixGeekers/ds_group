@@ -49,10 +49,13 @@ console.log(ok, value.runtime);
 ```sh
 npm install --prefix .local/dsh-install --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1
 export DS_GROUP_DSH_RUNTIME="$PWD/.local/dsh-install"
+npm run test:kernel-host
 node scripts/kernel-runtime-smoke.mjs
 node scripts/runtime-smoke.mjs
 ```
 
-第一个脚本检查版本化 owner API、纯读空状态、同 home 重复运行拒绝、有序停止和重启；第二个检查独立节点的原生 Session 身份、模型配置及中断请求不重放。结果分别写入 `.local/kernel-runtime-smoke.json` 和 `.local/runtime-smoke.json`。成功后清理合成 home；失败时保留私有诊断目录并在报告中指明路径。
+`test:kernel-host` 使用固定宿主的真实 SDK 编译内存工具，验证 basis reference 的必填字段、整数修订号和额外字段限制，并运行内核与合成 CLI 契约检查。`kernel-runtime-smoke` 检查 owner API、初始纯读空状态、同 home 重复运行拒绝，再明确创建一个不问候的 Bot，实际编译记忆及文件工具并核对重启后的 Bot/Session 身份。`runtime-smoke` 检查独立节点的模型配置及中断请求不重放。两个运行报告分别写入 `.local/kernel-runtime-smoke.json` 和 `.local/runtime-smoke.json`。成功后清理合成 home；失败时保留私有诊断目录并在报告中指明路径。
+
+`npm run runtime:native-check` 与 `npm run runtime:work-check` 进一步用本地脚本 provider 验证完整原生工具、自动记忆回顾和实际文件工作。它们会分别记录本地脚本响应次数，远端业务模型调用为 0。
 
 CI 保留十项正式门禁：四组 Linux/Node、两组 Docker/Compose、两组独立 DSH、一组浏览器和一个汇总门禁。DSH 检查从经过 SHA-256 校验并提取的发行源码执行。容器和同机独立宿主证据不代表物理跨机器的网络与故障环境已经验收。
