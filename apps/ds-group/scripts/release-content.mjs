@@ -71,7 +71,7 @@ export async function projectLicense(root, pkg) {
     throw new Error('Choose the project license in package.json before building a public release');
   }
   const files = (await readdir(root)).filter(name => /^(?:LICENSE|LICENCE)(?:\.(?:md|txt))?$/i.test(name));
-  if (!files.length) throw new Error('Public releases require the project LICENSE file at the package root');
+  if (!files.includes('LICENSE')) throw new Error('Public releases require the project LICENSE file at the package root');
   for (const filename of files) if (!(await readFile(path.join(root, filename), 'utf8')).trim()) {
     throw new Error('Project license text must not be empty');
   }

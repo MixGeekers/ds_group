@@ -70,7 +70,7 @@ export async function verifyRelease({ archive, extract, requirePublicContent = f
   if (manifest.contentPolicy === PUBLIC_SOURCE_POLICY) {
     assertReleaseVersions(pkg, JSON.parse(entries.get(`${prefix}package-lock.json`)?.toString('utf8') || '{}'));
     if (!pkg.license || pkg.license === 'UNLICENSED') throw new Error('Public release lacks the project license declaration');
-    if (![...seen].some(name => /^(?:LICENSE|LICENCE)(?:\.(?:md|txt))?$/i.test(name))) throw new Error('Public release lacks its project LICENSE');
+    if (!seen.has('LICENSE')) throw new Error('Public release lacks its project LICENSE');
     for (const filename of ['vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE', 'service/ombre/LICENSE']) {
       if (!seen.has(filename)) throw new Error(`Public release lacks third-party license: ${filename}`);
     }
