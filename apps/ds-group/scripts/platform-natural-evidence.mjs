@@ -30,6 +30,7 @@ export async function exportNaturalEvidence(directory, destination, { reviewFile
     independentReview = { reviewId: review.reviewId, status: review.status, reviewedAt: review.reviewedAt,
       source: { run: review.source.run, sourceCommit: review.source.sourceCommit, reportSha256: review.source.reportSha256, definitionHash: review.source.definitionHash },
       coverage: review.coverage, oracleReviews: review.oracleReviews,
+      regressionReviews: review.regressionReviews, workChangedReview: review.workChangedReview, coverageLimits: review.coverageLimits,
       messageReviews: (review.messageReviews || []).filter(row => messageIds.has(row.eventId)).map(({ eventId, room, bot, verdict, reason, findingIds }) => ({ eventId, room, bot, verdict, reason, findingIds })),
       fileReviews: review.fileReviews, findings: review.findings, ambiguities: review.ambiguities,
       privacy: review.privacy, controlReviews: review.controlReviews, delegationReview: review.delegationReview,
