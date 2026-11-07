@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-07T04:48:09.266Z",
+  "project": "ds-group-smoke-8223014844",
+  "platform": "linux/amd64",
+  "runner": {
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "scriptSha256": "f750be3ceb8066666fb9a9e8d51316804a694922bf982fc403b83c9712fd833b",
+  "level": "real-container-matrix-http",
+  "image": "dscord-kernel-9898:amd64",
+  "modelCalls": 0,
+  "checks": [
+    "freshVolumesReady",
+    "serverRequiresLogin",
+    "matrixLoginGroupAndMessage",
+    "pwaManifest",
+    "remoteNodeExport",
+    "exportedNodeImportsConnectsAndSyncs",
+    "recreatePreservesUsersRoomTokensSecretsVapidAndHistory",
+    "retryAfterRecreateDeduplicates",
+    "backupRestoreToFreshVolumes",
+    "zeroModelCalls"
+  ],
+  "containerRuntime": {
+    "platform": "linux",
+    "arch": "x64",
+    "node": "v24.19.0"
+  },
+  "adapter": {
+    "core": "real-container",
+    "matrix": "real-container",
+    "adapter": "real-host-process",
+    "inferenceBridge": "registration-observation-and-read-only-fixture",
+    "statusReads": 1,
+    "kernelReads": 1,
+    "attentionReads": 0,
+    "observedEventCount": 1,
+    "sentEventObserved": true,
+    "generationCalls": 0
+  },
+  "loadedCoreSha256": "054bb2170a7c449795319fb26960389e54ffd7bc1d896e9f9c86c8033d099fb3",
+  "status": "passed",
+  "cleanedUp": true,
+  "completedAt": "2026-11-07T04:49:30.232Z",
+  "publicEvidence": {
+    "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+    "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+    "originalSha256": "c00dab53c77be65b8a07a3059f1ec767b3eee214119299c5d0ae60b102b2e95d",
+    "environment": "Linux amd64 emulated Docker"
+  }
+}

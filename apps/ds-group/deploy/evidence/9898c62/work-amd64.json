@@ -1,0 +1,365 @@
+{
+  "checkedAt": "2026-11-07T04:46:55.466Z",
+  "platform": "linux",
+  "arch": "x64",
+  "node": "v24.19.0",
+  "level": "real-dsh-native-tools-scripted-local-provider",
+  "modelCalls": 0,
+  "scriptedProviderCalls": 4,
+  "sourceHashes": {
+    "dsh-plugin/runtime.mjs": "d99669f3e21e45e148c8c3e08fef9e2a73b85c3028fec839388290d5cb5f85ac",
+    "dsh-plugin/runtime-rules.mjs": "1657aa77114ca3a6268bad0e6d071e7bdfae045580a8b9b7ea58358c4211588b",
+    "dsh-plugin/work-files.mjs": "62a350cf088970ab540079b1722b7ecf0e5f6d0fb17f9b0a20f01b9250d95a17",
+    "scripts/runtime-work-smoke.mjs": "7bd125d5aeb7d776c27d02676405b7e263c89781176c6459661f04ffd1074199"
+  },
+  "checks": [
+    "asynchronousAdmissionAndDuplicate",
+    "realReadComputeWriteReadAndValidatedArtifact"
+  ],
+  "status": "failed",
+  "receipt": {
+    "requestId": "file-work-native-smoke",
+    "botId": "@finance:local-smoke.test",
+    "inputHash": "eeaef0f43928e54fa7be9d904b21ecb9e33593e044922b4d564bb97ce66c3bc3",
+    "eventId": "$work",
+    "status": "completed",
+    "stage": "completed",
+    "model": "local-fixture/team/chat",
+    "modelConfig": {
+      "model": "local-fixture/team/chat",
+      "maxTokens": 4096
+    },
+    "summary": "成果文件已准备好",
+    "claims": [
+      {
+        "claimId": "2fb78f55-62d3-409a-bc08-c17ff3bdea33",
+        "model": "local-fixture/team/chat",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.066Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 0,
+        "finishedAt": "2026-11-07T04:47:01.162Z",
+        "recorded": true
+      },
+      {
+        "claimId": "eb376eb2-c1bc-45f2-99b8-e10b95e0d6cf",
+        "model": "local-fixture/team/chat",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.227Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 0,
+        "finishedAt": "2026-11-07T04:47:01.257Z",
+        "recorded": true
+      },
+      {
+        "claimId": "d777e9d7-c859-4290-869d-5ead80b3aeda",
+        "model": "local-fixture/team/chat",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.234Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 0,
+        "finishedAt": "2026-11-07T04:47:01.252Z",
+        "recorded": true
+      },
+      {
+        "claimId": "eec2f8e8-468c-4fd0-872d-c121d95908a9",
+        "model": "local-fixture/team/chat",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.572Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 0,
+        "finishedAt": "2026-11-07T04:47:01.593Z",
+        "recorded": true
+      },
+      {
+        "claimId": "6a8e67d8-4650-42cb-8cfe-e27fc6a9d0b9",
+        "model": "local-fixture/team/chat",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.581Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 0,
+        "finishedAt": "2026-11-07T04:47:01.590Z",
+        "recorded": true
+      },
+      {
+        "claimId": "f5d6ebe5-8bc9-431a-b98a-2373cfec9a16",
+        "model": "local-fixture/team/chat",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.628Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 146,
+        "finishedAt": "2026-11-07T04:47:01.644Z",
+        "recorded": true
+      },
+      {
+        "claimId": "ddbb5769-1a8f-4228-9aea-12b7040df3de",
+        "model": "local-fixture/team/chat",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.632Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 146,
+        "finishedAt": "2026-11-07T04:47:01.641Z",
+        "recorded": true
+      }
+    ],
+    "toolCalls": 3,
+    "toolReceipts": [
+      {
+        "callId": "tool-1",
+        "name": "read",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.178Z",
+        "finishedAt": "2026-11-07T04:47:01.195Z",
+        "summary": "<path>/tmp/ds-group-work-smoke-Ke61lg/task/costs.csv</path>\n<type>file</type>\n<content>\n1: name,amount\n2: Alice,120\n3: Bob,230\n\n(End of file - total 3 lines)\n</content>"
+      },
+      {
+        "callId": "tool-2",
+        "name": "bash",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.264Z",
+        "finishedAt": "2026-11-07T04:47:01.549Z",
+        "summary": "350\n"
+      },
+      {
+        "callId": "tool-3",
+        "name": "read",
+        "status": "completed",
+        "startedAt": "2026-11-07T04:47:01.600Z",
+        "finishedAt": "2026-11-07T04:47:01.606Z",
+        "summary": "<path>/tmp/ds-group-work-smoke-Ke61lg/task/result.csv</path>\n<type>file</type>\n<content>\n1: total\n2: 350\n\n(End of file - total 2 lines)\n</content>"
+      }
+    ],
+    "artifacts": [
+      {
+        "name": "费用汇总.csv",
+        "path": "<synthetic-path>/result.csv",
+        "mimeType": "text/csv",
+        "size": 10,
+        "sha256": "a8d92f639928d06c7f08954a86efbd26f2205fd4f9bdeda46ffcd8e5bef7870c"
+      }
+    ],
+    "acceptedAt": "2026-11-07T04:47:00.917Z",
+    "startedAt": "2026-11-07T04:47:00.921Z",
+    "updatedAt": "2026-11-07T04:47:01.657Z",
+    "workdir": "<synthetic-path>/task",
+    "files": [
+      {
+        "name": "costs.csv",
+        "path": "<synthetic-path>/costs.csv",
+        "mimeType": "text/csv",
+        "size": 30,
+        "sha256": "2bf74f3e604b17c04aa05ec672c9521fa1fd02228d756261dae1fd20d530fea1",
+        "id": "input-costs"
+      }
+    ],
+    "sessionId": "session-a7479438-9cca-46ee-bc92-2aa69279c65d",
+    "claimId": "ddbb5769-1a8f-4228-9aea-12b7040df3de",
+    "usage": {
+      "calls": 7,
+      "inputTokens": 70,
+      "outputTokens": 70,
+      "totalTokens": 140
+    },
+    "text": "{\"text\":\"费用合计350，结果见附件。\",\"artifacts\":[{\"path\":\"/tmp/ds-group-work-smoke-Ke61lg/task/result.csv\",\"name\":\"费用汇总.csv\"}]}",
+    "finishedAt": "2026-11-07T04:47:01.657Z",
+    "duplicate": false
+  },
+  "error": "Expected values to be strictly equal:\n\n7 !== 4\n",
+  "diagnosticDirectory": "<synthetic-path>/ds-group-work-smoke-Ke61lg",
+  "model": "local-fixture/team/chat",
+  "ledger": {
+    "limit": null,
+    "used": 7,
+    "remaining": null,
+    "maxTokens": 8192,
+    "allowedModels": null,
+    "models": [
+      "local-fixture/team/chat"
+    ],
+    "model": "local-fixture/team/chat",
+    "claims": [
+      {
+        "claimId": "2fb78f55-62d3-409a-bc08-c17ff3bdea33",
+        "nodeId": "finance",
+        "requestId": "file-work-native-smoke/call-1",
+        "model": "local-fixture/team/chat",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-07T04:47:01.056Z",
+        "completedAt": "2026-11-07T04:47:01.168Z",
+        "result": {
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 10,
+            "totalTokens": 20
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "eb376eb2-c1bc-45f2-99b8-e10b95e0d6cf",
+        "nodeId": "finance",
+        "requestId": "file-work-native-smoke/call-2",
+        "model": "local-fixture/team/chat",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-07T04:47:01.226Z",
+        "completedAt": "2026-11-07T04:47:01.260Z",
+        "result": {
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 10,
+            "totalTokens": 20
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "d777e9d7-c859-4290-869d-5ead80b3aeda",
+        "nodeId": "finance",
+        "requestId": "file-work-native-smoke/call-3",
+        "model": "local-fixture/team/chat",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-07T04:47:01.232Z",
+        "completedAt": "2026-11-07T04:47:01.255Z",
+        "result": {
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 10,
+            "totalTokens": 20
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "eec2f8e8-468c-4fd0-872d-c121d95908a9",
+        "nodeId": "finance",
+        "requestId": "file-work-native-smoke/call-4",
+        "model": "local-fixture/team/chat",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-07T04:47:01.571Z",
+        "completedAt": "2026-11-07T04:47:01.595Z",
+        "result": {
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 10,
+            "totalTokens": 20
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "6a8e67d8-4650-42cb-8cfe-e27fc6a9d0b9",
+        "nodeId": "finance",
+        "requestId": "file-work-native-smoke/call-5",
+        "model": "local-fixture/team/chat",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-07T04:47:01.579Z",
+        "completedAt": "2026-11-07T04:47:01.592Z",
+        "result": {
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 10,
+            "totalTokens": 20
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "f5d6ebe5-8bc9-431a-b98a-2373cfec9a16",
+        "nodeId": "finance",
+        "requestId": "file-work-native-smoke/call-6",
+        "model": "local-fixture/team/chat",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-07T04:47:01.627Z",
+        "completedAt": "2026-11-07T04:47:01.646Z",
+        "result": {
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 10,
+            "totalTokens": 20
+          },
+          "textBytes": 146,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "ddbb5769-1a8f-4228-9aea-12b7040df3de",
+        "nodeId": "finance",
+        "requestId": "file-work-native-smoke/call-7",
+        "model": "local-fixture/team/chat",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-07T04:47:01.631Z",
+        "completedAt": "2026-11-07T04:47:01.643Z",
+        "result": {
+          "usage": {
+            "inputTokens": 10,
+            "outputTokens": 10,
+            "totalTokens": 20
+          },
+          "textBytes": 146,
+          "errorCode": null
+        }
+      }
+    ]
+  },
+  "completedAt": "2026-11-07T04:47:02.144Z",
+  "publicEvidence": {
+    "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+    "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+    "originalSha256": "a9cadafc86312d23f5f5fce52f69a66d1a6d23fa3a51bd4276a5a0148de5ab01",
+    "environment": "Linux amd64 emulated Docker"
+  }
+}

@@ -59,3 +59,5 @@ node scripts/runtime-smoke.mjs
 `npm run runtime:native-check` 与 `npm run runtime:work-check` 进一步用本地脚本 provider 验证完整原生工具、自动记忆回顾和实际文件工作。它们会分别记录本地脚本响应次数，远端业务模型调用为 0。
 
 CI 保留十项正式门禁：四组 Linux/Node、两组 Docker/Compose、两组独立 DSH、一组浏览器和一个汇总门禁。DSH 检查从经过 SHA-256 校验并提取的发行源码执行。容器和同机独立宿主证据不代表物理跨机器的网络与故障环境已经验收。
+
+固定源码的结果分别见 [b3add9b 发行验证](kernel-validation.md)与 [9898c62 增量验证](kernel-validation-9898.md)；后者保留快照升级后发现的多步文件任务重复账目失败，不能以较早通过结果替代。

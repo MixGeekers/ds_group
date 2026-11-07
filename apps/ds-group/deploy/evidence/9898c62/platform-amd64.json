@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "project": "dscord-platform-34190b3b417f",
+  "startedAt": "2026-11-07T04:48:11.657Z",
+  "status": "passed",
+  "evidenceLevel": "real isolated Docker Compose Core/Synapse/administration and persistent named volumes; synthetic identities; zero model",
+  "image": "dscord-kernel-9898:amd64",
+  "origins": {
+    "coreUrl": "http://127.0.0.1:26620",
+    "matrixUrl": "http://127.0.0.1:26628",
+    "adminUrl": "http://127.0.0.1:26630"
+  },
+  "checks": [
+    {
+      "name": "real Compose starts API-only Core, official Synapse and independent administration listener",
+      "status": "passed",
+      "details": {
+        "services": [
+          "config",
+          "synapse",
+          "bootstrap",
+          "core",
+          "administration"
+        ],
+        "mode": "api-only",
+        "rootStatus": 404,
+        "adminHealth": 200
+      }
+    },
+    {
+      "name": "containerized central initialization persists the default home without replacing its Matrix identities",
+      "status": "passed",
+      "details": {
+        "mode": "central",
+        "authorityId": "urn:uuid:1000bec6-746a-4d0c-b659-84f0598bdd00",
+        "home": {
+          "serverName": "dscord-platform-34190b3b417f.test",
+          "coreUrl": "http://127.0.0.1:26620",
+          "matrixUrl": "http://127.0.0.1:26628"
+        },
+        "existingIdentitiesPreserved": true
+      }
+    },
+    {
+      "name": "ordinary central login and room business work while management credentials remain separate",
+      "status": "passed",
+      "details": {
+        "userId": "@alice:dscord-platform-34190b3b417f.test",
+        "subjectId": "fb9f4b0f-58db-4db8-8ffd-487620ceddbd",
+        "ordinaryTokenManagementStatus": 401,
+        "managementTokenCoreStatus": 401,
+        "eventId": "$VY04h3vIH72Gh8RsmOAI3hOSzZ4G36h9hygc8VX5-kg"
+      }
+    },
+    {
+      "name": "independent management UI/assets and real governance apply work against the containerized Synapse guard",
+      "status": "passed",
+      "details": {
+        "builtAssets": 2,
+        "savedRevision": 1,
+        "actualApplication": "prepared",
+        "livePolicyObserved": true,
+        "configurationWritable": true
+      }
+    },
+    {
+      "name": "container recreation with mode omitted preserves central identity, sessions, admin policy and API-only",
+      "status": "passed",
+      "details": {
+        "sameSubjectAndMatrixId": true,
+        "sameConfigurationHashes": true,
+        "chatSessionAndHistory": true,
+        "adminSessionAndPolicy": true,
+        "mode": "api-only",
+        "modelCalls": 0
+      }
+    }
+  ],
+  "modelCalls": 0,
+  "physicalCrossMachine": false,
+  "sourceSha256": {
+    "Dockerfile": "ad0de8678a4ae4054759fd4faab389b01b0231b5c17bec7fb14fd4b4b2f32f98",
+    "deploy/compose.yaml": "273eb1dcceb5125c82cee5d635b0e0e494e2998a01f2b03079feb0b450a85d63",
+    "scripts/server-init.mjs": "ec72a7de437856b9ca03c7be2e76ffd8b109612cdee3aa293a68652bbed4654f",
+    "scripts/central-init.mjs": "0412e00a5a185f31459a24040ee8f5dc93e38e7e060375a012f970b7585aa86b",
+    "scripts/platform-deploy-smoke.mjs": "bab7fb1d0de5402acdf6253ec8c7437f60f083301d757e138e51f473b4b0d75d",
+    "src/core.mjs": "054bb2170a7c449795319fb26960389e54ffd7bc1d896e9f9c86c8033d099fb3",
+    "src/admin.mjs": "71c4d2b8fe1683a23105cafe1952e5c3f38ad1528cde55c34ab2860d2f78925a",
+    "src/admin-auth.mjs": "88274e04d2163189d9564b1dcce6d795bc6f9c5d8cfcb5dd4c511f10731aa186",
+    "src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+    "src/web-mode.mjs": "794c666a835ccb5f20102bb746288a9649ab1fcc600cb8b184674ef681547185",
+    "deploy/synapse/dscord_guard.py": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f"
+  },
+  "imageIdentity": "sha256:884d8c4c947e7f654d3e417d450564a8ad7cc989eebb7924fdf05a399e1e4389 linux/amd64",
+  "containerRuntime": {
+    "platform": "linux",
+    "arch": "x64",
+    "node": "v24.19.0"
+  },
+  "adminBrowser": {
+    "requested": false,
+    "scope": "real management HTML/assets/API checked; interactive browser is optional --browser"
+  },
+  "application": {
+    "savedRevision": 1,
+    "guard": {
+      "serverName": "dscord-platform-34190b3b417f.test",
+      "bootId": "98ef31e4-d2a1-46b0-8105-537260594425",
+      "synapseVersion": "1.164.2",
+      "sourceSha256": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+      "liveRevision": 1,
+      "loadedPartners": [],
+      "observedAt": 1794026930733,
+      "error": null
+    },
+    "guardSourceCurrent": true,
+    "livePolicyObserved": true,
+    "restartRequired": false,
+    "application": {
+      "revision": 1,
+      "startedAt": 1794026929832,
+      "configuration": {
+        "status": "prepared",
+        "preparedPartners": [],
+        "restartCommand": "docker compose -f deploy/compose.yaml restart synapse",
+        "note": "Synapse must load governance.generated.yaml and PYTHONPATH=/data. Restart is external to the management API."
+      },
+      "rooms": [
+        {
+          "roomId": "!iUCuhdqzE4STk-l1ILpELJWK8DXAdw1xwsLSYLqKEEU",
+          "status": "applied",
+          "bans": [],
+          "workPolicy": {
+            "eventId": "$VheThkmq9GCC7DocSgl7-Uixu1B9D9ezHEVDVAmsTb4",
+            "schemaVersion": 1,
+            "revision": 1,
+            "issuerId": "@dscord-control:dscord-platform-34190b3b417f.test"
+          },
+          "acl": {
+            "allow": [
+              "dscord-platform-34190b3b417f.test"
+            ],
+            "allow_ip_literals": false,
+            "deny": []
+          }
+        }
+      ],
+      "status": "prepared",
+      "finishedAt": 1794026930729
+    },
+    "configurationWritable": true
+  },
+  "cleanedUp": true,
+  "remainingContainers": "",
+  "remainingVolumes": "",
+  "completedAt": "2026-11-07T04:49:14.810Z",
+  "publicEvidence": {
+    "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+    "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+    "originalSha256": "b33b9e9df885eb4f1fb389f8a9282b45a35f058fd52ebe979c003f8c25265b9d",
+    "environment": "Linux amd64 emulated Docker"
+  }
+}

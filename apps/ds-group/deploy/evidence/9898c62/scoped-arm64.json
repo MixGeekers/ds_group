@@ -1,0 +1,134 @@
+{
+  "date": "2026-11-07",
+  "checkedAt": "2026-11-07T04:48:14.194Z",
+  "level": "native-dsh-scripted-provider-synthetic-work-authority",
+  "modelCalls": 0,
+  "scriptedProviderCalls": 10,
+  "physicalHosts": 1,
+  "checks": [
+    "nativeFileToolsAndPrivatePathRefusal",
+    "ownerSessionAndPrivateMemoryExcluded",
+    "roomDomainsIsolateNativeHistory",
+    "sameAuthorizedDomainReusesNativeSession",
+    "revocationStopsNextNativeEffectAndPreservesEarlierFile",
+    "restartRetainsOriginalBotAndDomainBindings",
+    "duplicateCompletedRequestNeverReexecutes",
+    "nativeToolAndEveryModelStreamAuthorizationAndLedger"
+  ],
+  "status": "passed",
+  "sourceHashes": {
+    "dsh-plugin/runtime.mjs": "d99669f3e21e45e148c8c3e08fef9e2a73b85c3028fec839388290d5cb5f85ac",
+    "dsh-plugin/scoped-work.mjs": "b1b8447b3bafbb1921e16ef86881ccf3963b1bbabd71f304a68e882944b864ef",
+    "src/bot-work.mjs": "c6090120cf4e445fb63a20f20b66a9719f3331b4a56f1df5da1a22b1fa97716c",
+    "src/bot-work-policy.mjs": "d0a13a65d6a876855ed0460987b65378c66d5ac375c58596b74aefe1f5d36a4d",
+    "scripts/cross-server-runtime-smoke.mjs": "0b46fceb1acf8e73b86df32b7115c6668eba4a0e4b5a2b31434030e9c45e0b2b"
+  },
+  "sessions": {
+    "original": "session-9db3b20c-5f2c-49e0-a3e2-b6e972cbfb6a",
+    "firstRoom": "session-d183421e-3f23-483a-a1fd-b1d487231e7b",
+    "secondRoom": "session-017bf5ef-44bd-487a-bade-05dc77e876bd"
+  },
+  "receipts": [
+    {
+      "id": "private-owner",
+      "status": "completed",
+      "sessionId": "session-9db3b20c-5f2c-49e0-a3e2-b6e972cbfb6a",
+      "toolReceipts": [],
+      "modelClaims": 1
+    },
+    {
+      "id": "scope-first",
+      "status": "completed",
+      "sessionId": "session-d183421e-3f23-483a-a1fd-b1d487231e7b",
+      "toolReceipts": [
+        {
+          "callId": "tool-2",
+          "name": "read",
+          "status": "failed",
+          "startedAt": "2026-11-07T04:48:22.998Z",
+          "finishedAt": "2026-11-07T04:48:23.004Z",
+          "summary": "Error: The requested file is outside this task workspace",
+          "effectStatus": "not_executed"
+        },
+        {
+          "callId": "tool-3",
+          "name": "read",
+          "status": "completed",
+          "startedAt": "2026-11-07T04:48:23.055Z",
+          "finishedAt": "2026-11-07T04:48:23.079Z",
+          "summary": "<path>/tmp/dscord-scoped-runtime-tW2rdS/tasks/scope-first/input.txt</path>\n<type>file</type>\n<content>\n1: shared input\n\n(End of file - total 1 lines)\n</content>",
+          "effectStatus": "completed"
+        },
+        {
+          "callId": "tool-4",
+          "name": "write",
+          "status": "completed",
+          "startedAt": "2026-11-07T04:48:23.140Z",
+          "finishedAt": "2026-11-07T04:48:23.160Z",
+          "summary": "<path>/tmp/dscord-scoped-runtime-tW2rdS/tasks/scope-first/result.txt</path>\n<type>file</type>\n<content>\nCreated file\n</content>",
+          "effectStatus": "completed"
+        },
+        {
+          "callId": "tool-5",
+          "name": "read",
+          "status": "completed",
+          "startedAt": "2026-11-07T04:48:23.200Z",
+          "finishedAt": "2026-11-07T04:48:23.211Z",
+          "summary": "<path>/tmp/dscord-scoped-runtime-tW2rdS/tasks/scope-first/result.txt</path>\n<type>file</type>\n<content>\n1: checked result\n\n(End of file - total 1 lines)\n</content>",
+          "effectStatus": "completed"
+        }
+      ],
+      "modelClaims": 5
+    },
+    {
+      "id": "scope-other",
+      "status": "completed",
+      "sessionId": "session-017bf5ef-44bd-487a-bade-05dc77e876bd",
+      "toolReceipts": [],
+      "modelClaims": 1
+    },
+    {
+      "id": "scope-followup",
+      "status": "completed",
+      "sessionId": "session-d183421e-3f23-483a-a1fd-b1d487231e7b",
+      "toolReceipts": [],
+      "modelClaims": 1
+    },
+    {
+      "id": "scope-revoke",
+      "status": "failed",
+      "errorCode": "WORK_AUTHORIZATION_REVOKED",
+      "sessionId": "session-620e9254-2e3f-4bdf-be1d-1ff7e0037a71",
+      "toolReceipts": [
+        {
+          "callId": "tool-9",
+          "name": "write",
+          "status": "completed",
+          "startedAt": "2026-11-07T04:48:23.734Z",
+          "finishedAt": "2026-11-07T04:48:23.756Z",
+          "summary": "<path>/tmp/dscord-scoped-runtime-tW2rdS/tasks/scope-revoke/before.txt</path>\n<type>file</type>\n<content>\nCreated file\n</content>",
+          "effectStatus": "completed"
+        },
+        {
+          "callId": "tool-10",
+          "name": "write",
+          "status": "failed",
+          "startedAt": "2026-11-07T04:48:23.805Z",
+          "finishedAt": "2026-11-07T04:48:23.812Z",
+          "summary": "Error: WORK_AUTHORIZATION_REVOKED",
+          "effectStatus": "not_executed",
+          "late": true
+        }
+      ],
+      "modelClaims": 2
+    }
+  ],
+  "authorizationChecks": 37,
+  "directory": "<synthetic-path>/dscord-scoped-runtime-tW2rdS",
+  "publicEvidence": {
+    "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+    "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+    "originalSha256": "defa20a3f3fd0c8003d93a58c599981f37a329cc089adc9041751663e73013ec",
+    "environment": "Linux ARM64 native Docker"
+  }
+}

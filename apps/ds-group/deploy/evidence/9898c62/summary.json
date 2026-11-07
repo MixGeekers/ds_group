@@ -1,0 +1,274 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T04:51:53.511Z",
+  "status": "partial-failure",
+  "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+  "productVersion": "0.4.0",
+  "npmVersion": "0.4.0-alpha.1",
+  "dshVersion": "0.2.2-rc.1",
+  "nodeVersion": "24.19.0",
+  "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+  "strictArchiveSha256": "0f697fc28c803b7ff651bb731870c2b4320f3fc64da5adb3807933949e812820",
+  "sourceFiles": 569,
+  "gateCommit": "9565006",
+  "npmArchive": {
+    "sha256": "37f6c314d38745e393d8e61b4f8635426dac62bc84c6b5b37e9eb846fa21e067",
+    "sha1": "7b4c4b126b98a4f9ab14a6eef2d0ad01d970543d",
+    "files": 251,
+    "bytes": 2418657
+  },
+  "offline": {
+    "modules": 694,
+    "status": "passed",
+    "originalLogSha256": "d2126d8876f091e542de8567d852e50e300a96178ddae3722ed3aba033ea7262",
+    "build": "passed",
+    "originalBuildLogSha256": "4b57c50181ab6f974fb936bec41bdd4b7c50a61a524417c2f577697d674eb094",
+    "packagingAndResolutionTests": 14,
+    "packagingLogSha256": "7e4d1446665050b9084c0d495faa5f987ef132c058ef7be4570d6bb9b0c59bdb"
+  },
+  "unresolved": [
+    {
+      "kind": "legacy-file-work-accounting",
+      "status": "failed",
+      "actualProviderCalls": 4,
+      "completedGenerationClaims": 7,
+      "cause": "Retired-snapshot request rewriting reenters the LLM waterfall and the legacy generation accounting hook."
+    },
+    {
+      "kind": "new-sdk-contract-fixture",
+      "status": "awaiting-development-testkit-setup",
+      "productRuntimeDependency": false
+    }
+  ],
+  "remoteModelCalls": 0,
+  "physicalCrossMachine": false,
+  "ciScope": "Previous run 42335611379 belongs only to head 0294a3f; this source has no final CI claim.",
+  "reports": [
+    {
+      "file": "kernel-arm64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "365cd002ac04a4e6ff797dec49aafaef518b9e98c6be32dbda369ed2ee70508b",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "runtime-arm64.json",
+      "status": "passed",
+      "checks": 17,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "c3a812a6b3a1ca86a4c2ff324dc01555f88dd9dfb30fbd910ca5af9a2fd4e226",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "native-arm64.json",
+      "status": "passed",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 3,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "7ef8072c7fdc150a367f516c5a66d91f9f6a0931c1f73e0da7336058adf3ff2f",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "snapshot-arm64.json",
+      "status": "passed",
+      "checks": 8,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 13,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "a499e78e04b506730aa34f9bf04a8703bc3093648ef1261c9117b66e49a5c110",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "work-arm64.json",
+      "status": "failed",
+      "checks": 2,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 4,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "d04eac6b3d1361e5d936d54121ea1ca1c279c1a8e73a1d9c71b4f6ecfecaefb3",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "scoped-arm64.json",
+      "status": "passed",
+      "checks": 8,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 10,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "defa20a3f3fd0c8003d93a58c599981f37a329cc089adc9041751663e73013ec",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "deploy-arm64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "ffa53ab6819864af1bc2ce7487a4276c1854be64a9af6783f1acde5796699a40",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "platform-arm64.json",
+      "status": "passed",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "fd9a066ebd880c26cf3891a7ff52405a47ea544021245d0d926ac8e36ac42056",
+      "environment": "Linux ARM64 native Docker"
+    },
+    {
+      "file": "kernel-strict-arm64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "0f697fc28c803b7ff651bb731870c2b4320f3fc64da5adb3807933949e812820",
+      "originalSha256": "c33e3417d583581d5dfdca8136462e3707cf3a17bbdf803bb5da3df4c67b6208",
+      "environment": "Linux ARM64 native Docker",
+      "gateCommit": "9565006",
+      "gate": "all 65 unique tool schema names"
+    },
+    {
+      "file": "kernel-amd64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "96617d565ca04a27547f472f0ffb180cc271d66fe3c5ec3b408344893313ae1b",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "runtime-amd64.json",
+      "status": "passed",
+      "checks": 17,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "35e6986264d38f38a28fa7b5087dd024f1f37f11be758dd22403123c3dd2c286",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "native-amd64.json",
+      "status": "passed",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 3,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "c8acf4209c4e8783fcbbc85262552a4832fea162717e4a38335225d995d115f1",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "snapshot-amd64.json",
+      "status": "passed",
+      "checks": 8,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 13,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "e64f0ebbc4daaecf6617025d418e6d67d03a7749279a0c11a96413117c1fdbe3",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "work-amd64.json",
+      "status": "failed",
+      "checks": 2,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 4,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "a9cadafc86312d23f5f5fce52f69a66d1a6d23fa3a51bd4276a5a0148de5ab01",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "scoped-amd64.json",
+      "status": "passed",
+      "checks": 8,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 10,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "75521816491721e6026f745b939d7394fa0177c5583257e0e31c0e6fd3721af1",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "deploy-amd64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "c00dab53c77be65b8a07a3059f1ec767b3eee214119299c5d0ae60b102b2e95d",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "platform-amd64.json",
+      "status": "passed",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "eb24dd88d3a4f35bc71a0b563c3e232e1c857fd4076e3fdd5a7873cbccb3dcff",
+      "originalSha256": "b33b9e9df885eb4f1fb389f8a9282b45a35f058fd52ebe979c003f8c25265b9d",
+      "environment": "Linux amd64 emulated Docker"
+    },
+    {
+      "file": "kernel-strict-amd64.json",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": "0f697fc28c803b7ff651bb731870c2b4320f3fc64da5adb3807933949e812820",
+      "originalSha256": "c512f8a92d0f83a628b53a3a90fad71f80914a7f866bdd2d033a1cd70f65459f",
+      "environment": "Linux amd64 emulated Docker",
+      "gateCommit": "9565006",
+      "gate": "all 65 unique tool schema names"
+    },
+    {
+      "file": "npm-clean.json",
+      "status": "passed",
+      "checks": 7,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": null,
+      "originalSha256": "068fd2685b458ecb649f66060eb076dcb3d84f508b435233f892df0ce2c5925c",
+      "npmArchiveSha256": "37f6c314d38745e393d8e61b4f8635426dac62bc84c6b5b37e9eb846fa21e067",
+      "environment": "macOS ARM64 Node and Linux ARM64 Synapse"
+    },
+    {
+      "file": "native-ui.json",
+      "status": "passed",
+      "checks": 9,
+      "remoteModelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "sourceArchiveSha256": null,
+      "originalSha256": "581d3352d9574db5c52e7d4c34757094f652ef135e5392e05828d5d4b5bf7f91",
+      "npmArchiveSha256": "37f6c314d38745e393d8e61b4f8635426dac62bc84c6b5b37e9eb846fa21e067",
+      "environment": "macOS ARM64 real DSH web and packaged plugin"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "runId": "npm-smoke-a9569e44-28cf-46a7-b43a-0807b4e67024",
+  "startedAt": "2026-11-07T04:48:12.757Z",
+  "status": "passed",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "scope": "clean-npm-tarball-install-real-matrix-core-zero-model",
+  "checks": [
+    "clean-production-install",
+    "installed-cli-and-relative-data-paths",
+    "installed-runtime-import-closure",
+    "real-synapse-bootstrap-and-idempotency",
+    "installed-core-health-and-prebuilt-pwa",
+    "real-two-human-login-message-and-attachment-roundtrip",
+    "zero-model-and-immutable-install"
+  ],
+  "modelCalls": 0,
+  "tarball": {
+    "name": "dscord-0.4.0-alpha.1.tgz",
+    "sha256": "37f6c314d38745e393d8e61b4f8635426dac62bc84c6b5b37e9eb846fa21e067",
+    "sha1": "7b4c4b126b98a4f9ab14a6eef2d0ad01d970543d"
+  },
+  "scriptSha256": "9c982f2d2b0a1b93c91fbfeb182bc5fedc851f7ed471445ae79a76e8749dbe1c",
+  "version": "0.4.0-alpha.1",
+  "synapse": {
+    "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+    "nonRootUid": 501,
+    "hostPort": 21008
+  },
+  "web": {
+    "assetCount": 7,
+    "manifest": true,
+    "serviceWorker": true
+  },
+  "humanLoginAttempts": {
+    "alice": 1,
+    "bob": 1,
+    "retries": 0
+  },
+  "matrix": {
+    "humanSenders": 2,
+    "messageRetrySameEvent": true,
+    "replyRelation": true,
+    "attachmentBytes": 78,
+    "attachmentSha256": "14a7be15bffae40a15d5d40b9f6fd92183395d11a61d81690969744a8dd55d16"
+  },
+  "botStatuses": [
+    {
+      "id": "finance",
+      "status": "offline"
+    },
+    {
+      "id": "hr",
+      "status": "offline"
+    }
+  ],
+  "installation": {
+    "fileCount": 251,
+    "filesUnchanged": true,
+    "runtimeDataOutsidePackage": true
+  },
+  "loadedCoreSha256": "054bb2170a7c449795319fb26960389e54ffd7bc1d896e9f9c86c8033d099fb3",
+  "coreStopped": true,
+  "synapseStopped": true,
+  "completedAt": "2026-11-07T04:48:37.077Z",
+  "publicEvidence": {
+    "productCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+    "sourceArchiveSha256": null,
+    "originalSha256": "068fd2685b458ecb649f66060eb076dcb3d84f508b435233f892df0ce2c5925c",
+    "npmArchiveSha256": "37f6c314d38745e393d8e61b4f8635426dac62bc84c6b5b37e9eb846fa21e067",
+    "environment": "macOS ARM64 Node and Linux ARM64 Synapse"
+  }
+}
