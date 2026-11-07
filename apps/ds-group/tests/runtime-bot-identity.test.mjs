@@ -17,8 +17,8 @@ const runtimeUrl = new URL('../dsh-plugin/runtime.mjs', import.meta.url).href;
 const hook = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (context.parentURL === runtimeUrl) {
-      if (specifier === '../vendor/ds-bot/index.js') return {
-        url: `data:text/javascript,${encodeURIComponent('export const createRuntime = (_ctx, config) => globalThis.__dsGroupIdentityRuntimes.get(config.home);')}`,
+      if (specifier === '../dsh-connect/native-team.mjs') return {
+        url: `data:text/javascript,${encodeURIComponent('export const startNativeTeam = async (_ctx, config) => { const rt = globalThis.__dsGroupIdentityRuntimes.get(config.home); await rt.load(); return rt; };')}`,
         shortCircuit: true,
       };
       if (specifier === '@deepseek-ai/dsh-llm') return {

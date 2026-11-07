@@ -4,8 +4,10 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createUserMessage } from '@deepseek-ai/dsh-llm';
-import { createRuntime } from '../vendor/ds-bot/index.js';
-import { PROTOCOL, WORK_TOOLS, botInstructions } from './runtime-rules.mjs';
+import { startNativeTeam } from '../dsh-connect/native-team.mjs';
+import { NativeBots } from '../dsh-connect/native-bots.mjs';
+import { NativeBridge } from '../dsh-connect/native-bridge.mjs';
+import { PROTOCOL, NATIVE_PROTOCOL, WORK_TOOLS, botInstructions, nativeBotInstructions } from './runtime-rules.mjs';
 import { prepareWorkFiles, collectArtifacts } from './work-files.mjs';
 import { SCOPED_PROTOCOL, checkScopedFile, validateScopedInput } from './scoped-work.mjs';
 import { checkModel, modelSelection, modelReference } from '../src/model-config.mjs';
@@ -89,6 +91,12 @@ export async function apply(ctx, config) {
   }
   if (state.nodeId !== nodeId || ![1, 2].includes(state.schemaVersion)) throw fail('NODE_STATE_MISMATCH');
   state.schemaVersion = 2;
+  state.nativeUsage ??= [];
+  for (const call of state.nativeUsage) if (call.status === 'running') {
+    call.status = 'unknown';
+    call.errorCode = 'NODE_RESTARTED_DURING_STREAM';
+    call.finishedAt = new Date().toISOString();
+  }
   for (const request of Object.values(state.requests)) {
     if (['queued', 'running', 'cancelling'].includes(request.status)) {
       request.status = 'unknown';
@@ -129,8 +137,53 @@ export async function apply(ctx, config) {
   const botQueues = new Map();
   const protectedAgents = new WeakSet();
   const scopedSessions = new Map();
+  const nativeBridges = new Map();
   const progress = { requests: 0, completed: 0, failed: 0, streamClaims: 0, blockedStreams: 0 };
   let closing = false;
+  let rt;
+
+  const legacyBot = id => Object.values(state.bots).some(bot => bot.dsBotId === id && bot.mode !== 'native');
+  const nativeSession = id => {
+    const owner = rt?.selfOf?.(id) ?? (rt?.botOf?.(id) ? id : undefined);
+    return owner !== undefined && !legacyBot(owner);
+  };
+  // Native subagents retain their root Bot's identity and original execution surface.
+  async function nativeOwner(sessionId) {
+    const seen = new Set();
+    while (sessionId && !seen.has(sessionId)) {
+      seen.add(sessionId);
+      const owner = rt?.selfOf?.(sessionId) ?? (rt?.botOf?.(sessionId) ? sessionId : undefined);
+      if (owner !== undefined) return legacyBot(owner) ? undefined : owner;
+      const agent = await rt?.resolveAgent?.(sessionId).catch(() => undefined);
+      sessionId = agent?.session?.header?.parentSession;
+    }
+    return undefined;
+  }
+
+  async function* observeNativeStream(options, next, nativeBotId) {
+    const call = { nativeBotId, sessionId: options.sessionId, model: `${options.provider}/${options.model}`,
+      kind: options.purpose || 'generation', status: 'running', startedAt: new Date().toISOString(), usage: null };
+    state.nativeUsage.push(call);
+    // This is an observation log, not a claim that every native/background call is known.
+    state.nativeUsage = state.nativeUsage.slice(-20000);
+    await save().catch(() => {});
+    try {
+      for await (const chunk of next()) {
+        if (chunk?.type === 'usage') call.usage = chunk.usage;
+        if (chunk?.type === 'error' || chunk?.type === 'finish' && chunk.reason?.kind === 'error') call.errorCode = 'MODEL_STREAM_FAILED';
+        yield chunk;
+      }
+      call.status = call.errorCode ? 'failed' : 'completed';
+    } catch (error) {
+      call.status = 'failed';
+      call.errorCode = publicError(error);
+      throw error;
+    } finally {
+      if (call.status === 'running') call.status = 'unknown';
+      call.finishedAt = new Date().toISOString();
+      await save().catch(() => {});
+    }
+  }
 
   async function workCheck(run, stage, details = {}) {
     if (!run?.input?.authorization) return undefined;
@@ -167,9 +220,13 @@ export async function apply(ctx, config) {
     void save().catch(() => {});
   }
 
-  // Every native or auxiliary model stream belongs to one admitted task and gets its own receipt.
+  // Legacy/scoped streams retain admission claims. Native work is observed independently.
   ctx.on('llm/stream', (options, next) => (async function* () {
     const run = active.get(options.sessionId);
+    if (!run) {
+      const owner = await nativeOwner(options.sessionId);
+      if (owner !== undefined) { yield* observeNativeStream(options, next, owner); return; }
+    }
     if (closing || !run || run.record.cancelRequested || run.record.claims.length >= maxSteps * 2) {
       progress.blockedStreams++;
       throw fail('UNSCHEDULED_MODEL_REQUEST');
@@ -222,9 +279,20 @@ export async function apply(ctx, config) {
     }
   })());
 
-  const rt = createRuntime(ctx, { home: join(dataDir, 'ds-bot'), memory: true, memoryReview: false, diagnosticsFile: false,
-    mainName: `${nodeId} coordinator`, mainRole: 'DS-Group node' });
-  await rt.load();
+  rt = await startNativeTeam(ctx, { home: join(dataDir, 'ds-bot'), memory: true, diagnosticsFile: false,
+    memoryReviewForBot: id => !legacyBot(id), mainName: `${nodeId} coordinator`, mainRole: 'DS-Group node' });
+  const native = new NativeBots(ctx);
+  async function nativeBridge(bot) {
+    let pending = nativeBridges.get(bot.dsBotId);
+    if (!pending) {
+      pending = new NativeBridge({ ctx, native, timeoutMs: taskTimeoutMs,
+        node: { id: bot.botId, nativeBotId: bot.dsBotId, ownerId: rt.botOf(bot.dsBotId)?.owner?.id,
+          directory: join(dataDir, 'native-bridges', createHash('sha256').update(bot.botId).digest('hex')) } }).initialize();
+      nativeBridges.set(bot.dsBotId, pending);
+      pending.catch(() => { if (nativeBridges.get(bot.dsBotId) === pending) nativeBridges.delete(bot.dsBotId); });
+    }
+    return pending;
+  }
   if (ctx.systemPrompt) ctx.effect(() => ctx.systemPrompt.section({ name: 'ds-group-scoped-identity', order: 642, interpolate: false,
     text: context => scopedSessions.get(context?.agent?.id)?.instructions || '' }), 'DS-Group scoped identity');
 
@@ -234,12 +302,13 @@ export async function apply(ctx, config) {
     agent.ctx.tools.presentAs('native');
     const toolsFor = () => {
       const run = active.get(agent.session.id);
-      return run?.input?.authorization ? new Set(run.authorization?.tools || []) : WORK_TOOLS;
+      if (!run && scopedSessions.has(agent.session.id)) return new Set();
+      return run?.input?.authorization ? new Set(run.authorization?.tools || []) : nativeSession(agent.session.id) ? undefined : WORK_TOOLS;
     };
     agent.ctx.tools.guard(exec => {
       const run = active.get(agent.session.id);
       if (scopedSessions.has(agent.session.id) && !run) return 'This collaboration Session has no active authorized task.';
-      if (toolsFor().has(exec.name)) return undefined;
+      if (!toolsFor() || toolsFor().has(exec.name)) return undefined;
       run?.blockedTools.add(exec.callId || exec.id);
       return 'Use only the current authorized task tools.';
     });
@@ -258,10 +327,12 @@ export async function apply(ctx, config) {
     });
     agent.ctx.on('system-prompt/assemble', async (_assembly, _context, next) => {
       const assembled = await next();
-      return { ...assembled, tools: (assembled.tools ?? []).filter(tool => toolsFor().has(tool.name)) };
+      const tools = toolsFor();
+      return tools ? { ...assembled, tools: (assembled.tools ?? []).filter(tool => tools.has(tool.name)) } : assembled;
     });
     agent.ctx.on('agent/pre-step', async (_payload, next) => {
       const run = active.get(agent.session.id);
+      if (!run && nativeSession(agent.session.id)) return next();
       if (!run || closing || run.record.cancelRequested) return { kind: 'reject' };
       try { await workCheck(run, 'model'); }
       catch { return { kind: 'reject' }; }
@@ -274,18 +345,23 @@ export async function apply(ctx, config) {
     });
     agent.ctx.on('agent/request', async (_payload, next) => {
       const run = active.get(agent.session.id);
+      if (!run && nativeSession(agent.session.id)) return next();
       if (!run || run.record.cancelRequested) throw fail('UNSCHEDULED_MODEL_REQUEST');
       const request = await next();
       run.requests++;
       return { ...request, ...route, reasoningEffort: selection.reasoningEffort, maxTokens: outputTokens,
-        tools: (request.tools ?? []).filter(tool => toolsFor().has(tool.name)) };
+        tools: toolsFor() ? (request.tools ?? []).filter(tool => toolsFor().has(tool.name)) : request.tools };
     });
-    agent.ctx.on('agent/request-error', async () => ({ kind: 'abort' }), { prepend: true });
+    agent.ctx.on('agent/request-error', async (_payload, next) => nativeSession(agent.session.id) ? next() : { kind: 'abort' }, { prepend: true });
   }
 
   function botResult(bot) {
+    const nativeProfile = bot.mode === 'native' ? rt.botOf(bot.dsBotId) : undefined;
+    const model = nativeProfile ? nativeProfile.model || rt.cachedDefault?.() || selection.model : selection.model;
     return { botId: bot.botId, name: bot.name, role: bot.role, nodeId, dsBotId: bot.dsBotId, sessionId: rt.chatOf(bot.dsBotId),
-      tools: bot.tools ?? [], model: selection.model, modelConfig: selection, scopedWork: { tools: (bot.tools || []).filter(tool => ['read', 'write', 'edit', 'read_image'].includes(tool)),
+      ...(bot.mode === 'native' ? { mode: 'native' } : {}),
+      tools: bot.tools ?? [], model, modelConfig: nativeProfile ? { model, ...(nativeProfile.effort ? { reasoningEffort: nativeProfile.effort } : {}) } : selection,
+      scopedWork: { tools: (bot.tools || []).filter(tool => ['read', 'write', 'edit', 'read_image'].includes(tool)),
         domains: Object.values(bot.domains || {}).map(({ sessionId, roomId, authority }) => ({ sessionId, roomId, authority })) } };
   }
 
@@ -294,6 +370,7 @@ export async function apply(ctx, config) {
     required(input.botId, 'botId');
     required(input.name, 'name', 80);
     required(input.role, 'role', 200);
+    if (input.mode !== undefined && input.mode !== 'native') throw fail('INVALID_BOT_MODE');
     const setup = (botSetups.get(input.botId) ?? Promise.resolve()).catch(() => {}).then(() => setupBot(input));
     botSetups.set(input.botId, setup);
     try {
@@ -304,37 +381,100 @@ export async function apply(ctx, config) {
   }
 
   async function setupBot(input) {
-    await checkModel(ctx.llm, selection);
     const previous = state.bots[input.botId];
+    const requestedNativeId = input.nativeBotId ?? input.nativeBinding?.nativeBotId ?? config.nativeBinding?.nativeBotId;
+    if (requestedNativeId !== undefined) required(requestedNativeId, 'nativeBotId');
+    if (input.nativeBinding?.botId && input.nativeBinding.botId !== input.botId
+      || config.nativeBinding?.botId && config.nativeBinding.botId !== input.botId) throw fail('BOT_BINDING_CONFLICT');
+    const mode = input.mode ?? previous?.mode ?? (requestedNativeId ? 'native' : undefined);
+    if (previous && mode === 'native' && previous.mode !== 'native'
+      && Object.values(state.requests).some(record => record.botId === input.botId && !TERMINAL.has(record.status))) throw fail('BOT_BUSY');
     const internalName = `ds-group-${createHash('sha256').update(input.botId).digest('hex').slice(0, 31)}`;
     const binding = `\n\nDS_GROUP_MATRIX_BOT_ID=${JSON.stringify(input.botId)}`;
-    const instructions = `${botInstructions(input.instructions)}${binding}`;
+    const instructions = `${mode === 'native' ? nativeBotInstructions(input.instructions) : botInstructions(input.instructions)}${binding}`;
     // Persist the identity in the first DS-Bot write so retries can recover before the bridge mapping exists.
-    let bot = previous ? rt.botOf(previous.dsBotId) : rt.findBot(internalName);
-    if (previous && !bot) throw fail('BOT_BINDING_MISSING', 'Restore the existing DS-Bot state before retrying this saved binding.');
+    if (previous && requestedNativeId && previous.dsBotId !== requestedNativeId) throw fail('BOT_BINDING_CONFLICT');
+    let bot = requestedNativeId ? rt.botOf(requestedNativeId) : previous ? rt.botOf(previous.dsBotId) : rt.findBot(internalName);
+    if ((previous || requestedNativeId) && !bot) throw fail('BOT_BINDING_MISSING', 'Restore the existing DS-Bot state before retrying this saved binding.');
+    const preserveNative = mode === 'native' && !!bot && (requestedNativeId !== undefined || previous?.mode === 'native');
+    if (!preserveNative) await checkModel(ctx.llm, selection);
     const boundElsewhere = bot && Object.entries(state.bots).some(([botId, record]) => botId !== input.botId && record.dsBotId === bot.id);
-    if (boundElsewhere || bot && !previous && (!bot.instructions?.includes(PROTOCOL) || !bot.instructions.endsWith(binding))) {
+    if (boundElsewhere || bot && !previous && !requestedNativeId && ((!bot.instructions?.includes(PROTOCOL) && !bot.instructions?.includes(NATIVE_PROTOCOL)) || !bot.instructions.endsWith(binding))) {
       throw fail('BOT_BINDING_CONFLICT');
     }
-    if (!bot) bot = await rt.createBot({ name: internalName, role: input.role, instructions, pickModel: true });
+    if (!bot) bot = await rt.createBot({ name: internalName, role: input.role, instructions, pickModel: true,
+      ...(mode === 'native' ? { main: !rt.state?.mainBotIds?.length, greet: false,
+        ...(input.owner || input.ownerId ? { owner: input.owner || { id: input.ownerId, kind: 'human' } } : {}),
+        source: { transport: 'ds-group-node', nodeId, matrixId: input.botId } } : {}) });
     const record = previous ?? { botId: input.botId, dsBotId: bot.id, name: input.name, role: input.role,
       seenEventIds: [], setupStatus: 'creating', createdAt: new Date().toISOString() };
     record.name = input.name;
     record.role = input.role;
+    if (mode === 'native') record.mode = mode;
     state.bots[input.botId] = record;
     await save();
-    delete bot.kickoff;
-    await rt.save();
+    if (!preserveNative) {
+      delete bot.kickoff;
+      await rt.save();
+    }
     const agent = await rt.resolveAgent(rt.chatOf(bot.id));
-    configureAgent(agent);
-    record.tools = agent.ctx.tools.schemas(agent).map(tool => tool.name).filter(tool => WORK_TOOLS.has(tool));
+    if (mode !== 'native') configureAgent(agent);
+    record.tools = agent.ctx.tools.schemas(agent).map(tool => tool.name).filter(tool => mode === 'native' || WORK_TOOLS.has(tool));
     // Bridge setup must not send the vendor's profile-update message and start an unsolicited turn.
-    await rt.updateBot(bot.id, { model: selection.model, effort: selection.reasoningEffort ?? '', instructions }, bot.id, rt.chatOf(bot.id));
+    if (!preserveNative) await rt.updateBot(bot.id, { model: selection.model, effort: selection.reasoningEffort ?? '', instructions }, bot.id, rt.chatOf(bot.id));
     const presets = ctx.get?.('permissionPresets');
-    if (presets) await rt.setPermission(bot, 'danger-full-access');
+    if (presets && mode !== 'native') await rt.setPermission(bot, 'danger-full-access');
     record.setupStatus = 'ready';
     await save();
     return botResult(record);
+  }
+
+  function boundBot(input) {
+    required(input?.botId, 'botId');
+    const bot = state.bots[input.botId];
+    if (!bot) throw fail('BOT_NOT_FOUND');
+    return bot;
+  }
+
+  async function nativeOperation(operation, input) {
+    const bot = boundBot(input);
+    const bridge = await nativeBridge(bot);
+    if (typeof bridge[operation] !== 'function') throw fail('KERNEL_CAPABILITY_UNAVAILABLE');
+    return bridge[operation]({ ...input, botId: bot.dsBotId });
+  }
+
+  async function executeNative(record, input) {
+    const bot = state.bots[input.botId];
+    const bridge = await nativeBridge(bot);
+    const bridgeInput = { ...input, mode: 'native' };
+    record.mode = 'native';
+    record.status = 'running';
+    record.startedAt = new Date().toISOString();
+    updateProgress(record, 'working', '原生 Bot 正在处理');
+    try {
+      const pending = bridge.turn(bridgeInput, { onProgress: snapshot => {
+        Object.assign(record, { sessionId: snapshot.sessionId, toolCalls: snapshot.toolCalls ?? snapshot.toolReceipts?.length ?? 0,
+          toolReceipts: snapshot.toolReceipts ?? [], summary: snapshot.summary || record.summary, stage: snapshot.stage || record.stage });
+        return save();
+      } });
+      if (record.cancelRequested) await bridge.cancel(record.requestId);
+      const result = await pending;
+      // Keep the transport's original idempotency hash and the native receipt's facts.
+      const { inputHash: nativeInputHash, ...facts } = result;
+      Object.assign(record, facts, { nativeInputHash });
+      if (record.status === 'completed') progress.completed++;
+      else progress.failed++;
+    } catch (error) {
+      record.status = record.cancelRequested ? 'cancelled' : 'failed';
+      record.stage = record.status;
+      record.errorCode = publicError(error);
+      progress.failed++;
+    } finally {
+      record.finishedAt ||= new Date().toISOString();
+      await save();
+      durableTerminals.add(record.requestId);
+    }
+    return receipt(record);
   }
 
   ctx.on('session/event', async (session, event) => {
@@ -395,6 +535,7 @@ export async function apply(ctx, config) {
       durableTerminals.add(record.requestId);
       return receipt(record);
     }
+    if (!input.authorization && state.bots[input.botId]?.mode === 'native') return executeNative(record, input);
     const bot = state.bots[input.botId];
     let sessionId;
     let agent;
@@ -453,7 +594,10 @@ export async function apply(ctx, config) {
       record.inputEvidence = { messageSha256: createHash('sha256').update(inputText).digest('hex'),
         historyEventIds: history.map(item => item.eventId), currentEventId: input.event.eventId, inputText };
       const message = createUserMessage({ content: [{ type: 'text', text: inputText }],
-        source: { kind: 'user', dsGroupRequestId: input.requestId, senderId: input.event.senderId, roomId: input.event.roomId, eventId: input.event.eventId } });
+        source: { kind: input.event.senderKind === 'bot' ? 'bot' : 'user', dsGroupRequestId: input.requestId,
+          sender: { id: input.event.senderId, name: input.event.senderName || input.event.senderId,
+            kind: input.event.senderKind === 'bot' ? 'bot' : 'human' },
+          senderId: input.event.senderId, roomId: input.event.roomId, eventId: input.event.eventId } });
       active.set(sessionId, run);
       record.sessionId = sessionId;
       await save();
@@ -463,6 +607,7 @@ export async function apply(ctx, config) {
         agent.cancel({ kind: 'hook', reason: 'DS-Group task timeout' });
         resolve();
       }, taskTimeoutMs);
+      if (!input.authorization) await rt.memoryIngress?.(sessionId, inputText, input);
       agent.followup(message);
       await ctx.sessions.flush(agent.session);
       seenRecord.seenEventIds = [...new Set([...seenRecord.seenEventIds, ...history.map(item => item.eventId), input.event.eventId])].slice(-20000);
@@ -509,6 +654,8 @@ export async function apply(ctx, config) {
     required(payload.requestId, 'requestId');
     required(payload.botId, 'botId');
     if (!state.bots[payload.botId]) throw fail('BOT_NOT_FOUND');
+    if (payload.mode !== undefined && payload.mode !== 'native') throw fail('INVALID_BOT_MODE');
+    if (payload.mode === 'native' && state.bots[payload.botId].mode !== 'native') throw fail('BOT_MODE_MISMATCH');
     required(payload.event?.eventId, 'eventId');
     required(payload.event?.roomId, 'roomId');
     required(payload.event?.senderId, 'senderId');
@@ -560,6 +707,10 @@ export async function apply(ctx, config) {
       updateProgress(record, 'cancelled', '已取消');
     } else {
       updateProgress(record, 'cancelling', '正在取消');
+      if (record.mode === 'native') {
+        const bot = state.bots[record.botId];
+        await (await nativeBridge(bot)).cancel(requestId);
+      }
       const run = active.get(record.sessionId);
       if (run) {
         stopJobs(record.sessionId, 'DS-Group task cancelled');
@@ -580,11 +731,17 @@ export async function apply(ctx, config) {
         let modelStatus;
         try { await checkModel(ctx.llm, selection); modelStatus = { status: 'ready' }; }
         catch (error) { modelStatus = { status: 'unavailable', errorCode: publicError(error) }; }
-        return json(response, 200, { status: closing ? 'stopping' : 'ready', nodeId, engine: 'DS-Bot', engineVersion: '0.2.7',
+        const runtime = rt.runtimeInfo?.();
+        return json(response, 200, { status: closing ? 'stopping' : 'ready', nodeId, engine: 'DS-Bot', engineVersion: runtime?.upstreamVersion,
+          runtime,
           loadedRuntimeSha256: LOADED_RUNTIME_SHA256, model: selection.model, modelConfig: selection, modelStatus,
           maxOutputTokens: outputTokens, maxSteps, taskTimeoutMs,
-          capabilities: { fileWork: true, tools: [...WORK_TOOLS], asyncTasks: true },
-          activeTurns: active.size, progress, bots: Object.values(state.bots).map(botResult) });
+          capabilities: { fileWork: true, tools: [...WORK_TOOLS], asyncTasks: true, native: true,
+            sourceMemory: true, backgroundObservation: true, attentionView: true, kernelState: true, memoryProfiles: true },
+          nativeUsage: { accounting: 'observed-native-streams', complete: false, observedCalls: state.nativeUsage.length,
+            activeCalls: state.nativeUsage.filter(call => call.status === 'running').length },
+          activeTurns: active.size + Object.values(state.requests).filter(record => record.mode === 'native' && record.status === 'running').length,
+          progress, bots: Object.values(state.bots).map(botResult) });
       }
       if (request.method === 'GET' && path === '/api/ds-group-node/models') {
         const providers = ctx.llm.listProviders();
@@ -600,6 +757,14 @@ export async function apply(ctx, config) {
         return record ? json(response, 200, receipt(record)) : json(response, 404, { errorCode: 'REQUEST_NOT_FOUND' });
       }
       if (closing) return json(response, 503, { status: 'stopping' });
+      const kernelOperations = new Map([
+        ['/api/ds-group-node/observe', 'observe'],
+        ['/api/ds-group-node/attention/view', 'readAttentionView'],
+        ['/api/ds-group-node/kernel/state', 'kernelState'],
+        ['/api/ds-group-node/memory/profiles', 'memoryProfiles'],
+        ['/api/ds-group-node/memory/profile', 'memoryProfile'],
+      ]);
+      if (request.method === 'POST' && kernelOperations.has(path)) return json(response, 200, await nativeOperation(kernelOperations.get(path), await body(request)));
       const cancellation = path.match(/^\/api\/ds-group-node\/turns\/([^/]+)\/cancel$/);
       if (request.method === 'POST' && cancellation) return json(response, 200, await cancel(decodeURIComponent(cancellation[1])));
       if (request.method === 'POST' && path === '/api/ds-group-node/bots') return json(response, 200, await createBot(await body(request)));
@@ -626,6 +791,7 @@ export async function apply(ctx, config) {
       agent?.cancel({ kind: 'hook', reason: 'DS-Group node stopping' });
       run.resolve();
     }
+    await Promise.allSettled([...nativeBridges.values()].map(async pending => (await pending).detach()));
     await Promise.allSettled([...inFlight.values()]);
     await writes;
   });
