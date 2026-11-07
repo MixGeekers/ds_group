@@ -299,7 +299,6 @@ export async function apply(ctx, config) {
   function configureAgent(agent) {
     if (protectedAgents.has(agent)) return;
     protectedAgents.add(agent);
-    agent.ctx.tools.presentAs('native');
     const toolsFor = () => {
       const run = active.get(agent.session.id);
       if (!run && scopedSessions.has(agent.session.id)) return new Set();

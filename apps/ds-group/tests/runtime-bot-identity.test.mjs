@@ -72,7 +72,7 @@ async function fixture(t, { nodeState, bots = [], beforeCreate, updateFailures =
     },
     async resolveAgent(sessionId) {
       if (!agents.has(sessionId)) agents.set(sessionId, { session: { id: sessionId }, ctx: {
-        on() {}, tools: { presentAs() {}, guard() {}, schemas: () => [{ name: 'read_file' }] },
+        on() {}, tools: { guard() {}, schemas: () => [{ name: 'read_file' }] },
       } });
       return agents.get(sessionId);
     },

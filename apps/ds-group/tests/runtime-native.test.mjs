@@ -58,7 +58,7 @@ async function fixture(t) {
       const agent = { id: sessionId, session: { id: sessionId, header: { ...(parentSession ? { parentSession } : {}) } },
         whenIdle: async () => {}, cancel() {},
         followup(message) { queueMicrotask(() => { void generate(agent, message); }); },
-        ctx: { on(name, handler) { hooks.set(name, handler); }, tools: { presentAs() {}, guard: fn => guards.push(fn),
+        ctx: { on(name, handler) { hooks.set(name, handler); }, tools: { guard: fn => guards.push(fn),
           schemas: () => toolNames.map(name => ({ name })) } }, hooks, guards };
       agents.set(sessionId, agent);
     }
