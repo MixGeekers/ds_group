@@ -54,10 +54,12 @@ node scripts/kernel-runtime-smoke.mjs
 node scripts/runtime-smoke.mjs
 ```
 
-`test:kernel-host` 使用固定宿主的真实 SDK 编译内存工具，验证 basis reference 的必填字段、整数修订号和额外字段限制，并运行内核与合成 CLI 契约检查。`kernel-runtime-smoke` 检查 owner API、初始纯读空状态、同 home 重复运行拒绝，再明确创建一个不问候的 Bot，实际编译记忆及文件工具并核对重启后的 Bot/Session 身份。`runtime-smoke` 检查独立节点的模型配置及中断请求不重放。两个运行报告分别写入 `.local/kernel-runtime-smoke.json` 和 `.local/runtime-smoke.json`。成功后清理合成 home；失败时保留私有诊断目录并在报告中指明路径。
+`test:kernel-host` 使用固定宿主自带的真实 Session 服务和 SDK 编译内存工具，验证 basis reference 的必填字段、整数修订号、额外字段限制、联系人知识隔离及 stream 账目顺序，并运行内核与合成 CLI 契约检查。`kernel-runtime-smoke` 检查 owner API、初始纯读空状态、同 home 重复运行拒绝，再明确创建一个不问候的 Bot，实际编译全部 65 个唯一工具并核对重启后的 Bot/Session 身份。`runtime-smoke` 检查独立节点的模型配置及中断请求不重放。两个运行报告分别写入 `.local/kernel-runtime-smoke.json` 和 `.local/runtime-smoke.json`。成功后清理合成 home；失败时保留私有诊断目录并在报告中指明路径。
 
-`npm run runtime:native-check` 与 `npm run runtime:work-check` 进一步用本地脚本 provider 验证完整原生工具、自动记忆回顾和实际文件工作。它们会分别记录本地脚本响应次数，远端业务模型调用为 0。
+`npm run runtime:native-check` 与 `npm run runtime:work-check` 进一步用本地脚本 provider 验证完整原生工具、自动记忆回顾和实际文件工作；`npm run runtime:memory-snapshot-check` 验证当前快照、冷恢复、原生自动/手动压缩及 part 转移。它们分别记录本地脚本响应次数，远端业务模型调用为 0。
 
 CI 保留十项正式门禁：四组 Linux/Node、两组 Docker/Compose、两组独立 DSH、一组浏览器和一个汇总门禁。DSH 检查从经过 SHA-256 校验并提取的发行源码执行。容器和同机独立宿主证据不代表物理跨机器的网络与故障环境已经验收。
 
 固定源码的结果分别见 [b3add9b 发行验证](kernel-validation.md)与 [9898c62 增量验证](kernel-validation-9898.md)；后者保留快照升级后发现的多步文件任务重复账目失败，不能以较早通过结果替代。
+
+统一修补组合的双架构 SDK、实际账目、快照与新 npm 包结果见[运行时发行增量复验](kernel-validation-increment.md)。
