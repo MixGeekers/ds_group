@@ -1,5 +1,6 @@
-/** Use the installed DS-Bot's owner API inside the authenticated DSH host.
- * No second runtime, state-file edits, copied models or replacement tool scopes. */
+import { KERNEL_API, KERNEL_ID, KERNEL_API_VERSION } from './kernel-runtime.mjs';
+
+/** The authenticated DSH host carries one explicitly identified DSCord kernel. */
 export class NativeBots {
   constructor(ctx, { ensureTeam } = {}) { this.ctx = ctx; this.ensureTeam = ensureTeam; this.queues = new Map(); }
 
@@ -10,23 +11,45 @@ export class NativeBots {
     finally { if (this.queues.get(id) === queued) this.queues.delete(id); }
   }
 
-  async call(endpoint, payload = {}) {
+  async request(endpoint, payload = {}) {
     const handler = this.ctx.connection.createSharedFetchHandler('/api');
-    const response = await handler.fetch(new Request('http://localhost/api/bot', {
+    const response = await handler.fetch(new Request(`http://localhost${KERNEL_API}`, {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ endpoint, payload }),
     }), this.ctx.connection.browserPeer);
-    if (response.status === 404 && this.ensureTeam) {
-      this.starting ||= this.ensureTeam();
-      await this.starting;
-      this.bundled = true;
-      this.ensureTeam = undefined;
-      return this.call(endpoint, payload);
-    }
-    if (!response.ok) throw Object.assign(new Error('请先在此 DSH 中启用原生 DS-Bot 插件'), { code: 'NATIVE_BOT_UNAVAILABLE' });
+    if (!response.ok) throw Object.assign(new Error('DSCord 自有内核尚不可用'), { code: 'DSCORD_KERNEL_UNAVAILABLE', status: response.status });
     const result = await response.json();
-    if (!result.ok) throw Object.assign(new Error(result.error?.message || 'DS-Bot 操作失败'), { code: result.error?.code });
+    if (!result.ok) throw Object.assign(new Error(result.error?.message || 'DSCord 内核操作失败'), { code: result.error?.code, details: result.error?.details });
     return result.value;
   }
+
+  async ensure() {
+    if (this.starting) return this.starting;
+    const starting = (async () => {
+      let info;
+      try { info = await this.request('kernel-info'); }
+      catch (error) {
+        if (error.status !== 404 || !this.ensureTeam) throw error;
+        this.runtime = await this.ensureTeam();
+        info = await this.request('kernel-info');
+      }
+      if (info?.runtime?.id !== KERNEL_ID || info.runtime.apiVersion !== KERNEL_API_VERSION) {
+        throw Object.assign(new Error('此地址的运行时不是兼容的 DSCord 自有内核'), { code: 'DSCORD_KERNEL_INCOMPATIBLE', details: { runtime: info?.runtime ?? null } });
+      }
+      this.runtimeInfo = info.runtime;
+      this.bundled = true;
+      return info.runtime;
+    })();
+    this.starting = starting;
+    try { return await starting; }
+    catch (error) { if (this.starting === starting) this.starting = undefined; throw error; }
+  }
+
+  async call(endpoint, payload = {}) {
+    await this.ensure();
+    return this.request(endpoint, payload);
+  }
+
+  async info() { await this.ensure(); return this.request('kernel-info'); }
 
   async state() { return this.call('state'); }
 
@@ -34,7 +57,9 @@ export class NativeBots {
     const state = await this.state();
     if (state.readOnly) throw new Error(state.readOnly);
     return state.bots.map(bot => ({ id: bot.id, name: bot.name, role: bot.role || '',
-      model: bot.model || state.defaultModel || '', main: state.mainBotIds.includes(bot.id) }));
+      model: bot.model || state.defaultModel || '', main: state.mainBotIds.includes(bot.id),
+      ...(bot.owner === undefined ? {} : { owner: bot.owner }),
+      ...(bot.creationSource === undefined ? {} : { creationSource: bot.creationSource }) }));
   }
 
   async bot(id) {

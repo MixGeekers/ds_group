@@ -105,9 +105,9 @@ const readNotes = (file) => {
   try {
     const parsed = JSON.parse(readFileSync(file, 'utf8'))
     const object = value => (value !== null && typeof value === 'object' && !Array.isArray(value) ? value : {})
-    return { turns: object(parsed?.turns), queued: object(parsed?.queued) }
+    return { turns: object(parsed?.turns), queued: object(parsed?.queued), migrationHeld: { turns: object(parsed?.migrationHeld?.turns), queued: object(parsed?.migrationHeld?.queued) } }
   } catch {
-    return { turns: {}, queued: {} }
+    return { turns: {}, queued: {}, migrationHeld: { turns: {}, queued: {} } }
   }
 }
 
@@ -117,6 +117,11 @@ export function install(rt) {
 
   // What the last run left; read before this run notes anything.
   let interrupted = readNotes(file)
+  let migrationHeld = interrupted.migrationHeld
+  if (rt.config?.resumeInterrupted === false) {
+    migrationHeld = { turns: { ...migrationHeld.turns, ...interrupted.turns }, queued: { ...migrationHeld.queued, ...interrupted.queued } }
+    interrupted = { turns: {}, queued: {}, migrationHeld }
+  }
 
   /** @type {Record<string, {botId:string, roomId?:string, since:number, trigger?:any, approval?:{tool:string, reason:string}, resumed?:boolean}>} */
   let turns = {}
@@ -130,7 +135,7 @@ export function install(rt) {
   const persist = () => {
     // Only the host that saves the team runs its work again.
     if (stopped || rt.readOnly() !== undefined) return
-    latest = JSON.stringify({ turns, queued })
+    latest = JSON.stringify({ turns, queued, migrationHeld })
     // One write waits at a time and takes the latest notes, so a busy round does not
     // write the file once per change.
     if (due) return
@@ -431,9 +436,54 @@ export function install(rt) {
     }
   }
 
+  // Adoption holds uncertain legacy work once. It stays visible across later
+  // restarts, while newly admitted work retains ordinary native recovery.
+  const migrationWorkView = () => ({
+    turns: Object.entries(migrationHeld.turns).map(([sessionId, record]) => ({ sessionId, botId: record.botId, since: record.since, status: 'unknown' })),
+    queued: Object.entries(migrationHeld.queued).map(([sessionId, records]) => ({ sessionId, count: records.length, status: 'unknown' })),
+  })
+  const prepareMigration = () => {
+    const required = writing.then(async () => {
+      if (stopped || rt.readOnly() !== undefined) throw new Error('Cannot persist held migration work after this runtime lost its home')
+      await mkdir(home, { recursive: true })
+      await writeFile(file, JSON.stringify({ turns, queued, migrationHeld }), 'utf8')
+    })
+    writing = required.catch(error => rt.warn('ds-bot: preserving migration work failed: %s', error))
+    return required
+  }
+  const resumeMigratedWork = async sessionId => {
+    await rt.load()
+    if (rt.readOnly() !== undefined) throw new Error(rt.readOnly())
+    const record = migrationHeld.turns[sessionId]
+    const waiting = migrationHeld.queued[sessionId]
+    if (record === undefined && waiting === undefined) throw Object.assign(new Error('No held migration work for this Session'), { code: 'bot/not-found' })
+    const request = rt.requestIdentity({ caller: 'dscord-migration', context: sessionId, name: 'resume', payload: { record, waiting } })
+    const admitted = await rt.admitRequest(request, async () => {
+      // Claim before delivery. An uncertain result cannot silently send the same
+      // legacy work again, including when the inflight note failed to save.
+      delete migrationHeld.turns[sessionId]
+      delete migrationHeld.queued[sessionId]
+      try {
+        await prepareMigration()
+        if (waiting !== undefined) await resendQueued(sessionId, waiting)
+        if (record !== undefined) await resumeTurn(sessionId, record)
+        return { sessionId, resumed: true }
+      } catch (error) {
+        if (record !== undefined) migrationHeld.turns[sessionId] = record
+        if (waiting !== undefined) migrationHeld.queued[sessionId] = waiting
+        persist()
+        throw error
+      }
+    })
+    if (admitted.status === 'sent' || admitted.status === 'replay') return admitted.receipt
+    throw Object.assign(new Error(`Migration work admission ${admitted.status}; it was not sent again`), { code: 'bot/request-unknown' })
+  }
+  Object.assign(rt, { migrationWorkView, resumeMigratedWork, prepareMigration })
+
   ctx.effect(() => {
+    if (rt.config?.resumeInterrupted === false) void rt.load().then(() => { persist(); return writing })
     const pending = Object.keys(interrupted.turns).length > 0 || Object.keys(interrupted.queued).length > 0
-    const timer = pending ? setTimeout(() => void resumeAll().catch(error => rt.warn('ds-bot: picking up interrupted work failed: %s', error)), RESUME_DELAY_MS) : undefined
+    const timer = pending && rt.config?.resumeInterrupted !== false ? setTimeout(() => void resumeAll().catch(error => rt.warn('ds-bot: picking up interrupted work failed: %s', error)), RESUME_DELAY_MS) : undefined
     timer?.unref?.()
     // What the turns stopped by this shutdown left stays as last noted.
     return () => {

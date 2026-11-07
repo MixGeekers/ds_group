@@ -1,25 +1,52 @@
 import { registerHooks } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
+import { homedir } from 'node:os';
 import { packageRoot } from '../src/paths.mjs';
+import { claimKernelHome, detectLegacyRuntime, kernelConflict, KERNEL_API } from './kernel-runtime.mjs';
 
-/** Start the complete bundled DS-Bot only when no native team is installed.
- * Its default home is DSH_HOME/bot, so normal mode and its saved team remain native. */
-export async function startNativeTeam(ctx) {
+/** DSCord owns its runtime. Existing Bot homes are adopted under one lease. */
+export async function startNativeTeam(ctx, config = {}) {
+  const legacy = await detectLegacyRuntime(ctx);
+  if (legacy) throw kernelConflict('The previous DS-Bot API is active. Stop it before adopting this Bot home.', { legacy });
+  const home = path.resolve(config.home ?? path.join(process.env.DSH_HOME || path.join(homedir(), '.dsh'), 'bot'));
+  const lease = claimKernelHome(home, { owner: ctx });
   const root = pathToFileURL(packageRoot).href + '/';
   const anchor = process.env.DS_GROUP_DSH_RUNTIME
     ? pathToFileURL(path.join(process.env.DS_GROUP_DSH_RUNTIME, 'package.json')).href
     : pathToFileURL(process.argv[1]).href;
+  const dependencyAnchor = process.env.DS_GROUP_RUNTIME_DEPS_DIR
+    ? pathToFileURL(path.join(process.env.DS_GROUP_RUNTIME_DEPS_DIR, 'package.json')).href : undefined;
+  const dependencies = new Set(['deep-view', '@modelcontextprotocol/client', 'imapflow', 'mailparser', 'nodemailer', 'yaml']);
   const hooks = registerHooks({ resolve(specifier, context, next) {
     if (specifier.startsWith('@deepseek-ai/') && context.parentURL?.startsWith(root)) return next(specifier, { ...context, parentURL: anchor });
+    const name = specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];
+    if (dependencyAnchor && dependencies.has(name) && context.parentURL?.startsWith(root)) return next(specifier, { ...context, parentURL: dependencyAnchor });
     return next(specifier, context);
   } });
-  ctx.effect(() => () => hooks.deregister(), 'dscord: native dependency resolution');
-  const { createRuntime } = await import('../vendor/ds-bot/index.js');
-  const { installNativeMemory } = await import('../memory/native.mjs');
-  const { apply: applySearch } = await import('../vendor/ds-bot/web-search.js');
-  ctx.inject(['web'], scope => {
-    if (!scope.web.searchProviders.has('auto')) applySearch(scope);
-  });
-  return createRuntime(ctx, { memoryBackend: installNativeMemory });
+  try {
+    const { createRuntime, inject } = await import('../vendor/ds-bot/index.js');
+    const { installNativeMemory } = await import('../memory/native.mjs');
+    const { apply: applySearch } = await import('../vendor/ds-bot/web-search.js');
+    let runtime;
+    const install = async scope => {
+      // Registered first: cleanup waits for the native modules to flush state.
+      scope.effect(() => () => { lease.release(); hooks.deregister(); }, 'dscord: kernel lifecycle');
+      scope.inject(['web'], search => { if (!search.web.searchProviders.has('auto')) applySearch(search); });
+      runtime = createRuntime(scope, { ...config, home: lease.home, homeLock: lease.lock, apiRoute: KERNEL_API,
+        autoBootstrap: false, structuredSources: true, preserveNativeTools: true, memoryBackend: installNativeMemory, updateCheck: false,
+        runtimeInfo: lease.info, resumeInterrupted: !lease.adopted });
+      await runtime.load();
+      if (runtime.readOnly()) throw kernelConflict(runtime.readOnly(), { home: lease.home });
+      if (lease.adopted) await runtime.prepareMigration();
+      lease.ready(runtime);
+    };
+    // Cordis rolls back every installed listener/effect if startup fails.
+    if (typeof ctx.plugin === 'function') await ctx.plugin({ name: 'dscord-kernel', inject, apply: install });
+    else await install(ctx);
+    return runtime;
+  } catch (error) {
+    lease.release(); hooks.deregister();
+    throw error;
+  }
 }

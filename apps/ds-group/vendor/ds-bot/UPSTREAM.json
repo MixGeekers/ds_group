@@ -1,18 +1,83 @@
 {
   "repository": "https://github.com/Fei2411/DS-Bot",
-  "commit": "71d344bf193f3f18185f25de3d8e5c483046910a",
-  "version": "0.2.7",
-  "source": "https://registry.npmjs.org/ds-bot/-/ds-bot-0.2.7.tgz",
-  "integrity": "sha512-d9t8XaD+CNwzGlTYWd6VWxBgNdLhdMbT1ag+H99ZJ19hdyShjntwhdRz+pBF8OMY4j/kSdyg0oAIF2sHNfIhoA==",
+  "commit": "6559c9e7c4ef71c292e6ac50f690031133536fe0",
+  "version": "0.3.1",
+  "source": "https://registry.npmjs.org/ds-bot/-/ds-bot-0.3.1.tgz",
+  "integrity": "sha512-xscHb0AS6001uitiZd2GIvHgAToydtybEdSgx/UMdxOf/yVyHnYetaPnp72D60zixYrdSd460EbmRsE7Yw3G1g==",
   "license": "Apache-2.0",
   "modifications": [
-    { "file": "src/host/memory.js", "purpose": "Optional source-aware backend and one-time legacy Markdown import hook" },
-    { "file": "src/host/channel.js", "purpose": "Expose memory backend state and forward original DSCord message context" },
-    { "file": "src/host/delivery.js", "purpose": "Preserve original memory evidence and caller Session across native Bot delegation" },
-    { "file": "src/host/tools.js", "purpose": "Carry the actual caller Session into native message_bot delivery" },
-    { "file": "src/host/parts.js", "purpose": "Source-aware handoff, explicit native checkpoint and idle overflow recovery, provider overflow fallback" },
-    { "file": "src/host/context-failure.js", "purpose": "Recognize an explicit provider token-window overflow reported as INVALID_REQUEST" },
-    { "file": "src/host/steward.js", "purpose": "Preserve identity, scope and unresolved conflicting claims during compaction" },
-    { "file": "client.js", "purpose": "Pass stable memory entry ID when removing a panel entry" }
-  ]
+    {
+      "file": "src/host/memory.js",
+      "purpose": "Optional source-aware backend and one-time legacy Markdown import hook"
+    },
+    {
+      "file": "src/host/channel.js",
+      "purpose": "Expose memory backend state and forward original DSCord message context; explicit kernel API identity, structured durable ingress, ownership claims, observation, attention and profile endpoints"
+    },
+    {
+      "file": "src/host/delivery.js",
+      "purpose": "Preserve original memory evidence and caller Session across native Bot delegation"
+    },
+    {
+      "file": "src/host/tools.js",
+      "purpose": "Carry the actual caller Session into native message_bot delivery; DSCord mode preserves the complete native DSH Goal/delegation/question/schedule tool set"
+    },
+    {
+      "file": "src/host/parts.js",
+      "purpose": "Source-aware handoff, explicit native checkpoint and idle overflow recovery, provider overflow fallback"
+    },
+    {
+      "file": "src/host/context-failure.js",
+      "purpose": "Recognize an explicit provider token-window overflow reported as INVALID_REQUEST"
+    },
+    {
+      "file": "src/host/steward.js",
+      "purpose": "Preserve identity, scope and unresolved conflicting claims during compaction"
+    },
+    {
+      "file": "client.js",
+      "purpose": "Pass stable memory entry ID when removing a panel entry; direct bundled client calls to the owned-kernel route"
+    },
+    {
+      "file": "index.js",
+      "purpose": "Expose the owned runtime identity without replacing native Session/Agent services"
+    },
+    {
+      "file": "src/host/message-source.js",
+      "purpose": "Normalize stable message producer IDs and distinguish human, Bot, tool and background context"
+    },
+    {
+      "file": "src/host/home-lock.js",
+      "purpose": "Prevent same-process and paused-live-PID double writers"
+    },
+    {
+      "file": "src/host/store.js",
+      "purpose": "Reuse the preclaimed owned-kernel home lease"
+    },
+    {
+      "file": "src/host/feed.js",
+      "purpose": "Serve the feed from the explicit owned-kernel API route"
+    },
+    {
+      "file": "src/host/roster.js",
+      "purpose": "Preserve account ownership and explicit zero-generation Bot creation"
+    },
+    {
+      "file": "src/host/resume.js",
+      "purpose": "Hold uncertain legacy inflight work during first adoption while preserving native recovery for new work"
+    },
+    {
+      "file": "src/host/local-agents/adapter.js",
+      "purpose": "Keep knowledge/tool/background producers as context, preserve speaker labels and never consume them as human question answers"
+    }
+  ],
+  "previousBase": {
+    "version": "0.2.7",
+    "commit": "71d344bf193f3f18185f25de3d8e5c483046910a"
+  },
+  "sourceVerification": {
+    "npmArchiveSha512Verified": true,
+    "gitAndNpmRuntimeFilesMatch": true,
+    "runtimeFileMismatches": []
+  }
 }
