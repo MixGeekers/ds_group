@@ -224,7 +224,7 @@ export class NodeDelivery {
         intent: { ...intent, sourceEventId: route.sourceEventId, originBotId: route.originBotId }, freezeTask: role === 'final',
         optionsFor: row => {
           const options = { ...row.options, delivery: { ...intent, originBotId: route.originBotId, sourceEventId: route.sourceEventId } };
-          if (row.room_id !== roomId) delete options.replyTo;
+          if (row.room_id !== roomId) { delete options.replyTo; delete options.threadRootId; }
           if (intent.kind === 'direct' && role === 'ack') delete options.attachments;
           return { options, ...(intent.kind === 'direct' && role === 'ack' ? { body: '已开始协作，结果会通过私聊交付。' } : {}) };
         },

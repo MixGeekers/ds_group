@@ -37,6 +37,29 @@ function bearer(request) {
   return authorization.slice(7);
 }
 
+async function validateMessageReferences(client, roomId, input) {
+  const references = [input.threadRootId, input.replyTo].filter(id => id !== undefined);
+  if ([...references, input.originThreadRootId].filter(id => id !== undefined)
+    .some(id => typeof id !== 'string' || !id || id.length > 1024 || id.includes('\0'))) {
+    throw Object.assign(new Error('Message references must be non-empty event IDs'), { status: 400, code: 'INVALID_MESSAGE_REFERENCE' });
+  }
+  const events = new Map(await Promise.all([...new Set(references)].map(async id => {
+    let event;
+    try { event = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/event/${encodeURIComponent(id)}`); }
+    catch (error) {
+      if (![403, 404].includes(error.status)) throw error;
+      throw Object.assign(new Error('The message reference is unavailable in this conversation'), { status: 400, code: 'MESSAGE_REFERENCE_UNAVAILABLE' });
+    }
+    if (event.event_id !== id || event.room_id !== roomId || event.type !== 'm.room.message') {
+      throw Object.assign(new Error('Message references must belong to this conversation'), { status: 400, code: 'INVALID_MESSAGE_REFERENCE' });
+    }
+    return [id, event];
+  })));
+  if (input.threadRootId && events.get(input.threadRootId)?.content?.['m.relates_to']?.rel_type) {
+    throw Object.assign(new Error('Choose the original thread root rather than a related event'), { status: 400, code: 'INVALID_THREAD_ROOT' });
+  }
+}
+
 function requestClientIp(request, trustProxy) {
   const forwarded = request.headers['x-forwarded-for'];
   if (trustProxy && typeof forwarded === 'string') {
@@ -168,7 +191,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     const key = JSON.stringify([userId, roomId, input.transactionId]);
     const identity = { body: input.body, attachments: attachments.map(file => file.id), to: [...new Set(input.to)].sort(),
       replyMention: input.replyMention !== false };
-    for (const field of ['replyTo', 'taskId', 'returnTo', 'kind', 'hop', 'originSenderId', 'originRoomId', 'originEventId']) {
+    for (const field of ['replyTo', 'threadRootId', 'taskId', 'returnTo', 'kind', 'hop', 'originSenderId', 'originRoomId', 'originEventId', 'originThreadRootId']) {
       if (input[field] !== undefined) identity[field] = input[field];
     }
     const inputHash = createHash('sha256').update(JSON.stringify(identity)).digest('hex');
@@ -187,6 +210,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       let payload;
       if (previous) payload = JSON.parse(previous.payload_json);
       else {
+        await validateMessageReferences(client, roomId, input);
         const direct = chat.prepare('SELECT participants_json FROM direct_rooms WHERE room_id=?').get(roomId);
         const directIds = direct ? JSON.parse(direct.participants_json) : [];
         const conversationKind = directIds.length === 2 && members.length === 2 && directIds.every(id => members.includes(id)) ? 'direct' : 'group';

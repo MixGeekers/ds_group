@@ -20,6 +20,7 @@ async function fixture(t, { lostCreateResponse = false, failedRecoveryLookups = 
   const aliases = new Map();
   const calls = [];
   const sent = [];
+  const events = new Map();
   let created = 0;
   if (existingRoomMembers) {
     const pair = [participants[0].id, participants[2].id].sort();
@@ -73,12 +74,21 @@ async function fixture(t, { lostCreateResponse = false, failedRecoveryLookups = 
         if (!room?.members.has(actor.id)) return send(403, { errcode: 'M_FORBIDDEN', error: 'Not a member' });
         return send(200, { joined: Object.fromEntries([...room.members].map(id => [id, {}])) });
       }
+      const reference = pathname.match(/^\/_matrix\/client\/v3\/rooms\/([^/]+)\/event\/(.+)$/);
+      if (reference) {
+        const roomId = decodeURIComponent(reference[1]);
+        if (!rooms.get(roomId)?.members.has(actor.id)) return send(403, { errcode: 'M_FORBIDDEN', error: 'Not a member' });
+        const event = events.get(decodeURIComponent(reference[2]));
+        return event ? send(200, event) : send(404, { errcode: 'M_NOT_FOUND', error: 'Unknown event' });
+      }
       const message = pathname.match(/^\/_matrix\/client\/v3\/rooms\/([^/]+)\/send\/m.room.message\/(.+)$/);
       if (message) {
         const roomId = decodeURIComponent(message[1]);
         if (!rooms.get(roomId)?.members.has(actor.id)) return send(403, { errcode: 'M_FORBIDDEN', error: 'Not a member' });
         sent.push({ roomId, content: body });
-        return send(200, { event_id: `$message-${sent.length}` });
+        const eventId = `$message-${sent.length}`;
+        events.set(eventId, { event_id: eventId, room_id: roomId, type: 'm.room.message', sender: actor.id, content: body });
+        return send(200, { event_id: eventId });
       }
       return send(404, { errcode: 'M_UNRECOGNIZED', error: 'Unsupported fixture endpoint' });
     } catch (error) { send(500, { errcode: 'M_UNKNOWN', error: error.message }); }
@@ -96,7 +106,7 @@ async function fixture(t, { lostCreateResponse = false, failedRecoveryLookups = 
   await start();
   t.after(async () => { await core.close(); await new Promise(resolve => matrix.close(resolve)); await rm(directory, { recursive: true, force: true }); });
   return {
-    rooms, calls, sent, created: () => created,
+    rooms, calls, sent, events, created: () => created,
     async message(actor, roomId, body) {
       const response = await fetch(`${url}/api/rooms/${encodeURIComponent(roomId)}/messages`, { method: 'POST',
         headers: { Authorization: `Bearer test-${actor}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -177,4 +187,73 @@ test('existing direct mappings survive the alias upgrade and extra members are r
   const expanded = await fixture(t, { existingRoomMembers: [...pair, participants[1].id] });
   assert.equal((await expanded.direct('finance', 'alice')).status, 409);
   assert.equal(expanded.created(), 0);
+});
+
+test('Core threads keep an independent quoted reply and durable retry identity across restart', async t => {
+  const app = await fixture(t);
+  const roomId = '!threaded:delivery.test';
+  app.rooms.set(roomId, { members: new Set(participants.map(person => person.id)), invited: new Set() });
+  const root = await app.message('alice', roomId, { transactionId: 'root', body: '线程主题' });
+  assert.equal(root.status, 200);
+  const quote = await app.message('bob', roomId, { transactionId: 'quote', body: '引用内容' });
+  const input = { transactionId: 'thread-reply', body: '在线程内引用', threadRootId: root.body.event_id, replyTo: quote.body.event_id,
+    originThreadRootId: '$original-task-thread', to: [participants[2].id] };
+  const result = await app.message('alice', roomId, input);
+  assert.equal(result.status, 200);
+  assert.deepEqual(app.sent[2].content['m.relates_to'], { rel_type: 'm.thread', event_id: root.body.event_id,
+    'm.in_reply_to': { event_id: quote.body.event_id }, is_falling_back: false });
+  assert.deepEqual(app.sent[2].content['m.mentions'].user_ids, [participants[1].id]);
+  assert.deepEqual(app.sent[2].content['org.ds_group'].to, [participants[2].id]);
+  await app.restart();
+  assert.deepEqual(await app.message('alice', roomId, input), result);
+  assert.equal(app.sent.length, 3);
+  assert.equal((await app.message('alice', roomId, { ...input, threadRootId: quote.body.event_id })).status, 409);
+  assert.equal((await app.message('alice', roomId, { ...input, threadRootId: undefined })).status, 409);
+  assert.equal((await app.message('alice', roomId, { ...input, originThreadRootId: '$different-original-thread' })).status, 409);
+  assert.equal(app.sent.length, 3);
+});
+
+test('Core accepts a root-only continuation and quiet same-room cross-thread quotation without inventing a reply ping', async t => {
+  const app = await fixture(t);
+  const roomId = '!quoted-thread:delivery.test';
+  app.rooms.set(roomId, { members: new Set(participants.map(person => person.id)), invited: new Set() });
+  const root = await app.message('alice', roomId, { transactionId: 'root', body: '当前主题' });
+  const otherRoot = await app.message('bob', roomId, { transactionId: 'other-root', body: '另一个主题' });
+  const quoted = await app.message('bob', roomId, { transactionId: 'other-thread-child', body: '别的线程里的原话', threadRootId: otherRoot.body.event_id });
+  assert.equal(quoted.status, 200);
+  assert.deepEqual(app.sent[2].content['m.relates_to'], { rel_type: 'm.thread', event_id: otherRoot.body.event_id,
+    'm.in_reply_to': { event_id: otherRoot.body.event_id }, is_falling_back: true });
+  assert.deepEqual(app.sent[2].content['m.mentions'].user_ids, []);
+  const result = await app.message('alice', roomId, { transactionId: 'quote-without-ping', body: '引用别的线程，但继续当前主题',
+    threadRootId: root.body.event_id, replyTo: quoted.body.event_id, replyMention: false });
+  assert.equal(result.status, 200);
+  assert.equal(app.sent[3].content['m.relates_to'].event_id, root.body.event_id);
+  assert.equal(app.sent[3].content['m.relates_to']['m.in_reply_to'].event_id, quoted.body.event_id);
+  assert.equal(app.sent[3].content['m.relates_to'].is_falling_back, false);
+  assert.deepEqual(app.sent[3].content['m.mentions'].user_ids, []);
+});
+
+test('Core rejects foreign-room or unavailable references and using a thread child as a new thread root', async t => {
+  const app = await fixture(t);
+  const roomId = '!source:delivery.test';
+  const otherRoom = '!destination:delivery.test';
+  for (const id of [roomId, otherRoom]) app.rooms.set(id, { members: new Set(participants.map(person => person.id)), invited: new Set() });
+  const root = await app.message('alice', roomId, { transactionId: 'root', body: '只在源房间' });
+  const child = await app.message('alice', roomId, { transactionId: 'child', body: '线程内', threadRootId: root.body.event_id });
+  assert.equal(child.status, 200);
+  for (const [index, references] of [{ threadRootId: root.body.event_id }, { replyTo: root.body.event_id, replyMention: false }].entries()) {
+    const result = await app.message('alice', otherRoom, { transactionId: `foreign-${index}`, body: '不可跨房间关联', ...references });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.code, 'INVALID_MESSAGE_REFERENCE');
+  }
+  const nested = await app.message('alice', roomId, { transactionId: 'nested', body: '不可嵌套线程', threadRootId: child.body.event_id });
+  assert.equal(nested.status, 400);
+  assert.equal(nested.body.code, 'INVALID_THREAD_ROOT');
+  const unavailable = await app.message('alice', roomId, { transactionId: 'missing-root', body: '缺失根', threadRootId: '$unavailable' });
+  assert.equal(unavailable.status, 400);
+  assert.equal(unavailable.body.code, 'MESSAGE_REFERENCE_UNAVAILABLE');
+  for (const [index, references] of [{ threadRootId: '' }, { threadRootId: 7 }, { replyTo: [] }, { originThreadRootId: false }].entries()) {
+    assert.equal((await app.message('alice', roomId, { transactionId: `invalid-reference-${index}`, body: '无效引用', ...references })).status, 400);
+  }
+  assert.equal(app.sent.length, 2);
 });

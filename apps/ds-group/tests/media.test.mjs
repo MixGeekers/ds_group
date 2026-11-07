@@ -332,6 +332,25 @@ test('Bot-generated artifacts upload with Bot credentials and preserve original 
   assert.equal(await downloaded.text(), 'total\n360\n');
 });
 
+test('threaded Bot artifacts retain the root and explicit reply alongside files and reply mentions', async t => {
+  const app = await fixture(t);
+  const root = await app.send('alice', { body: '线程里的费用核算', transactionId: 'file-thread-root' });
+  const request = await app.send('alice', { body: '请生成汇总文件', threadRootId: root.body.event_id, transactionId: 'file-thread-request' });
+  assert.equal(request.status, 200);
+  const artifact = successfulUpload(await app.upload({ actor: 'finance', id: 'thread-output', name: '线程汇总.csv', mimeType: 'text/csv', bytes: Buffer.from('total\n360\n') }));
+  const sent = await app.send('finance', { body: '核算完成', attachments: [artifact.id], transactionId: 'file-thread-result',
+    threadRootId: root.body.event_id, replyTo: request.body.event_id, originThreadRootId: root.body.event_id, taskId: 'thread-expense' });
+  assert.equal(sent.status, 200, JSON.stringify(sent.body));
+  const event = app.events.get(sent.body.event_id);
+  assert.equal(event.content.msgtype, 'm.file');
+  assert.deepEqual(event.content['m.relates_to'], { rel_type: 'm.thread', event_id: root.body.event_id,
+    'm.in_reply_to': { event_id: request.body.event_id }, is_falling_back: false });
+  assert.deepEqual(event.content['m.mentions'].user_ids, [participants[0].id]);
+  assert.equal(event.content['org.ds_group'].taskId, 'thread-expense');
+  assert.equal(event.content['org.ds_group'].originThreadRootId, root.body.event_id);
+  assert.equal(event.content['org.ds_group'].attachments[0].sha256, artifact.sha256);
+});
+
 test('oversized uploads fail before Matrix receives content and a later valid upload is usable', async t => {
   const app = await fixture(t, { maxUploadBytes: 32 });
   const oversized = await app.upload({ id: 'too-large', bytes: Buffer.alloc(33, 7) });

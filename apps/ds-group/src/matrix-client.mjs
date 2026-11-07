@@ -91,7 +91,7 @@ export class MatrixClient {
     return response;
   }
 
-  send(roomId, body, { transactionId = randomUUID(), to = [], replyTo, taskId, returnTo, kind, hop, originSenderId, originRoomId, originEventId,
+  send(roomId, body, { transactionId = randomUUID(), to = [], replyTo, threadRootId, taskId, returnTo, kind, hop, originSenderId, originRoomId, originEventId, originThreadRootId,
     attachments = [], mentions, mMentions, replyMention, fileBatch, delivery, conversationKind } = {}) {
     if (typeof body !== 'string' || (!body.trim() && !attachments.length)) throw new Error('A message needs text or an attachment');
     if (!Array.isArray(attachments) || attachments.length > 10 || attachments.some(file => !file || typeof file.id !== 'string'
@@ -100,7 +100,7 @@ export class MatrixClient {
       throw new Error('Invalid message attachments');
     }
     if (!Array.isArray(to) || to.some(id => typeof id !== 'string')) throw new Error('Message recipients must be an array of member IDs');
-    for (const value of [replyTo, taskId, returnTo, kind, originSenderId, originRoomId, originEventId]) {
+    for (const value of [replyTo, threadRootId, taskId, returnTo, kind, originSenderId, originRoomId, originEventId, originThreadRootId]) {
       if (value !== undefined && (typeof value !== 'string' || !value)) throw new Error('Message references must be non-empty strings');
     }
     if (hop !== undefined && (!Number.isSafeInteger(hop) || hop < 0)) throw new Error('Message hop must be a non-negative integer');
@@ -122,6 +122,7 @@ export class MatrixClient {
         ...(delivery !== undefined ? { delivery } : {}),
         ...(conversationKind !== undefined ? { conversationKind } : {}),
         ...(replyTo ? { replyTo } : {}),
+        ...(threadRootId ? { threadRootId } : {}),
         ...(taskId ? { taskId } : {}),
         ...(returnTo ? { returnTo } : {}),
         ...(kind ? { kind } : {}),
@@ -129,9 +130,14 @@ export class MatrixClient {
         ...(originSenderId ? { originSenderId } : {}),
         ...(originRoomId ? { originRoomId } : {}),
         ...(originEventId ? { originEventId } : {}),
+        ...(originThreadRootId ? { originThreadRootId } : {}),
       },
       ...(mMentions !== undefined ? { 'm.mentions': mMentions } : {}),
-      ...(replyTo ? { 'm.relates_to': { 'm.in_reply_to': { event_id: replyTo } } } : {}),
+      // The thread root and the explicit reply target are separate relations.
+      // https://spec.matrix.org/latest/client-server-api/#threading
+      ...(threadRootId ? { 'm.relates_to': { rel_type: 'm.thread', event_id: threadRootId,
+        'm.in_reply_to': { event_id: replyTo || threadRootId }, is_falling_back: !replyTo } }
+        : replyTo ? { 'm.relates_to': { 'm.in_reply_to': { event_id: replyTo } } } : {}),
     };
     return this.request('PUT', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${encodeURIComponent(transactionId)}`, content);
   }
