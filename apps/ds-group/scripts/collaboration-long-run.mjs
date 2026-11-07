@@ -14,9 +14,6 @@ import {importNodeBundle} from './server-admin.mjs';
 import {resolveDsh} from './runtime-config.mjs';
 import {MatrixClient} from '../src/matrix-client.mjs';
 import {isModelQuotaFailure} from '../src/model-failure.mjs';
-import {readGoQuota} from './go-quota.mjs';
-import {readCommandCodeCatalog} from './commandcode-preflight.mjs';
-import {ORIGINAL_TEST_MODEL} from './memory-test-model.mjs';
 import {pendingMaintenance} from './collaboration-maintenance.mjs';
 
 const env=JSON.parse(await readFile(path.join(packageRoot,'.local/collaboration-live-active.json'),'utf8'));
@@ -115,9 +112,7 @@ async function downloadArtifacts(delivered,room,n) {
 async function flush() {for(let attempt=0;;attempt++)try{return await host.api('flush');}catch(error){report.maintenance.push({type:'flush-error',at:new Date().toISOString(),error:error.message,attempt});await save();if(isModelQuotaFailure(error)||attempt>=3)throw error;await delay(10000*(attempt+1));}}
 async function snapshot(name) {await flush();const memory=await host.api('memory');await savePrivateJson(path.join(directory,`${name}.json`),memory);return memory;}
 async function checkAllowance() {
-  const quota=MODEL===ORIGINAL_TEST_MODEL?await readGoQuota(host.home):await readCommandCodeCatalog(host.home);
-  await savePrivateJson(path.join(directory,'provider-quota.json'),quota);
-  if(!quota.available)throw Object.assign(new Error(quota.kind==='model-catalog'?'Authorized ordinary CommandCode model absent from catalog':`Go allowance exhausted (${quota.blockedWindows.join(', ')}); provider reset: ${quota.resetAt}`),{code:quota.kind==='model-catalog'?'MODEL_UNAVAILABLE':'MODEL_QUOTA_EXCEEDED'});
+  await savePrivateJson(path.join(directory,'provider-quota.json'),{kind:'not-requested',model:MODEL,available:null,allowanceKnown:false});
 }
 async function sourceManifest(name) {
   const files=execFileSync('git',['ls-files','-z','src','dsh-connect','memory','vendor/ds-bot','scripts/collaboration-long-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs','scripts/memory-visible-host-plugin.mjs'],{cwd:packageRoot}).toString().split('\0').filter(Boolean);

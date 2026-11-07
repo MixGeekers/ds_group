@@ -8,6 +8,10 @@ export function memoryTestModel(value=process.env.DSCORD_MEMORY_TEST_MODEL||proc
   return value;
 }
 export const MODEL=process.env.DSCORD_MEMORY_TEST_MODEL||process.env.DS_GROUP_MODEL||null;
+export function verificationModel(value=MODEL,{run=false}={}){
+  if(value===undefined||value===null||value==='')return run?memoryTestModel(null):null;
+  return memoryTestModel(value);
+}
 export function restrictTestProvider(provider,reference=MODEL){
   const route=modelReference(memoryTestModel(reference)),copy=structuredClone(provider);
   if(copy.models?.length){copy.models=copy.models.filter(model=>model.id===route.model);if(copy.models.length!==1)throw new Error('TEST_MODEL_MISSING_FROM_PROFILE');}

@@ -3,10 +3,7 @@ import {mkdir,mkdtemp,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {MemoryTestHost,MODEL} from './memory-host.mjs';
-import {COMMANDCODE_TEST_MODEL} from './memory-test-model.mjs';
-import {readCommandCodeCatalog} from './commandcode-preflight.mjs';
 import {scenarioInstructions} from './collaboration-long-corpus.mjs';
-assert.equal(MODEL,COMMANDCODE_TEST_MODEL);
 const active=JSON.parse(await readFile('.local/commandcode-check-active.json','utf8'));
 const directory=await mkdtemp(path.join(active.directory,'native-'));
 await writeFile(path.join(active.directory,'native-current.json'),JSON.stringify({directory}));
@@ -21,7 +18,7 @@ async function turn(n,body){const event={eventId:`$goat-probe-${n}`,roomId:'!pro
   assert.equal(result.record.status,'completed');assert.ok(!result.reviewError,result.reviewError);return result.record;}
 try{
   await writeFile(path.join(directory,'scenario-profile.json'),JSON.stringify({instructions:scenarioInstructions}));
-  await host.prepare();report.catalog=await readCommandCodeCatalog(host.home);assert.equal(report.catalog.available,true);
+  await host.prepare();report.catalog={kind:'not-requested',model:MODEL,available:null,allowanceKnown:false};
   await host.start();report.bots=await host.api('init');
   const first=await turn(1,'我叫林青，平时采购情况给我中文短版就行。这次订27盒，每盒8支笔。请用终端算出总支数，保存成 procurement-probe.txt 并把文件发我。');
   const file=first.artifacts.find(row=>row.name==='procurement-probe.txt');assert.ok(file,'No actual delivered file');

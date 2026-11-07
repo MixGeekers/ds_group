@@ -162,7 +162,7 @@ async function refreshScopes() {
     assert.equal((await request('/internal/nodes/heartbeat', { token: firstSecret, body: heartbeat(firstBot) })).accepted, true);
     await request('/internal/nodes/heartbeat', { token: firstSecret, body: heartbeat(secondBot), expected: 403 });
     await request('/internal/nodes/heartbeat', { token: firstSecret, body: { ...heartbeat(firstBot), id: secondBot.localpart }, expected: 403 });
-    await request('/internal/model/claim', { token: firstSecret, body: { nodeId: secondBot.localpart, requestId: `${runId}-denied`, model: 'opencode-go/deepseek-v4.1-flash', maxTokens: 1 }, expected: 403 });
+    await request('/internal/model/claim', { token: firstSecret, body: { nodeId: secondBot.localpart, requestId: `${runId}-denied`, model: 'synthetic/not-called', maxTokens: 1 }, expected: 403 });
     const oldTasks = await request(`/api/rooms/${encodeURIComponent(privateState.groupRoomId)}/tasks`, { token: omar.accessToken });
     const task = oldTasks.tasks.find(item => item.botId === secondBot.id);
     assert.ok(task, 'The original synthetic permission task must survive reload');
@@ -336,7 +336,7 @@ try {
       assert.equal((await request('/internal/nodes/heartbeat', { token: firstSecret, body: heartbeat(firstBot) })).accepted, true);
       await request('/internal/nodes/heartbeat', { token: firstSecret, body: heartbeat(secondBot), expected: 403 });
       await request('/internal/nodes/heartbeat', { token: firstSecret, body: { ...heartbeat(firstBot), id: secondBot.localpart }, expected: 403 });
-      await request('/internal/model/claim', { token: firstSecret, body: { nodeId: secondBot.localpart, requestId: `${runId}-denied`, model: 'opencode-go/deepseek-v4.1-flash', maxTokens: 1 }, expected: 403 });
+      await request('/internal/model/claim', { token: firstSecret, body: { nodeId: secondBot.localpart, requestId: `${runId}-denied`, model: 'synthetic/not-called', maxTokens: 1 }, expected: 403 });
       const task = { requestId: `${runId}-scope-task`, botId: secondBot.id, roomId: group.roomId, eventId: message.event_id,
         status: 'cancelled', summary: 'Synthetic zero-model permission check', toolCalls: 0 };
       await request('/internal/tasks/update', { token: firstSecret, body: task, expected: 403 });
