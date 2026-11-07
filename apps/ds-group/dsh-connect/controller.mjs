@@ -229,7 +229,12 @@ export class ConnectController {
       for (const bot of bots) {
         if (bot.nativeBinding?.hostId !== this.state.hostId || this.closed) continue;
         const node = this.state.nodes[bot.id];
-        if (!node || node.desired && !this.running.has(bot.id)) await this.connect(bot.id);
+        const active = this.running.get(bot.id);
+        if (node && (!node.desired || ['online', 'connecting'].includes(active?.status))) continue;
+        try { await this.connect(bot.id); }
+        catch (error) {
+          if (!this.closed) this.running.set(bot.id, { status: 'error', lastError: error.message });
+        }
       }
     });
   }

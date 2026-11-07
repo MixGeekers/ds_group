@@ -54,3 +54,28 @@ test('a signed-in local connector publishes only owned and explicitly claimable 
   assert.deepEqual((await controller.ownedNativeBots()).map(bot => bot.id), ['mine', 'legacy']);
   await assert.rejects(controller.ownedNativeBot('other'), { code: 'BOT_OWNER_CONFLICT' });
 });
+
+test('roster synchronization retries a failed desired node and continues restoring its peers', async t => {
+  const { controller } = await fixture(t);
+  controller.state.accessToken = 'synthetic';
+  const bots = ['one', 'two', 'stopped'].map(id => ({ id, nativeBinding: { hostId: controller.state.hostId, nativeBotId: id } }));
+  controller.state.nodes = Object.fromEntries(bots.map(bot => [bot.id, { ...bot, desired: bot.id !== 'stopped' }]));
+  controller.running.set('one', { status: 'error', lastError: 'Startup connection was lost' });
+  controller.publishNative = async () => {};
+  controller.remote = async () => ({ bots });
+  const attempts = [];
+  let fail = true;
+  controller.connect = async id => {
+    attempts.push(id);
+    if (id === 'one' && fail) throw new Error('Core is still starting');
+    controller.running.set(id, { status: 'online' });
+  };
+  await controller.synchronizeNative();
+  assert.deepEqual(attempts, ['one', 'two']);
+  fail = false;
+  await controller.synchronizeNative();
+  await controller.synchronizeNative();
+  assert.deepEqual(attempts, ['one', 'two', 'one']);
+  assert.equal(controller.running.get('one').status, 'online');
+  assert.equal(controller.state.nodes.stopped.desired, false);
+});
