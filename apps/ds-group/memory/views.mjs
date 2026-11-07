@@ -1,4 +1,5 @@
 import { canonical, canonicalIdentity, sha } from './store.mjs';
+import { contactReadView, scopedContactRecords } from './contacts.mjs';
 
 const limit = (value, fallback, maximum) => Number.isFinite(value) ? Math.min(maximum, Math.max(1, Math.floor(value))) : fallback;
 const short = (value, length = 512) => typeof value === 'string' ? value.slice(0, length) : value;
@@ -15,7 +16,7 @@ const lexical = (text, terms) => terms.reduce((score, term) => score + (String(t
 // Historical stores did not attach a Bot to every source. Recover only evidence
 // referenced by this Bot's records/current context; never assign the whole source
 // table to every Bot. New ingress records exact per-Bot observations.
-export function knownSources(memory, botId) {
+export function knownSources(memory, botId, { rows = memory.store.list({ botId, history: true }) } = {}) {
   const { store } = memory;
   const refs = new Map(store.observations(botId).map(ref => [refKey(ref), ref]));
   const current = memory.current(botId);
@@ -25,7 +26,7 @@ export function knownSources(memory, botId) {
     const source = store.source(ref.id, ref.revision);
     for (const origin of source?.originRefs || []) if (store.source(origin.id, origin.revision)) add(origin);
   };
-  for (const row of store.list({ botId, history: true })) for (const ref of row.sourceRefs) add(ref);
+  for (const row of rows) for (const ref of row.sourceRefs) add(ref);
   for (const ref of [...(current?.sourceRefs || []), ...(current?.contextSources || []), ...(current?.toolSources || [])]) add(ref);
   return [...refs.values()].map(ref => {
     const source = store.source(ref.id, ref.revision), head = store.source(ref.id);
@@ -33,6 +34,17 @@ export function knownSources(memory, botId) {
       derivation: !head || head.withdrawn ? 'source-withdrawn' : head.revision !== ref.revision ? 'source-revised' : 'current',
       reviewed: store.getMeta(`reviewed:${botId}:${ref.id}:${ref.revision}`) === true };
   }).filter(Boolean);
+}
+
+export function memoryContacts(memory, botId, { query = '', history = false } = {}) {
+  if (typeof botId !== 'string' || !botId.trim()) throw new Error('MEMORY_BOT_REQUIRED');
+  const rows = memory.store.list({ botId, history: true }).filter(row => memory.memoryUse(botId, row).allowed);
+  const sources = knownSources(memory, botId, { rows });
+  const knownIds = [...sources.flatMap(source => [source.authorId, source.roomId && canonicalIdentity(source.roomId)]),
+    ...rows.flatMap(row => [row.subjectId, row.saidBy, ...(row.entityIds || []), ...(row.projectIds || [])])];
+  const records = scopedContactRecords(memory.store.contacts(), { sources, knownIds,
+    scoped: id => memory.store.getMeta(`contact:${botId}:${id}`) });
+  return contactReadView(records.filter(record => !query || `${record.id} ${record.name} ${record.aliases.join(' ')}`.toLowerCase().includes(query.toLowerCase())), { history });
 }
 
 const sourceSummary = source => source && ({ id: source.id, revision: source.revision, authorId: source.authorId,
@@ -47,7 +59,7 @@ function authority(store, row) {
   if (sources.some(source => source.authorKind === 'human' && !source.relay && (!row.saidBy || source.authorId === row.saidBy))) return 'direct-human';
   return sources.some(source => source.authorKind === 'bot') ? 'bot-authored' : 'attributed-claim';
 }
-function focusOf(memory, botId, options, rows, sources) {
+function focusOf(memory, botId, options, rows, sources, contacts = memoryContacts(memory, botId)) {
   let current = options.context || memory.current(botId, options.sessionId) || {};
   const roomId = options.roomId ?? current.roomId;
   const eventIds = new Set(options.eventIds || []);
@@ -67,7 +79,7 @@ function focusOf(memory, botId, options, rows, sources) {
     roomId ? canonicalIdentity(roomId) : null]));
   const knownIds = new Set(sources.map(source => source.authorId));
   for (const row of rows) for (const id of [row.subjectId, ...(row.entityIds || [])]) knownIds.add(id);
-  for (const contact of memory.store.contacts()) if (knownIds.has(contact.id) && person(contact.id)
+  for (const contact of contacts) if (knownIds.has(contact.id) && person(contact.id)
     && (query.includes(contact.id) || query.includes(contact.id.replace(/^matrix:/, '')) || contact.aliases.some(alias => alias.length > 1 && query.includes(alias)))) subjects.add(contact.id);
   const scopes = options.scopes || (options.allScopes ? undefined : unique(['own', 'team', roomId ? `room:${roomId}` : current.scope]));
   return { current, roomId, query, subjects, projects, scopes, terms: tokens(query), eventIds };
@@ -102,8 +114,8 @@ function rankClaims(items, store) {
   return [...groups.values()].sort((a,b) => b.score - a.score || a.index - b.index).flatMap(group => group.items.sort((a,b) =>
     evidenceRank(b.row) - evidenceRank(a.row) || evidenceTime(b.row) - evidenceTime(a.row) || a.index - b.index));
 }
-function identity(store, id) {
-  const contact = store.getContact(id);
+function identity(contacts, id) {
+  const contact = contacts.get(id);
   return { id, name: short(contact?.name || id, 256), kind: contact?.kind || (project(id) ? 'project' : 'unknown'),
     ...(contact?.aliases ? { aliases: contact.aliases.slice(-6).map(alias => short(alias, 128)), aliasesTruncated: contact.aliases.length > 6 } : {}) };
 }
@@ -141,9 +153,10 @@ function bounded(base, candidates, budgetChars) {
 
 export function assembleAttentionView(memory, botId, options = {}) {
   const { store } = memory, sources = knownSources(memory, botId);
+  const contacts = memoryContacts(memory, botId), identities = new Map(contacts.map(contact => [contact.id, contact]));
   const retainedRows = store.list({ botId, history: true });
   const context = options.context || memory.current(botId, options.sessionId);
-  const allRows = retainedRows.filter(row => memory.memoryUse(botId, row, context).allowed), focus = focusOf(memory, botId, options, allRows, sources);
+  const allRows = retainedRows.filter(row => memory.memoryUse(botId, row, context).allowed), focus = focusOf(memory, botId, options, allRows, sources, contacts);
   const eligible = allRows.filter(row => (!focus.scopes || focus.scopes.includes(row.scope)) && matchesProfile(row, options, focus));
   const ranked = rankClaims(eligible.map((row, index) => ({ row, index, score: scoreOf(row, focus, store) }))
     .filter(item => item.score > 0 || options.allScopes && !focus.subjects.size && !focus.projects.size), store);
@@ -173,8 +186,8 @@ export function assembleAttentionView(memory, botId, options = {}) {
     ...claimView(memory, row, current), text: short(row.text, 400), truncated: row.text.length > 400,
     supersededBy: row.supersededBy || null, requiresReview: true, basis: store.basisStatus(row),
   }));
-  const people = unique([...focus.subjects, ...claims.flatMap(row => [row.subjectId, ...row.entityIds])]).filter(person).slice(0, 12).map(id => identity(store, id));
-  const speaker = identity(store, focus.current.authorId || options.speakerId || 'unknown');
+  const people = unique([...focus.subjects, ...claims.flatMap(row => [row.subjectId, ...row.entityIds])]).filter(person).slice(0, 12).map(id => identity(identities, id));
+  const speaker = identity(identities, focus.current.authorId || options.speakerId || 'unknown');
   const budgetChars = Math.max(4096, limit(options.budgetChars, 12000, 32000));
   const watermarks = store.watermarks(botId);
   const queued = memory.pendingRequests(botId, context);
@@ -221,6 +234,7 @@ export function assembleAttentionView(memory, botId, options = {}) {
 
 export function memoryProfiles(memory, botId, { kind = 'person', query = '', roomId, limit: requestedLimit } = {}) {
   if (!['person', 'project'].includes(kind)) throw new Error('MEMORY_PROFILE_KIND');
+  const identities = new Map(memoryContacts(memory, botId).map(contact => [contact.id, contact]));
   const rows = memory.store.list({ botId, ...(roomId ? { scopes: ['own', 'team', `room:${roomId}`] } : {}), history: true })
     .filter(row => memory.memoryUse(botId, row).allowed);
   const sources = knownSources(memory, botId).filter(source => (!roomId || source.roomId === roomId) && memory.sourceUse(botId, source).allowed);
@@ -228,7 +242,7 @@ export function memoryProfiles(memory, botId, { kind = 'person', query = '', roo
     : unique([...rows.map(row => row.subjectId).filter(project), ...rows.flatMap(row => row.projectIds || []), ...sources.map(source => source.roomId && canonicalIdentity(source.roomId))]);
   const matches = ids.map(id => {
     const relevant = rows.filter(row => row.subjectId === id || (kind === 'person' ? row.entityIds : row.projectIds)?.includes(id));
-    const entity = identity(memory.store, id);
+    const entity = identity(identities, id);
     return { ...entity, kind, entityKind: entity.kind, currentCount: relevant.filter(row => memory.store.derivation(row) === 'current').length,
       historyCount: relevant.length, scopes: [...new Set(relevant.map(row => row.scope))] };
   }).filter(item => !query || `${item.id} ${item.name} ${item.aliases?.join(' ') || ''}`.toLowerCase().includes(query.toLowerCase()));

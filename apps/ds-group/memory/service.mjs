@@ -1,6 +1,6 @@
 import { MemoryStore, sourceId, identityId, canonicalIdentity, canonical, sha } from './store.mjs';
 import { OmbreBackend } from './ombre.mjs';
-import { assembleAttentionView, memoryProfiles, memoryProfile, reviewPacket } from './views.mjs';
+import { assembleAttentionView, memoryProfiles, memoryProfile, reviewPacket, memoryContacts } from './views.mjs';
 import { prepareReviewProposal, validateReviewProposal } from './review.mjs';
 import { sourceUse, memoryUse, pendingRequests, sourceWorkContext } from './observation-policy.mjs';
 import { queryObservedSources } from './source-query.mjs';
@@ -97,12 +97,13 @@ export class MemoryService {
       || members.length > 0 && members.length <= 2 ? 'direct' : members.length > 2 ? 'group' : 'unknown';
     for (const member of [...members, sender]) {
       if (!member.id) continue;
-      this.store.contact({ id: account(member.id), name: member.name || member.id, kind: member.kind || 'human', ownerId: member.ownerId,
+      this.store.contact({ id: account(member.id), name: member.name || member.id, kind: member.kind || 'human', ownerId: member.ownerId, botId,
         source: { transport, roomId, eventId: event.eventId }, observedAt: source.timestamp ?? event.timestamp ?? this.store.clock() });
     }
     if (roomId) {
       const roomIdentity = account(roomId);
-      this.store.contact({ id: roomIdentity, name: context.room?.name || this.store.getContact(roomIdentity)?.name || roomId, kind: 'group',
+      this.store.contact({ id: roomIdentity, name: context.room?.name || this.store.getMeta(`contact:${botId}:${roomIdentity}`)?.name || roomId, kind: 'group', botId,
+        source: { transport, roomId, eventId: event.eventId },
         observedAt: source.timestamp ?? event.timestamp ?? this.store.clock() });
     }
     const editTargetId = source.replacesEventId && sourceId(transport, roomId, source.replacesEventId);
@@ -213,6 +214,7 @@ export class MemoryService {
     if (!this.memoryUse(botId, row, context).allowed) throw new Error('MEMORY_SOURCE_PENDING_REQUEST');
   }
   profiles(botId, options = {}) { return memoryProfiles(this, botId, options); }
+  contacts(botId, options = {}) { return memoryContacts(this, botId, options); }
   profile(botId, options = {}) { return memoryProfile(this, botId, options); }
   reviewPacket(botId, options = {}) { return reviewPacket(this, botId, options); }
   acknowledgeContext(botId, view) {

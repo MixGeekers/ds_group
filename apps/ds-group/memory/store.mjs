@@ -14,6 +14,16 @@ export const sourceId = (transport, room, event) => `source_${sha(canonical([tra
 const parsed = row => row ? JSON.parse(row.json) : undefined;
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 const nonempty = (value, code) => typeof value === 'string' && value.trim() ? value.trim() : fail(code);
+function contactObservation(old, { id, name, kind, ownerId, source, observedAt }) {
+  const newer = !old || observedAt >= (old.nameAt || 0);
+  const effectiveKind = kind === 'unknown' && old ? old.kind : newer ? kind : old.kind;
+  const effectiveOwner = ownerId || old?.ownerId;
+  if (old?.name === name && old.kind === effectiveKind && old.ownerId === effectiveOwner && observedAt <= (old.nameAt || 0)) return old;
+  return { id, kind: effectiveKind, ...(effectiveOwner ? { ownerId: effectiveOwner } : {}),
+    name: newer ? name : old.name, nameAt: newer ? observedAt : old.nameAt,
+    aliases: [...new Set([...(old?.aliases || []), name])],
+    observations: [...(old?.observations || []), { name, kind, source, at: observedAt }].slice(-100) };
+}
 
 export class MemoryStore {
   constructor(filename, { clock = Date.now } = {}) {
@@ -48,18 +58,14 @@ export class MemoryStore {
   getMeta(key) { return parsed(this.db.prepare('SELECT json FROM meta WHERE key=?').get(key)); }
   setMeta(key, value) { this.db.prepare('INSERT OR REPLACE INTO meta VALUES(?,?)').run(key, canonical(value)); }
   log(action, value) { this.db.prepare('INSERT INTO journal(json) VALUES(?)').run(canonical({ changeId: randomUUID(), action, at: this.clock(), ...value })); }
-  contact({ id, name = id, kind = 'human', ownerId, source, observedAt = this.clock() }) {
+  contact({ id, name = id, kind = 'human', ownerId, source, observedAt = this.clock(), botId }) {
     nonempty(id, 'IDENTITY_REQUIRED');
-    const old = this.getContact(id);
-    const newer = !old || observedAt >= (old.nameAt || 0);
-    const effectiveKind = kind === 'unknown' && old ? old.kind : newer ? kind : old.kind;
-    const effectiveOwner = ownerId || old?.ownerId;
-    const next = { id, kind: effectiveKind, ...(effectiveOwner ? { ownerId: effectiveOwner } : {}),
-      name: newer ? name : old.name, nameAt: newer ? observedAt : old.nameAt,
-      aliases: [...new Set([...(old?.aliases || []), name])],
-      observations: [...(old?.observations || []), { name, kind, source, at: observedAt }].slice(-100) };
-    if (old?.name === name && old.kind === effectiveKind && old.ownerId === effectiveOwner && observedAt <= (old.nameAt || 0)) return old;
-    this.db.prepare('INSERT OR REPLACE INTO contacts VALUES(?,?)').run(id, canonical(next));
+    const observation = { id, name, kind, ownerId, source, observedAt }, old = this.getContact(id), next = contactObservation(old, observation);
+    if (next !== old) this.db.prepare('INSERT OR REPLACE INTO contacts VALUES(?,?)').run(id, canonical(next));
+    if (botId) {
+      const key = `contact:${botId}:${id}`, prior = this.getMeta(key), own = contactObservation(prior, observation);
+      if (own !== prior) this.setMeta(key, own);
+    }
     return next;
   }
   getContact(id) { return parsed(this.db.prepare('SELECT json FROM contacts WHERE id=?').get(id)); }

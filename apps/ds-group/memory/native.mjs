@@ -9,7 +9,6 @@ import { createMemoryPanel } from './panel.mjs';
 import { generateReviewWithBudget, prepareReviewBatch, prepareReviewProposal } from './review.mjs';
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 import { memoryModelOptions } from './model-options.mjs';
-import { contactReadView } from './contacts.mjs';
 import { nativeMemoryInput, automaticReviewAllowed, isSourceMessage, heldIngressKey, prepareClaimedSources } from './ingress.mjs';
 
 const textOf = message => (message?.content || []).filter(block => block.type === 'text').map(block => block.text).join('\n');
@@ -90,10 +89,10 @@ export function installNativeMemory(rt) {
   rt.teamTools.push(defineTool({ name: 'forget', description: 'Withdraw one memory by its exact ID or unique text; history is retained and current recall excludes it.',
     parameters: { id: string('Memory ID'), entry: string('Legacy unique text match'), scope: string('Current room by default; own, team, all or room:<ID>'), expectedRevision: { type: 'number' } }, output,
     async execute(args, exec) { const id = caller(exec); const result = memory.forget(id, args, memory.current(id, exec.agent?.id) || null); news.set(id, Date.now()); return stringify(result); } }));
-  rt.teamTools.push(defineTool({ name: 'contacts', description: 'Find stable people/Bot/group identities and historical display names. Equal names stay separate accounts.',
+  rt.teamTools.push(defineTool({ name: 'contacts', description: 'Find stable people/Bot/group identities and names known through this Bot’s observations or source-backed memories. Equal names stay separate accounts.',
     parameters: { query: string('Full account ID or display-name fragment; omit to list'),
-      history: { type: 'boolean', description: 'Include retained identity observations; default returns identities, all aliases and latest observation only' } }, output,
-    async execute(args) { return stringify(contactReadView(store.contacts(args.query), { history: args.history === true })); } }));
+      history: { type: 'boolean', description: 'Include retained observations visible to this Bot; default returns known aliases and latest visible observation only' } }, output,
+    async execute(args, exec) { return stringify(memory.contacts(caller(exec), { query: args.query, history: args.history === true })); } }));
   rt.teamTools.push(defineTool({ name: 'memory_source', description: 'Read exact original evidence by source ID and optional revision. Historical evidence is labelled; this does not mark it current.',
     parameters: { id: { ...string('Exact source ID from a memory/view'), required: true }, revision: { type: 'number' } }, output,
     async execute(args, exec) { const id = caller(exec); return stringify(memory.readSource(id, args, memory.current(id, exec.agent?.id) || null)); } }));
@@ -168,7 +167,7 @@ export function installNativeMemory(rt) {
         }));
         const reference = await rt.desiredModel(bot) ?? await rt.defaultModel();
         const budgetKey = `review-output-budget:${reference}`;
-        const changes = await prepareReviewProposal({ input: { botId, contacts: contactReadView(store.contacts()), sources, existingMemories: known },
+        const changes = await prepareReviewProposal({ input: { botId, contacts: memory.contacts(botId), sources, existingMemories: known },
           generate: input => refs.length > 1 ? botShot(bot, REVIEW, stringify(input)) : generateReviewWithBudget({
             initialMaxTokens: store.getMeta(budgetKey),
             generate: maxTokens => botShot(bot, REVIEW, stringify(input), { maxTokens }),
