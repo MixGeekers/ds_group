@@ -29,6 +29,8 @@ export class MemoryStore {
       CREATE TABLE IF NOT EXISTS journal(seq INTEGER PRIMARY KEY AUTOINCREMENT,json TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS observations(bot TEXT NOT NULL,seq INTEGER NOT NULL,source TEXT NOT NULL,revision INTEGER NOT NULL,
         PRIMARY KEY(bot,seq),UNIQUE(bot,source,revision));
+      CREATE TABLE IF NOT EXISTS observation_dispositions(bot TEXT NOT NULL,source TEXT NOT NULL,revision INTEGER NOT NULL,json TEXT NOT NULL,
+        PRIMARY KEY(bot,source,revision));
       CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY,json TEXT NOT NULL);`);
     this.deploymentId = this.getMeta('deployment') || `dscord_${randomUUID()}`;
     this.setMeta('deployment', this.deploymentId);
@@ -103,6 +105,34 @@ export class MemoryStore {
   }
   observations(botId) {
     return this.db.prepare('SELECT seq AS sequence,source AS id,revision FROM observations WHERE bot=? ORDER BY seq').all(botId);
+  }
+  setSourceDisposition(botId, ref, disposition) {
+    if (!disposition || !['context', 'pending-request', 'task-update'].includes(disposition.kind)
+      || disposition.kind === 'task-update' && (typeof disposition.forEventId !== 'string' || !disposition.forEventId || disposition.forEventId.length > 1024)) fail('MEMORY_DISPOSITION_INVALID');
+    if (!this.db.prepare('SELECT 1 FROM observations WHERE bot=? AND source=? AND revision=?').get(botId, ref.id, ref.revision)) fail('MEMORY_SOURCE_NOT_OBSERVED');
+    const old = this.sourceDisposition(botId, ref);
+    // A generic contextual replay cannot downgrade a trusted queued-work marker.
+    if (old.kind !== 'context' && disposition.kind === 'context') return old;
+    const value = { kind: disposition.kind, ...(disposition.kind === 'task-update' ? { forEventId: disposition.forEventId } : {}) };
+    this.db.prepare('INSERT OR REPLACE INTO observation_dispositions VALUES(?,?,?,?)').run(botId, ref.id, ref.revision, canonical(value));
+    return value;
+  }
+  sourceDisposition(botId, ref) {
+    return parsed(this.db.prepare('SELECT json FROM observation_dispositions WHERE bot=? AND source=? AND revision=?').get(botId, ref.id, ref.revision)) || { kind: 'context' };
+  }
+  admitSources(botId, current) {
+    for (const ref of current.sourceRefs || []) {
+      const source = this.source(ref.id, ref.revision); if (!source) continue;
+      if (!this.getMeta(`admitted-source:${botId}:${ref.id}`)) this.setMeta(`admitted-source:${botId}:${ref.id}`,
+        { revision: ref.revision, eventId: source.eventId, sessionId: current.sessionId || null, at: this.clock() });
+    }
+  }
+  sourceAdmitted(botId, ref) { return Boolean(this.getMeta(`admitted-source:${botId}:${ref.id}`)); }
+  eventAdmitted(botId, eventId, roomId) {
+    return this.observations(botId).some(ref => {
+      const source = this.source(ref.id, ref.revision);
+      return source?.eventId === eventId && (!roomId || source.roomId === roomId) && this.sourceAdmitted(botId, ref);
+    });
   }
   watermarks(botId) {
     const rows = this.observations(botId);

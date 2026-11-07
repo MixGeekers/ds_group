@@ -128,7 +128,7 @@ function bounded(base, candidates, budgetChars) {
   for (const key of Object.keys(candidates)) view[key] = [];
   // Interleave high-value sections so a large fact does not hide a fresh human
   // correction or every source pointer. A skipped item is counted explicitly.
-  const order = ['currentClaims', 'recentSources', 'changes', 'people', 'preferences', 'projectFacts', 'speakerFacts', 'memoryPointers', 'pendingQuestions', 'historyGaps'];
+  const order = ['currentClaims', 'recentSources', 'pendingRequests', 'changes', 'people', 'preferences', 'projectFacts', 'speakerFacts', 'memoryPointers', 'pendingQuestions', 'historyGaps'];
   const maximum = Math.max(0, ...Object.values(candidates).map(rows => rows.length));
   for (let index = 0; index < maximum; index++) for (const key of order) {
     const item = candidates[key]?.[index]; if (!item) continue;
@@ -141,14 +141,16 @@ function bounded(base, candidates, budgetChars) {
 
 export function assembleAttentionView(memory, botId, options = {}) {
   const { store } = memory, sources = knownSources(memory, botId);
-  const allRows = store.list({ botId, history: true }), focus = focusOf(memory, botId, options, allRows, sources);
+  const retainedRows = store.list({ botId, history: true });
+  const context = options.context || memory.current(botId, options.sessionId);
+  const allRows = retainedRows.filter(row => memory.memoryUse(botId, row, context).allowed), focus = focusOf(memory, botId, options, allRows, sources);
   const eligible = allRows.filter(row => (!focus.scopes || focus.scopes.includes(row.scope)) && matchesProfile(row, options, focus));
   const ranked = rankClaims(eligible.map((row, index) => ({ row, index, score: scoreOf(row, focus, store) }))
     .filter(item => item.score > 0 || options.allScopes && !focus.subjects.size && !focus.projects.size), store);
   const current = ranked.filter(item => store.derivation(item.row) === 'current').map(item => item.row);
   const claims = current.slice(0, 24).map(row => claimView(memory, row, current));
   const supporting = new Set(current.flatMap(row => row.sourceRefs.map(ref => ref.id)));
-  const raw = sources.filter(source => source.derivation === 'current'
+  const raw = sources.filter(source => source.derivation === 'current' && memory.sourceUse(botId, source, context, { raw: true }).allowed
     && (options.kind === 'person' ? focus.subjects.has(source.authorId) || supporting.has(source.id)
       : options.kind === 'project' ? focus.projects.has(canonicalIdentity(source.roomId)) || source.projectIds?.some(id => focus.projects.has(id)) || supporting.has(source.id)
         : !focus.roomId || source.roomId === focus.roomId || focus.subjects.has(source.authorId) && options.allScopes)).sort((a,b) =>
@@ -156,6 +158,7 @@ export function assembleAttentionView(memory, botId, options = {}) {
     || Number(b.authorKind === 'human') - Number(a.authorKind === 'human')
     || b.timestamp - a.timestamp || (b.sequence || 0) - (a.sequence || 0)).slice(0, 8);
   const recentSources = raw.map(source => ({ ...sourceSummary(source), sequence: source.sequence, reviewed: source.reviewed,
+    workDisposition: store.sourceDisposition(botId, source),
     body: short(source.body, 800), truncated: source.body.length > 800,
     ...(source.eventKind === 'redaction-notice' ? { targetEventId: source.targetEventId, targetSourceId: source.targetSourceId } : {}),
     role: source.eventKind === 'redaction-notice' ? 'source-retraction-notice' : source.eventKind === 'unverified-edit'
@@ -168,9 +171,10 @@ export function assembleAttentionView(memory, botId, options = {}) {
   const speaker = identity(store, focus.current.authorId || options.speakerId || 'unknown');
   const budgetChars = Math.max(4096, limit(options.budgetChars, 12000, 32000));
   const watermarks = store.watermarks(botId);
+  const queued = memory.pendingRequests(botId, context);
   const version = sha(canonical({ botId, roomId: focus.roomId, query: focus.query, watermarks,
     claims: claims.map(row => [row.id, row.revision, row.conflicts]), sources: recentSources.map(row => [row.id, row.revision]), changes,
-    subjects: [...focus.subjects], projects: [...focus.projects], pendingQuestions: options.pendingQuestions || [] }));
+    subjects: [...focus.subjects], projects: [...focus.projects], pendingQuestions: options.pendingQuestions || [], pendingRequests: queued }));
   const base = { version, schemaVersion: 2, botId, sessionId: focus.current.sessionId, transport: focus.current.transport,
     self: { nativeBotId: botId, ...(options.self?.matrixId ? { matrixId: options.self.matrixId } : {}), ...(options.self?.name ? { name: short(options.self.name, 256) } : {}) }, scope: focus.roomId ? `room:${focus.roomId}` : 'own',
     roomId: focus.roomId || null, threadRootId: options.threadRootId || focus.current.threadRootId || null,
@@ -179,7 +183,8 @@ export function assembleAttentionView(memory, botId, options = {}) {
     watermarks, externalWatermark: options.watermark ? { sequence: options.watermark.sequence, eventId: options.watermark.eventId, roomId: options.watermark.roomId } : null,
     knowledgeBoundary: 'This is this Bot\'s source-attributed knowledge. Room scope is applicability, not proof that every member knows or agrees. Missing evidence is unknown. Task completion and delivery require the task/delivery runtime, not a memory summary.',
     selection: { eligibleClaims: ranked.length, currentClaims: current.length, knownSources: sources.length,
-      strategy: 'identity-project-query-validity-changes', wholeHistoryLoaded: false },
+      strategy: 'identity-project-query-validity-changes', wholeHistoryLoaded: false,
+      workBoundClaimsOmitted: retainedRows.length - allRows.length },
     ...(options.workView && JSON.stringify(options.workView).length < budgetChars / 4 ? { workView: { providedBy: 'caller-runtime', data: options.workView } }
       : options.workView ? { workViewOmitted: 'runtime view exceeds memory context budget' } : {}),
   };
@@ -202,14 +207,16 @@ export function assembleAttentionView(memory, botId, options = {}) {
     preferences: claims.filter(isPreference), projectFacts: claims.filter(row => focus.projects.has(row.subjectId) || row.projectIds.some(id => focus.projects.has(id))),
     speakerFacts: eligible.filter(row => row.subjectId === focus.current.authorId && claims.some(claim => claim.id === row.id)).map(row => claims.find(claim => claim.id === row.id)),
     memoryPointers: claims.filter(row => row.subjectId !== focus.current.authorId).map(({ id, revision, subjectId, predicate, scope }) => ({ id, revision, subjectId, predicate, scope })),
+    pendingRequests: queued.slice(0, 16),
     pendingQuestions: (options.pendingQuestions || []).slice(0, 8).map(value => ({ providedBy: 'caller', value })),
     historyGaps: [...defaultGaps, ...(options.historyGaps || []).slice(0, 8)] }, budgetChars);
 }
 
 export function memoryProfiles(memory, botId, { kind = 'person', query = '', roomId, limit: requestedLimit } = {}) {
   if (!['person', 'project'].includes(kind)) throw new Error('MEMORY_PROFILE_KIND');
-  const rows = memory.store.list({ botId, ...(roomId ? { scopes: ['own', 'team', `room:${roomId}`] } : {}), history: true });
-  const sources = knownSources(memory, botId).filter(source => !roomId || source.roomId === roomId);
+  const rows = memory.store.list({ botId, ...(roomId ? { scopes: ['own', 'team', `room:${roomId}`] } : {}), history: true })
+    .filter(row => memory.memoryUse(botId, row).allowed);
+  const sources = knownSources(memory, botId).filter(source => (!roomId || source.roomId === roomId) && memory.sourceUse(botId, source).allowed);
   const ids = kind === 'person' ? unique([...rows.flatMap(row => [row.subjectId, ...(row.entityIds || [])]), ...sources.map(source => source.authorId)]).filter(person)
     : unique([...rows.map(row => row.subjectId).filter(project), ...rows.flatMap(row => row.projectIds || []), ...sources.map(source => source.roomId && canonicalIdentity(source.roomId))]);
   const matches = ids.map(id => {
@@ -233,7 +240,8 @@ export function memoryProfile(memory, botId, options = {}) {
 }
 
 export function reviewPacket(memory, botId, options = {}) {
-  const sources = knownSources(memory, botId), rows = memory.store.list({ botId, history: true });
+  const sources = knownSources(memory, botId).filter(source => memory.sourceUse(botId, source).allowed),
+    rows = memory.store.list({ botId, history: true }).filter(row => memory.memoryUse(botId, row).allowed);
   const focus = focusOf(memory, botId, { ...options, allScopes: options.allScopes ?? !options.roomId }, rows, sources);
   const ranked = rankClaims(rows.filter(row => row.status === 'active' && (!focus.scopes || focus.scopes.includes(row.scope)) && matchesProfile(row, options, focus))
     .map((row, index) => ({ row, index, score: scoreOf(row, focus, memory.store) })).filter(item => item.score > 0), memory.store);
@@ -247,6 +255,7 @@ export function reviewPacket(memory, botId, options = {}) {
     .slice(0, limit(options.limitSources, 24, 40)).map(({ source }) => ({ ...source, body: short(source.body, 2400), truncated: source.body.length > 2400 }));
   const packet = { botId, purpose: 'bounded-on-demand-understanding-review', query: focus.query,
     subjectIds: [...focus.subjects], projectIds: [...focus.projects], sources: [], existingMemories: [], historicalEvidence: [],
+    pendingRequests: memory.pendingRequests(botId).slice(0, 16),
     knowledgeBoundary: 'Revise only evidence-backed understanding. Proposed arrangements are not confirmed. No psychological diagnosis or invented private beliefs. Task/delivery status comes from runtime receipts. Source IDs/revisions and target versions are checked before publication.',
     version: sha(canonical({ sources: selectedSources.map(source => [source.id, source.revision]), memories: selectedMemories.map(row => [row.id, row.revision]) })) };
   const budget = Math.max(4000, limit(options.budgetChars, 24000, 48000));

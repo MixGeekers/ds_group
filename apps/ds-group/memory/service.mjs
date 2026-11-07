@@ -2,6 +2,7 @@ import { MemoryStore, sourceId, identityId, canonicalIdentity, canonical, sha } 
 import { OmbreBackend } from './ombre.mjs';
 import { assembleAttentionView, memoryProfiles, memoryProfile, reviewPacket } from './views.mjs';
 import { prepareReviewProposal, validateReviewProposal } from './review.mjs';
+import { sourceUse, memoryUse, pendingRequests } from './observation-policy.mjs';
 import { join } from 'node:path';
 
 export class MemoryService {
@@ -43,11 +44,19 @@ export class MemoryService {
       const previous = streamKey && this.store.getMeta(streamKey);
       if (previous && canonical(previous.cursor) === canonical(options.cursor)) {
         if (previous.digest !== digest) throw new Error('MEMORY_STREAM_CONTENT_CONFLICT');
+        for (const ref of previous.receipt.sourceRefs) {
+          const disposition = options.sourceDispositions?.[this.store.source(ref.id, ref.revision)?.eventId];
+          if (disposition) this.store.setSourceDisposition(botId, ref, disposition);
+        }
         return { ...previous.receipt, watermarks: this.store.watermarks(botId), duplicate: true };
       }
       if (streamKey && Object.hasOwn(options, 'afterCursor') && canonical(previous?.cursor ?? null) !== canonical(options.afterCursor ?? null)) throw new Error('MEMORY_STREAM_CONFLICT');
       if (previous && typeof previous.cursor === 'number' && typeof options.cursor === 'number' && options.cursor <= previous.cursor) throw new Error('MEMORY_STREAM_CONFLICT');
       const contexts = inputs.map(item => this.ingest(botId, item, { contextual: true }));
+      for (let index = 0; index < contexts.length; index++) {
+        const disposition = options.sourceDispositions?.[inputs[index].event?.eventId];
+        if (disposition) for (const ref of contexts[index].sourceRefs) this.store.setSourceDisposition(botId, ref, disposition);
+      }
       const refs = [...new Map(contexts.flatMap(item => item.sourceRefs).map(ref => [`${ref.id}:${ref.revision}`, ref])).values()];
       this.enqueueReview(botId, refs);
       const receipt = { sourceRefs: refs, watermarks: this.store.watermarks(botId), duplicate: false,
@@ -161,6 +170,7 @@ export class MemoryService {
     return current;
   }
   setCurrent(botId, current) {
+    this.store.admitSources(botId, current);
     this.store.setMeta(`current:${botId}`, current);
     if (current.sessionId) this.store.setMeta(`current-session:${botId}:${current.sessionId}`, current);
   }
@@ -176,6 +186,15 @@ export class MemoryService {
     return this.attentionView(botId, { ...options, sessionId, context: current });
   }
   attentionView(botId, options = {}) { return assembleAttentionView(this, botId, options); }
+  sourceUse(botId, ref, context = this.current(botId), options) { return sourceUse(this.store, botId, ref, context, options); }
+  memoryUse(botId, row, context = this.current(botId)) { return memoryUse(this.store, botId, row, context); }
+  pendingRequests(botId, context = this.current(botId)) { return pendingRequests(this.store, botId, context); }
+  reviewableRefs(botId) {
+    return (this.store.getMeta(`unreviewed:${botId}`) || []).filter(ref => this.sourceUse(botId, ref).allowed);
+  }
+  assertUsable(botId, row, context = this.current(botId)) {
+    if (!this.memoryUse(botId, row, context).allowed) throw new Error('MEMORY_SOURCE_PENDING_REQUEST');
+  }
   profiles(botId, options = {}) { return memoryProfiles(this, botId, options); }
   profile(botId, options = {}) { return memoryProfile(this, botId, options); }
   reviewPacket(botId, options = {}) { return reviewPacket(this, botId, options); }
@@ -238,6 +257,7 @@ export class MemoryService {
     }
     const previous = replaces ? this.store.get(replaces) : null;
     const subjectId = canonicalIdentity(args.subjectId || previous?.subjectId || source?.authorId || context.authorId);
+    this.assertUsable(botId, { sourceRefs: refs, basisRefs: args.basisRefs || [] }, context);
     return this.store.prepare({ ...args, botId, scope, subjectId, predicate: args.predicate || previous?.predicate, sourceRefs: refs, replaces,
       expectedRevision: args.expectedRevision ?? previous?.revision,
       kind, saidBy });
@@ -245,6 +265,7 @@ export class MemoryService {
   async persistPrepared(row) {
     if (row.status !== 'pending') return this.describe(row);
     const receipt = this.backend ? await this.backend.save(row) : { bodyDigest: row.bodyDigest, backend: 'local-exact', bodyDurable: true };
+    this.assertUsable(row.botId, row);
     let saved = this.store.activate(row.id, receipt);
     // A durable fact remains readable when its derived vector index is temporarily unavailable.
     if (this.backend) {
@@ -257,7 +278,11 @@ export class MemoryService {
   applyReview(botId, packet, proposal) { return this.serial(botId, async () => {
     const changes = validateReviewProposal({ changes: proposal }, packet.sources, packet.existingMemories);
     const verify = () => {
-      for (const ref of changes.flatMap(change => change.sourceRefs)) if (this.store.source(ref.id)?.revision !== ref.revision) throw new Error('MEMORY_REVIEW_SOURCE_STALE');
+      for (const ref of changes.flatMap(change => change.sourceRefs)) {
+        if (this.store.source(ref.id)?.revision !== ref.revision) throw new Error('MEMORY_REVIEW_SOURCE_STALE');
+        if (!this.sourceUse(botId, ref).allowed) throw new Error('MEMORY_SOURCE_PENDING_REQUEST');
+      }
+      for (const change of changes) this.assertUsable(botId, { sourceRefs: change.sourceRefs, basisRefs: change.basisRefs || [] });
       for (const change of changes.filter(change => change.op !== 'add')) {
         const expected = packet.existingMemories.find(row => row.id === change.replaceId), now = this.store.get(change.replaceId);
         if (!now || now.status !== 'active' || now.revision !== expected.revision) throw new Error('MEMORY_REVISION_CONFLICT');
@@ -306,11 +331,12 @@ export class MemoryService {
     }
     return result;
   }
-  readSource(botId, { id, revision }) {
+  readSource(botId, { id, revision }, context = this.current(botId)) {
     const allowed = [...this.store.observations(botId),
       ...this.store.list({ botId, history: true }).flatMap(row => [...row.sourceRefs, ...this.store.evidenceRoots(row.sourceRefs)])];
     revision ??= Math.max(0, ...allowed.filter(ref => ref.id === id).map(ref => ref.revision));
     if (!allowed.some(ref => ref.id === id && ref.revision === revision)) throw new Error('MEMORY_SOURCE_NOT_OBSERVED');
+    if (!this.sourceUse(botId, { id, revision }, context).allowed) throw new Error('MEMORY_SOURCE_PENDING_REQUEST');
     const source = this.store.source(id, revision); if (!source) throw new Error('SOURCE_NOT_FOUND');
     const head = this.store.source(id);
     return { ...source, currentRevision: head.revision, derivation: head.withdrawn ? 'source-withdrawn' : source.revision !== head.revision ? 'source-revised' : 'current' };
@@ -328,7 +354,8 @@ export class MemoryService {
   async recall(botId, args = {}, context = this.current(botId)) {
     const scopes = args.scope === 'all' ? undefined : args.scope ? [this.scope(context, args.scope)]
       : [...new Set(['own', 'team', context?.scope].filter(Boolean))];
-    const rows = this.store.list({ botId, scopes, subjectId: args.subjectId, topic: args.topic, asOf: args.asOf, history: args.history });
+    const rows = this.store.list({ botId, scopes, subjectId: args.subjectId, topic: args.topic, asOf: args.asOf, history: args.history })
+      .filter(row => this.memoryUse(botId, row, context).allowed);
     const limit = Math.min(30, Math.max(1, args.limit || 10));
     let selected = rows.slice(-limit).reverse(), mode = 'exact', issue;
     if (args.query && rows.length) {
@@ -361,9 +388,12 @@ export class MemoryService {
       // Recheck after asynchronous ranking: revisions/withdrawals during an embedding cannot leak a stale current fact.
       const fresh = this.store.get(row.id);
       if (!args.history && this.store.derivation(fresh, args.asOf) !== 'current') continue;
+      if (!this.memoryUse(botId, fresh, context).allowed) continue;
       try {
         if (this.backend && fresh.receipt?.nativeId) await this.backend.read(fresh);
-        entries.push(this.describe(fresh));
+        const afterRead = this.store.get(fresh.id);
+        if ((!args.history && this.store.derivation(afterRead, args.asOf) !== 'current') || !this.memoryUse(botId, afterRead, context).allowed) continue;
+        entries.push(this.describe(afterRead));
       } catch (error) { issue = error.message; }
     }
     return { mode, ...(issue ? { issue } : {}), totalEligible: rows.length, entries };

@@ -34,3 +34,21 @@ test('native memory installs with DSH value schemas and enforces every basis ref
     await rm(home, { recursive: true });
   }
 });
+
+test('a background flush leaves reserved-only sources unreviewed and returns without a model loop', async () => {
+  const home = await mkdtemp(join(tmpdir(), 'memory-reserved-flush-')), cleanups = [];
+  let models = 0, agentLookups = 0;
+  const rt = { home, config: { memoryReview: false }, teamTools: [], botOf: id => id === 'a' ? { id } : null,
+    resolveAgent: async () => { agentLookups++; throw new Error('Blocked-only review must not wait for or resolve an Agent'); },
+    ctx: { on() {}, systemPrompt: { section: () => () => {} }, llm: { stream: () => { models++; throw new Error('No model call expected'); } },
+      effect(setup) { const cleanup = setup(); if (typeof cleanup === 'function') cleanups.push(cleanup); } } };
+  try {
+    installNativeMemory(rt);
+    const receipt = rt.memoryObserve('a', { event: { eventId: '$queued', roomId: '!project:test', senderId: '@alice:test', body: 'Later work' } },
+      { sourceDispositions: { '$queued': { kind: 'pending-request' } } });
+    await rt.memoryFlush('a');
+    assert.equal(models, 0); assert.equal(agentLookups, 0);
+    assert.equal(rt.knowledge.store.getMeta('unreviewed:a').length, 1);
+    assert.equal(rt.knowledge.store.getMeta(`reviewed:a:${receipt.sourceRefs[0].id}:1`), undefined);
+  } finally { for (const cleanup of cleanups.reverse()) await cleanup(); await rm(home, { recursive: true }); }
+});

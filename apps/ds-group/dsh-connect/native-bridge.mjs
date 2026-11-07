@@ -141,11 +141,12 @@ export class NativeBridge {
       runtime: this.native.runtimeInfo || null };
   }
 
-  async observe({ events = [], participants = [], rooms = {}, eventRooms = {}, cursor, watermark, streamId } = {}) {
+  async observe({ events = [], participants = [], rooms = {}, eventRooms = {}, sourceDispositions, cursor, watermark, streamId } = {}) {
     const inputs = events.map(event => observedMemoryInput(event, participants, eventRooms[event.event_id] || rooms[event.room_id] || {}));
     if (!inputs.length) return null;
     return this.native.call('observe', { botId: this.node.nativeBotId, inputs,
       options: { streamId: streamId || `matrix:${this.node.id}`,
+        ...(sourceDispositions ? { sourceDispositions } : {}),
         ...(watermark?.sequence !== undefined ? { cursor: String(watermark.sequence) } : {}),
         ...(cursor ? { transportCursor: cursor } : {}) } });
   }

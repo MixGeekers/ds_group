@@ -17,6 +17,7 @@ You are the same native Bot in every conversation. remember/recall/forget and co
 Full account IDs identify people. Equal display names do not imply the same person. Keep subject, original author, relayer and Bot interpretation separate.
 The per-step currentClaims/speakerFacts are current source-backed claims, not a new message. Apply relevant language and report-format preferences without requiring the person to repeat them; keep scope, uncertainty and conflicting claims visible. Casual conversation does not automatically require a work plan.
 Read recentSources for newer human corrections not yet organized into memory, and changes for invalidated evidence or derived drafts that require review. A later Bot file/readback does not independently confirm its contents or override a human correction. claimState distinguishes statement, proposal, confirmed and uncertain; inference stays an inference even if repeated. The view records what this Bot has observed, not what every room member knows, wants or privately believes. Use review_memory for bounded on-demand review of a person/project or repeated error, and memory_source to inspect exact original evidence. Neither tool proves task completion or successful delivery; use runtime receipts for those.
+pendingRequests are work assigned to a separate queued turn, not new instructions for this turn. Keep this turn's requester, source and reply route. Current task updates and ordinary source-backed corrections can still update ongoing work. Receiving an observation is not accepting a new task.
 Room decisions apply to that room/project. Recall returns exact source references, validity and unresolved conflicting claims. Never present a reported claim or inference as the person's own statement.
 Separate confirmed decisions, proposals and unknowns when revising plans or files. A change to one field does not confirm changes to other fields. Your earlier drafts, summaries and generated files are derived work, not independent confirmation about the real world; reconcile them against the person's later corrections before reusing them.
 When asked to remember, call remember before saying it is saved. Automatic review also keeps durable facts. Use recall before answering from old memories, especially after compaction, corrections or restart. When the current user explicitly requests recall or a fresh history/status check, call recall in this turn even if an identical question was recently answered. A previous turn’s result is not a fresh lookup for a new request. For another room use scope room:<ID>, or all and name the source room in your answer. Expired, withdrawn and superseded facts are historical only.
@@ -81,7 +82,7 @@ export function installNativeMemory(rt) {
     async execute(args) { return stringify(contactReadView(store.contacts(args.query), { history: args.history === true })); } }));
   rt.teamTools.push(defineTool({ name: 'memory_source', description: 'Read exact original evidence by source ID and optional revision. Historical evidence is labelled; this does not mark it current.',
     parameters: { id: { ...string('Exact source ID from a memory/view'), required: true }, revision: { type: 'number' } }, output,
-    async execute(args, exec) { return stringify(memory.readSource(caller(exec), args)); } }));
+    async execute(args, exec) { const id = caller(exec); return stringify(memory.readSource(id, args, memory.current(id, exec.agent?.id) || null)); } }));
   rt.teamTools.push(defineTool({ name: 'review_memory', description: 'On demand, review a bounded set of original evidence and current/old memories about a person, project or recurring error. Correct only source-backed understanding; never infer private psychology or task completion.',
     parameters: { kind: string('person or project'), id: string('Exact person/project ID'), query: string('Current question or failure to revisit'), roomId: string('Optional source room restriction') }, output,
     async execute(args, exec) { const id = caller(exec), bot = rt.botOf(id);
@@ -119,9 +120,9 @@ export function installNativeMemory(rt) {
     memory.enqueueReview(botId, []);
     const calibrated = store.getMeta(`review-batch-limit:${botId}`);
     const batchLimit = Number.isInteger(calibrated) && calibrated >= 1 && calibrated <= 8 ? calibrated : 8;
-    const pending = (store.getMeta(`unreviewed:${botId}`) || []).slice(0, batchLimit);
-    if (!pending.length || disposed) return;
-    const bot = rt.botOf(botId); if (!bot) return;
+    const pending = memory.reviewableRefs(botId).slice(0, batchLimit);
+    if (!pending.length || disposed) return false;
+    const bot = rt.botOf(botId); if (!bot) return false;
     await (await rt.resolveAgent(rt.chatOf(botId))).whenIdle();
     const { refs, value: { sources, changes, known } } = await prepareReviewBatch({ refs: pending,
       onOutputLimit: ({ error, attempted, next }) => {
@@ -165,13 +166,17 @@ export function installNativeMemory(rt) {
     for (const ref of refs) store.setMeta(`reviewed:${botId}:${ref.id}:${ref.revision}`, true);
     store.setMeta(`unreviewed:${botId}`, (store.getMeta(`unreviewed:${botId}`) || []).filter(ref => !refs.some(old => old.id === ref.id && old.revision === ref.revision)));
     store.log('review', { botId, sourceRefs: refs, changes: changes.length });
+    return true;
   }
   function flush(botId, { automatic = false } = {}) {
     if (!rt.botOf(botId)) return Promise.reject(new Error('MEMORY_BOT_NOT_FOUND'));
     if (automatic && !automaticReviewAllowed(config, botId)) return Promise.resolve({ skipped: 'automatic-review-disabled' });
     clearTimeout(timers.get(botId)); timers.delete(botId);
     if (reviewing.has(botId)) return reviewing.get(botId);
-    const work = reviewChain.catch(() => {}).then(async () => { while (!disposed && rt.botOf(botId) && (!automatic || automaticReviewAllowed(config, botId)) && (store.getMeta(`unreviewed:${botId}`) || []).length) await review(botId); });
+    const work = reviewChain.catch(() => {}).then(async () => {
+      while (!disposed && rt.botOf(botId) && (!automatic || automaticReviewAllowed(config, botId)) && (store.getMeta(`unreviewed:${botId}`) || []).length)
+        if (!await review(botId)) break;
+    });
     reviewChain = work;
     reviewing.set(botId, work);
     work.finally(() => reviewing.delete(botId)).catch(() => {}); return work;
