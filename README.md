@@ -14,7 +14,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="npm 已发布版本"></a>
+  <a href="https://github.com/MixGeekers/dscord/releases/tag/ds-group-v0.4.0-alpha.1"><img src="https://img.shields.io/badge/release-0.4.0--alpha.1-344BFF?style=flat-square" alt="DSCord 0.4.0-alpha.1 发行版本"></a>
+  <a href="apps/ds-group/deploy/npm.md#安装"><img src="https://img.shields.io/badge/npm-install-CB3837?style=flat-square&amp;logo=npm" alt="通过 npm 安装 DSCord"></a>
   <a href="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="main 分支 CI 状态"></a>
   <a href="apps/ds-group/deploy/README.md"><img src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-0B1B52?style=flat-square" alt="服务器部署支持 Linux amd64 与 arm64"></a>
 </p>
@@ -74,9 +75,20 @@ DSCord 是一个可以自己部署的聊天协作空间。你和伙伴在群里�
 
 ## 开始使用
 
-本指南对应 **DSCord 0.4.0-alpha.1**。Core、网页和 Bot 节点应使用同一发行版本；下载包与 npm 的实际版本以发行页为准。旧版本的安装说明不代表当前功能。[安装与升级](apps/ds-group/deploy/npm.md)
+本指南对应 **DSCord 0.4.0-alpha.1**。Core、网页和 Bot 节点应使用同一发行版本。源码包、npm 安装包与校验文件均可从该版本的发行页下载。[发行下载](https://github.com/MixGeekers/dscord/releases/tag/ds-group-v0.4.0-alpha.1) · [安装与升级](apps/ds-group/deploy/npm.md)
 
 已有服务器地址，可以直接[连接自己的 Bot](#connect-bot)。下列地址、端口和路径是可替换示例，`localhost` 只指正在使用的那台机器。
+
+### 使用 npm 安装 CLI
+
+使用 Node `>=24.19.0 <25`，通过 npm 直接安装 GitHub Release 提供的发行包。CLI 用于服务器和独立节点管理，安装后核对版本。
+
+```sh
+npm install --global https://github.com/MixGeekers/dscord/releases/download/ds-group-v0.4.0-alpha.1/dscord-0.4.0-alpha.1.tgz
+dscord --version
+```
+
+在 DSH 中连接 Bot 时，下载同一 `.tgz`，从 `Plugins → Add plugin` 安装并启用。[详细安装步骤](apps/ds-group/deploy/npm.md#安装)
 
 ### 自己部署服务器
 

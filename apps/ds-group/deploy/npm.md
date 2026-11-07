@@ -2,22 +2,21 @@
 
 DSCord 的 npm 包包含 Core、预构建网页/PWA、Matrix 适配器和 DSCord Bot 内核。完整服务器源码发行包另含 Compose 部署文件；同一部署的 Core、客户端和节点使用同一发行版本。
 
-本指南对应预发布版本 0.4.0-alpha.1。下载文件和 npm 发布号以所选发行说明为准，不能用旧包的功能描述代替当前版本。Node 支持范围由 [package.json](../package.json) 声明为 `>=24.19.0 <25`；Bot 宿主固定使用 DSH `0.2.2-rc.1` 的 SDK 契约，见[内核说明](../dsh-connect/KERNEL.md)。Docker 服务器无需在宿主另装 Node。
+本指南对应预发布版本 0.4.0-alpha.1，npm 安装包由该版本的 GitHub Release 提供。Node 支持范围由 [package.json](../package.json) 声明为 `>=24.19.0 <25`。Bot 宿主固定使用 DSH `0.2.2-rc.1` 的 SDK 契约，见[内核说明](../dsh-connect/KERNEL.md)。Docker 服务器无需在宿主另装 Node。
 
 ## 安装
 
-取得所需版本的 `.tgz` 后，可在 DSH 的 `Plugins → Add plugin` 中安装并启用 `dscord`。这是图形节点入口。全局安装 CLI 则用于服务器与独立节点管理，两种入口不互相代替。
+从发行页下载 `dscord-0.4.0-alpha.1.tgz` 后，可在 DSH 的 `Plugins → Add plugin` 中安装并启用 `dscord`，再登录服务器连接 Bot。发行页同时提供 `SHA256SUMS` 校验文件。[下载发行包](https://github.com/MixGeekers/dscord/releases/tag/ds-group-v0.4.0-alpha.1)
 
-以下路径是占位示例，先替换为实际下载的文件：
+全局安装 CLI 用于服务器与独立节点管理。npm 可以直接安装同一发行包，安装后核对 `dscord --version`。
 
 ```sh
-DSCORD_PACKAGE='/absolute/path/to/dscord-0.4.0-alpha.1.tgz'
-npm install --global "$DSCORD_PACKAGE"
+npm install --global https://github.com/MixGeekers/dscord/releases/download/ds-group-v0.4.0-alpha.1/dscord-0.4.0-alpha.1.tgz
 dscord --help
 dscord --version
 ```
 
-发布到所用 registry 后，也可执行 `npm install --global dscord@0.4.0-alpha.1`；发布完成前使用发行 `.tgz` 或源码构建，不能假定该 registry 已提供此版本。安装后核对 `dscord --version`，不要让已有全局旧包与新插件混用。
+Core、CLI 和 DSH 插件使用同一发行版本。已有全局安装可用上述命令升级。
 
 从源码构建 npm 包，在 `apps/ds-group/` 中执行：
 
