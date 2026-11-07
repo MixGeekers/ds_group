@@ -114,12 +114,21 @@ test('environment references and unauthenticated custom providers are supported'
   assert.equal(providerConfiguration({ ...options, env: { LOCAL_KEY: 'synthetic' } }).credentials.refs.LOCAL_KEY, 'synthetic');
 });
 
+test('an empty native credentials file still permits an environment credential or keyless provider', () => {
+  const options = { sourceProviders: { local: { api: 'openai-completions', baseURL: 'http://127.0.0.1:9901/v1', models: [{ id: 'one' }] } },
+    sourceSelection: { model: 'local/one' }, sourceCredentials: null };
+  assert.deepEqual(providerConfiguration({ ...options, env: {} }).credentials.refs, {});
+  options.sourceProviders.local.apiKeyEnv = 'LOCAL_KEY';
+  assert.equal(providerConfiguration({ ...options, env: { LOCAL_KEY: 'synthetic' } }).credentials.refs.LOCAL_KEY, 'synthetic');
+});
+
 test('missing credentials and unconfigured models fail before changing profiles', () => {
   assert.throws(() => providerConfiguration({ env: {} }), { code: 'INVALID_MODEL' });
   assert.throws(() => providerConfiguration({ env: { DS_GROUP_MODEL: 'unknown/one' } }), { code: 'MODEL_PROVIDER_UNAVAILABLE' });
   const options = { env: {}, sourceProviders: { configured: { apiKeyEnv: 'MISSING', models: [{ id: 'one' }] } }, sourceSelection: { model: 'configured/one' } };
   assert.throws(() => providerConfiguration(options), { code: 'MISSING_CREDENTIAL' });
   assert.throws(() => providerConfiguration({ ...options, env: { DS_GROUP_MODEL: 'configured/missing' } }), { code: 'MODEL_UNAVAILABLE' });
+  assert.throws(() => providerConfiguration({ ...options, sourceProviders: { configured: { models: [] } } }), { code: 'MODEL_UNAVAILABLE' });
   assert.throws(() => providerConfiguration({ env: { OPENCODE_API_KEY: 'synthetic', DS_GROUP_OPENCODE_BASE_URL: 'file:///tmp/model' } }), /HTTP\(S\)/);
 });
 

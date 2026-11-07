@@ -114,7 +114,7 @@ export function providerConfiguration({ env = process.env, sourceProviders = {},
   if (endpoint) provider.baseURL = httpUrl(endpoint, 'DS_GROUP_OPENCODE_BASE_URL', { originOnly: false });
   // Keep the original environment-only deployment usable during migration.
   if (!sourceProvider && reference === LEGACY_MODEL) provider.models = [{ id: route.model }];
-  if (provider.models?.length && !provider.models.some(model => model.id === route.model)) {
+  if (Array.isArray(provider.models) && !provider.models.some(model => model.id === route.model)) {
     throw modelError('MODEL_UNAVAILABLE', 'The selected model is absent from this provider’s configured models.');
   }
   const credentials = { version: 1, records: {}, refs: {} };
@@ -122,7 +122,7 @@ export function providerConfiguration({ env = process.env, sourceProviders = {},
     provider.apiKeyEnv = 'DSCORD_NODE_MODEL_API_KEY';
     credentials.refs[provider.apiKeyEnv] = suppliedKey;
   } else if (provider.apiKeyEnv) {
-    const key = sourceCredentials.refs?.[provider.apiKeyEnv] || env[provider.apiKeyEnv];
+    const key = sourceCredentials?.refs?.[provider.apiKeyEnv] || env[provider.apiKeyEnv];
     if (typeof key !== 'string' || !key.trim()) {
       throw modelError('MISSING_CREDENTIAL', 'The selected provider credential is unavailable. Set it in DSH Models or the node environment.');
     }
@@ -130,9 +130,9 @@ export function providerConfiguration({ env = process.env, sourceProviders = {},
   } else {
     const recordKey = `llm-pi-ai/${route.provider}`;
     for (const ref of sourceCredentialRefs) {
-      if (typeof sourceCredentials.refs?.[ref] === 'string') credentials.refs[ref] = sourceCredentials.refs[ref];
+      if (typeof sourceCredentials?.refs?.[ref] === 'string') credentials.refs[ref] = sourceCredentials.refs[ref];
     }
-    if (sourceCredentials.records?.[recordKey]) credentials.records[recordKey] = structuredClone(sourceCredentials.records[recordKey]);
+    if (sourceCredentials?.records?.[recordKey]) credentials.records[recordKey] = structuredClone(sourceCredentials.records[recordKey]);
   }
   return { selection, providerId: route.provider, provider, credentials };
 }
