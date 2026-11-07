@@ -2,6 +2,7 @@ import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { once } from 'node:events';
 import { createServer } from 'node:net';
+import { request as httpRequest } from 'node:http';
 import { mkdir, mkdtemp, readFile, writeFile, open } from 'node:fs/promises';
 import path from 'node:path';
 import { homedir, tmpdir } from 'node:os';
@@ -14,8 +15,49 @@ import {parse as parseYaml} from 'yaml';
 
 export {MODEL};
 export const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// Local maintenance can legitimately produce no headers while native work runs.
+// A single explicit deadline covers connect, headers and body, without fetch's
+// independent default headers timeout. Native network error codes are retained.
+export async function requestMemoryHost(url, { method = 'GET', headers = {}, body,
+  timeoutMs = 600000, maxResponseBytes = 16 * 1024 * 1024 } = {}) {
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) throw new RangeError('Invalid memory host request timeout');
+  if (!Number.isSafeInteger(maxResponseBytes) || maxResponseBytes <= 0) throw new RangeError('Invalid memory host response limit');
+  return new Promise((resolve, reject) => {
+    let timer, settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true; clearTimeout(timer);
+      if (error) reject(error); else resolve(value);
+    };
+    const request = httpRequest(url, { method, headers, agent: false }, response => {
+      const chunks = []; let size = 0;
+      response.on('data', chunk => {
+        size += chunk.length;
+        if (size > maxResponseBytes) {
+          const error = Object.assign(new Error(`Memory host response exceeds ${maxResponseBytes} bytes`), { code: 'MEMORY_HOST_RESPONSE_TOO_LARGE', maxResponseBytes });
+          finish(error); request.destroy(error); return;
+        }
+        chunks.push(chunk);
+      });
+      response.once('error', error => finish(error));
+      response.once('end', () => finish(null, { statusCode: response.statusCode, headers: response.headers,
+        body: Buffer.concat(chunks).toString('utf8') }));
+    });
+    request.once('error', error => finish(error));
+    timer = setTimeout(() => {
+      const error = Object.assign(new Error(`Memory host request exceeded ${timeoutMs}ms`), { code: 'ETIMEDOUT', timeoutMs });
+      finish(error); request.destroy(error);
+    }, timeoutMs);
+    request.end(body);
+  });
+}
+
 export class MemoryTestHost {
-  constructor(directory) { this.directory = directory; this.home = path.join(directory, 'home'); this.boot = 0; }
+  constructor(directory, { requestTimeoutMs = 600000, maxResponseBytes = 16 * 1024 * 1024 } = {}) {
+    this.directory = directory; this.home = path.join(directory, 'home'); this.boot = 0;
+    this.requestOptions = { timeoutMs: requestTimeoutMs, maxResponseBytes };
+  }
   async prepare() {
     const installation = this.installation = await resolveDsh();
     const profile = path.join(this.home, 'profiles/web'); await mkdir(profile, { recursive: true });
@@ -78,11 +120,18 @@ export async function apply(ctx){const plugin=await import(pathToFileURL(root+'/
     if (!this.cookie) {
       const log = await readFile(this.logfile, 'utf8'), url = log.match(/dsh web: (http:\/\/[^\s]+)/)?.[1];
       if (!url) throw new Error('Host starting');
-      const response = await fetch(url, { redirect: 'manual' }); this.cookie = response.headers.get('set-cookie')?.split(';')[0];
+      const response = await requestMemoryHost(url, this.requestOptions);
+      if (response.statusCode >= 400) throw Object.assign(new Error(`Memory host authentication failed: HTTP ${response.statusCode}`), { code: `HTTP_${response.statusCode}` });
+      this.cookie = response.headers['set-cookie']?.[0]?.split(';')[0];
     }
-    const response = await fetch(`http://127.0.0.1:${this.port}/api/memory-test`, { method: 'POST', headers: { 'content-type': 'application/json', cookie: this.cookie },
-      body: JSON.stringify({ action, input }), signal: AbortSignal.timeout(600000) });
-    const result = await response.json(); if (!result.ok) throw new Error(JSON.stringify(result.error)); return result.value;
+    const response = await requestMemoryHost(`http://127.0.0.1:${this.port}/api/memory-test`, { ...this.requestOptions, method: 'POST',
+      headers: { 'content-type': 'application/json', ...(this.cookie ? { cookie: this.cookie } : {}) }, body: JSON.stringify({ action, input }) });
+    let result;
+    try { result = JSON.parse(response.body); }
+    catch (cause) { throw Object.assign(new Error('Memory host returned invalid JSON', { cause }), { code: 'MEMORY_HOST_INVALID_JSON', statusCode: response.statusCode }); }
+    if (response.statusCode >= 400 || !result?.ok) throw Object.assign(new Error(result?.error?.message || JSON.stringify(result?.error) || `Memory host API failed: HTTP ${response.statusCode}`),
+      { code: result?.error?.code || (response.statusCode >= 400 ? `HTTP_${response.statusCode}` : 'MEMORY_HOST_API_ERROR'), statusCode: response.statusCode, remoteError: result?.error });
+    return result.value;
   }
   async stop() {
     if (!this.child) return;
