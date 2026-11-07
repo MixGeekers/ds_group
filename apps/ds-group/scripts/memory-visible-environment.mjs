@@ -50,7 +50,7 @@ export async function startVisibleEnvironment({ port = 25300, matrixPort = 25308
     if (attempt >= 100) throw new Error(`Matrix startup failed; inspect owned container ${containerName}`);
     await sleep(500);
   }
-  await bootstrapServer(options);
+  await bootstrapServer({ ...options, demo: true });
   const log = await open(path.join(directory, 'core.log'), 'a', 0o600);
   const core = spawn(process.execPath, [path.join(packageRoot, 'src/core.mjs')], { cwd: packageRoot,
     detached: true, stdio: ['ignore', log.fd, log.fd], env: { ...process.env, DS_GROUP_DATA_DIR: dataRoot,

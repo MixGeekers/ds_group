@@ -5,7 +5,8 @@ import { createServer } from 'node:http';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { bootstrapServer } from '../scripts/server-bootstrap.mjs';
+import { bootstrapOptions, bootstrapServer } from '../scripts/server-bootstrap.mjs';
+import { createCore } from '../src/core.mjs';
 
 async function fixture(t, { interruptRegistration = false, registrationError } = {}) {
   const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'dscord-bootstrap-'));
@@ -80,12 +81,12 @@ async function fixture(t, { interruptRegistration = false, registrationError } =
   await writeFile(path.join(dataRoot, 'server.json'), JSON.stringify({ serverName, registrationSecret }));
   const homeserverUrl = `http://127.0.0.1:${server.address().port}`;
   return {
-    options: { dataRoot, serverName, homeserverUrl, publicHomeserverUrl: homeserverUrl }, calls, users,
+    options: { dataRoot, serverName, homeserverUrl, publicHomeserverUrl: homeserverUrl, demo: true }, calls, users,
     setup: async () => JSON.parse(await readFile(path.join(dataRoot, 'matrix-setup.json'), 'utf8')),
   };
 }
 
-test('fresh bootstrap registers four members without failed password logins', async t => {
+test('explicit demo bootstrap registers four members without failed password logins', async t => {
   const context = await fixture(t);
   const result = await bootstrapServer(context.options);
   assert.deepEqual(context.calls.register, ['alice', 'bob', 'finance', 'hr']);
@@ -95,6 +96,70 @@ test('fresh bootstrap registers four members without failed password logins', as
   const saved = await context.setup();
   assert.equal(saved.roomId, result.roomId);
   assert.ok(saved.participants.every(participant => participant.accessToken));
+});
+
+test('fresh server bootstrap is empty and makes no Matrix account or room requests', async t => {
+  const context = await fixture(t);
+  const result = await bootstrapServer({ ...context.options, demo: false });
+  assert.deepEqual(result.participants, []);
+  assert.equal(result.roomId, null);
+  assert.equal(result.bootstrapMode, 'empty');
+  assert.deepEqual(context.calls.register, []);
+  assert.equal(context.calls.createRoom, 0);
+  const saved = await context.setup();
+  assert.deepEqual(saved.participants, []);
+  await bootstrapServer(context.options);
+  assert.deepEqual(await context.setup(), saved, 'reruns preserve an initialized registry even when demo is later selected');
+});
+
+test('an empty server accepts its first normal human registration without seeded accounts', async t => {
+  const context = await fixture(t);
+  await bootstrapServer({ ...context.options, demo: false });
+  const core = await createCore({ setup: await context.setup(), dataRoot: context.options.dataRoot,
+    config: { nodeSecret: 'synthetic-bootstrap-core', demoLogin: false }, enablePush: false });
+  t.after(() => core.close());
+  await new Promise(resolve => core.server.listen(0, '127.0.0.1', resolve));
+  const base = `http://127.0.0.1:${core.server.address().port}`;
+  const initial = await (await fetch(`${base}/api/bootstrap`)).json();
+  assert.deepEqual(initial.participants, []);
+  assert.equal(initial.demoLogin, false);
+  const response = await fetch(`${base}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'first-owner', displayName: 'First Owner', password: 'synthetic-user-chosen-password' }) });
+  assert.equal(response.status, 201, JSON.stringify(await response.clone().json()));
+  const result = await response.json();
+  assert.equal(result.user_id, '@first-owner:bootstrap.test');
+  assert.deepEqual(context.calls.register, ['first-owner']);
+  const after = await (await fetch(`${base}/api/bootstrap`)).json();
+  assert.deepEqual(after.participants.map(person => person.id), ['@first-owner:bootstrap.test']);
+});
+
+test('custom bootstrap profiles use chosen members and owners with private generated passwords', async t => {
+  const context = await fixture(t);
+  const profilesPath = path.join(context.options.dataRoot, 'initial-members.json');
+  await writeFile(profilesPath, JSON.stringify([
+    { localpart: 'editor', kind: 'bot', name: 'Editor', ownerId: '@lee:bootstrap.test' },
+    { localpart: 'lee', kind: 'human', name: 'Lee' },
+  ]));
+  const result = await bootstrapServer({ ...context.options, demo: false, profilesPath });
+  assert.equal(result.bootstrapMode, 'custom');
+  assert.deepEqual(context.calls.register, ['editor', 'lee']);
+  assert.equal(context.calls.createRoom, 1);
+  const saved = await context.setup();
+  assert.equal(saved.participants[0].ownerId, '@lee:bootstrap.test');
+  assert.ok(saved.participants.every(person => person.password.length >= 32));
+  assert.equal(new Set(saved.participants.map(person => person.password)).size, 2);
+  assert.equal(JSON.stringify(result).includes(saved.participants[0].password), false);
+});
+
+test('invalid or ambiguous bootstrap inputs fail before registration', async t => {
+  const context = await fixture(t);
+  await assert.rejects(bootstrapServer({ ...context.options, demo: false,
+    profiles: [{ localpart: 'editor', kind: 'bot', name: 'Editor', ownerId: '@missing:bootstrap.test' }] }), /owner/);
+  await assert.rejects(bootstrapServer({ ...context.options, profiles: [] }), /demo or custom/);
+  assert.deepEqual(context.calls.register, []);
+  assert.equal(bootstrapOptions({}).demo, false);
+  assert.equal(bootstrapOptions({ DS_GROUP_BOOTSTRAP_DEMO: 'true' }).demo, true);
+  assert.throws(() => bootstrapOptions({ DS_GROUP_BOOTSTRAP_DEMO: 'yes' }), /true or false/);
 });
 
 test('bootstrap rerun preserves identities and reuses valid tokens without registration or login', async t => {
