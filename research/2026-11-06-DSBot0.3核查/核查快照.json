@@ -1,0 +1,408 @@
+{
+  "reviewDate": "2026-11-06",
+  "timezone": "America/Caracas",
+  "evidenceLevel": "release metadata and limited static source inspection",
+  "dscordBaseline": "93e7d99f001b50110ea7e8b24ca4d9d057bcf187",
+  "vendoredBase": "71d344bf193f3f18185f25de3d8e5c483046910a",
+  "upstreamVersions": [
+    {
+      "version": "0.3.0",
+      "commit": "3f60d44fc04db1c4b7509c3fcb9db282554ebae2",
+      "npmPublishedUtc": "2026-11-06T15:25:37.079Z",
+      "npmPublishedLocal": "2026-11-06 11:25:37 -04:00",
+      "releaseUrl": "https://github.com/Fei2411/DS-Bot/releases/tag/v0.3.0",
+      "npmUrl": "https://registry.npmjs.org/ds-bot/0.3.0",
+      "license": "Apache-2.0",
+      "npmIntegrity": "sha512-Ag3rjalubgiMKxi1PyUbTYehw6i2C4cr3CYwWssCurapFz9dvc83/lPwB1dhBnFqwTNJrakn+3kc938D3RNpuA=="
+    },
+    {
+      "version": "0.3.1",
+      "commit": "6559c9e7c4ef71c292e6ac50f690031133536fe0",
+      "npmPublishedUtc": "2026-11-07T01:41:05.878Z",
+      "npmPublishedLocal": "2026-11-06 21:41:05 -04:00",
+      "releaseUrl": "https://github.com/Fei2411/DS-Bot/releases/tag/v0.3.1",
+      "npmUrl": "https://registry.npmjs.org/ds-bot/0.3.1",
+      "license": "Apache-2.0",
+      "npmIntegrity": "sha512-xscHb0AS6001uitiZd2GIvHgAToydtybEdSgx/UMdxOf/yVyHnYetaPnp72D60zixYrdSd460EbmRsE7Yw3G1g=="
+    }
+  ],
+  "filesRead": [
+    {
+      "path": "ds-bot/src/host/im/index.js",
+      "blobSha": "66d703164881c56e7af63a586f81ef1d37236ae6",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/im/index.js",
+      "lines": 944
+    },
+    {
+      "path": "ds-bot/src/host/local-agents/adapter.js",
+      "blobSha": "30e8b3cbf6934410232a20023c88fe37a7afcf94",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/local-agents/adapter.js",
+      "lines": 523
+    },
+    {
+      "path": "ds-bot/src/host/local-agents/index.js",
+      "blobSha": "4967db9f2a0a227d0cbbba0b9c6f4857e89ebeae",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/local-agents/index.js",
+      "lines": 236
+    },
+    {
+      "path": "ds-bot/src/host/connectors/index.js",
+      "blobSha": "42ebc750351ce5eee7f3f86ecb515a51d20acb1f",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/connectors/index.js",
+      "lines": 864
+    },
+    {
+      "path": "ds-bot/src/host/computer/leases.js",
+      "blobSha": "9d13b52b2116e755e9c4c0d7345e6ffb4a6408b8",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/computer/leases.js",
+      "lines": 72
+    },
+    {
+      "path": "ds-bot/src/host/parts.js",
+      "blobSha": "1c2a71baf8927ac47e78d1b59e506d969ce4238b",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/parts.js",
+      "lines": 1633
+    },
+    {
+      "path": "ds-bot/src/host/channel.js",
+      "blobSha": "c1c00f901b394dc4239ea71eb5b8fcab7ae5b6b7",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/channel.js",
+      "lines": 733
+    },
+    {
+      "path": "ds-bot/src/host/memory.js",
+      "blobSha": "df751c3ed6fa6628120932b5934658480de78c16",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/memory.js",
+      "lines": 2055
+    },
+    {
+      "path": "ds-bot/src/host/store.js",
+      "blobSha": "8eaa3d8e49b3fd146bbd0c14e44662654c80ef87",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/store.js",
+      "lines": 560
+    },
+    {
+      "path": "ds-bot/index.js",
+      "blobSha": "eb9b47fa85d5fbdd0a1c18a06fa28c8376c17079",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/index.js",
+      "lines": 86
+    },
+    {
+      "path": "ds-bot/package.json",
+      "blobSha": "9ddc5671ec50b016118cab8be3a61ae52cae0901",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/package.json",
+      "lines": 79
+    },
+    {
+      "path": "LICENSE",
+      "blobSha": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/LICENSE",
+      "lines": 202
+    },
+    {
+      "path": "ds-bot/src/host/turns.js",
+      "blobSha": "191228f5b67e8f83ae32664c1ccf24d51975a25e",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/turns.js",
+      "lines": 1150
+    },
+    {
+      "path": "ds-bot/src/host/schedules.js",
+      "blobSha": "9c3aaec630f42bb0378a8f7c82162d4a97626822",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/schedules.js",
+      "lines": 249
+    },
+    {
+      "path": "ds-bot/src/host/roster.js",
+      "blobSha": "870fe0439c93eaf818ab8bd12cd9d7338391b66e",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/roster.js",
+      "lines": 790
+    },
+    {
+      "path": "ds-bot/src/host/providers.js",
+      "blobSha": "7e894eb89433d7403fdcd6a08fed18d4f6815063",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/providers.js",
+      "lines": 352
+    },
+    {
+      "path": "ds-bot/src/host/groups.js",
+      "blobSha": "013ce2d325f61e404a809fde7fbc3fe09191aaba",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/groups.js",
+      "lines": 1509
+    },
+    {
+      "path": "ds-bot/src/host/computer/index.js",
+      "blobSha": "4ee39ad1bf4fc3eac987f22f5b513957aace51b6",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/computer/index.js",
+      "lines": 1214
+    },
+    {
+      "path": "ds-bot/src/host/local-agents/engines.js",
+      "blobSha": "9323164bdc86ea524542a8cebb4244a660733fbf",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/local-agents/engines.js",
+      "lines": 66
+    },
+    {
+      "path": "ds-bot/src/host/connectors/catalog.js",
+      "blobSha": "132c1ca4dfae2d5a6b8e62cb9037e06e26af3c81",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/connectors/catalog.js",
+      "lines": 97
+    },
+    {
+      "path": "ds-bot/src/host/steer.js",
+      "blobSha": "e17cdb348e5f53638ce5a475d5b2eadfbdaea42b",
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/steer.js",
+      "lines": 266
+    }
+  ],
+  "excerpts": [
+    {
+      "path": "ds-bot/index.js",
+      "firstLine": 49,
+      "lastLine": 81,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/index.js",
+      "content": "\nexport { COLORS } from './src/host/constants.js'\n\nexport const name = 'ds-bot'\nexport const inject = ['llm', 'tools', 'systemPrompt', 'sessionController', 'sessions', 'sessionTitle', 'workspaceRegistry', 'connection']\n\n// Each module's install(rt) registers its listeners, tools, and effects, and puts on `rt`\n// the functions other modules call; they call them through `rt` at run time, never during\n// install. Listeners run and tools are listed in registration order, so this order holds:\n// usage meters model requests after every listener that rewrites them. privacy checks a\n// call before the hooks of tools do, so a closed call never reaches a card they show.\nconst MODULES = [diagnostics, store, models, providers, permissions, turns, steer, handoffs, requests, delivery, roster, folders, privacy, agents, prompt, timeContext, tools, chatIndex, groups, goals, approvals, resume, memory, parts, images, avatarLibrary, secrets, connectors, capabilities, learning, schedules, browser, browserPlugins, computer, usage, update, dshUpdate, thinking, feed, im, channel, officeSkills, goalSkills, localAgents]\n\nexport function apply(ctx, config = {}) {\n  createRuntime(ctx, config)\n}\n\nexport function createRuntime(ctx, config = {}) {\n  const dshHome = folders.dshHomeOf(process.env.DSH_HOME)\n  const home = config.home ?? join(dshHome, 'bot')\n  const rt = {\n    ctx,\n    config,\n    dshHome,\n    home,\n    statePath: join(home, 'state.json'),\n    // The Bot-only tools each module defines; tools.js registers them in each\n    // Bot Session's own scope, never globally (see shareBotTools).\n    teamTools: [],\n    defaults: {\n      mainName: config.mainName ?? 'Chief',\n      mainRole: config.mainRole ?? 'Chief of Staff',\n    },"
+    },
+    {
+      "path": "ds-bot/src/host/channel.js",
+      "firstLine": 667,
+      "lastLine": 684,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/channel.js",
+      "content": "  // How a user message reaches a Session: a Bot id, a group chat's id, or an earlier\n  // part of either resolves to its current part. `content` is the prompt blocks DSH\n  // takes (text, image, file receipts); `requestId` lands on the message's source.\n  async function sendUser({ sessionId: ref, content, requestId = randomUUID() }) {\n    const past = rt.pastOwners.get(ref)\n    const room = rt.roomOf(ref)\n    const sessionId = rt.botOf(ref) ? rt.chatOf(ref)\n      : room !== undefined ? rt.sessionOfRoom(room)\n        : past?.roomId === undefined && past !== undefined ? rt.chatOf(past.botId)\n          : past !== undefined ? rt.sessionOfRoom(rt.roomOf(past.roomId)) : ref\n    await rt.ensureCapabilities(sessionId)\n    await ctx.sessionController.prompt({\n      requestId,\n      sessionId,\n      mode: 'queue',\n      content,\n    }, AbortSignal.timeout(30_000))\n  }"
+    },
+    {
+      "path": "ds-bot/src/host/im/index.js",
+      "firstLine": 304,
+      "lastLine": 317,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/im/index.js",
+      "content": "  const onMessage = (conn) => async (msg) => {\n    if (!paired(conn, msg.sender.id)) {\n      if (msg.chat.kind === 'group' && !msg.mentioned) return\n      if (!requested(conn, msg)) return\n      await rt.save()\n      await sendText(conn, msg.chat, text('requested'))\n      return\n    }\n    conn.chats ??= {}\n    if (msg.chat.kind === 'group' && !msg.mentioned) return\n    if (conn.chats[msg.chat.key] === undefined) {\n      conn.chats[msg.chat.key] = { kind: msg.chat.kind, title: msg.chat.title, at: Date.now() }\n      await rt.save()\n    }"
+    },
+    {
+      "path": "ds-bot/src/host/im/index.js",
+      "firstLine": 359,
+      "lastLine": 374,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/im/index.js",
+      "content": "    const sessionId = target.botId ?? target.roomId\n    const content = []\n    if (body !== '') content.push({ type: 'text', text: body })\n    for (const image of msg.images ?? []) content.push({ type: 'image', mediaType: image.mediaType, data: image.data })\n    const env = await envFor(conn)\n    for (const file of msg.files ?? []) {\n      try {\n        const receiptId = await env.uploadFile(rt.botOf(sessionId) ? rt.chatOf(sessionId) : sessionId, file)\n        content.push({ type: 'file', receiptId })\n      } catch {\n        await sendText(conn, msg.chat, text('noFile'))\n      }\n    }\n    if (content.length === 0) return\n    await rt.sendUser({ sessionId, content, requestId: `im:${conn.platform}:${randomUUID()}` })\n  }"
+    },
+    {
+      "path": "ds-bot/src/host/memory.js",
+      "firstLine": 1885,
+      "lastLine": 1902,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/memory.js",
+      "content": "  // A group chat, kept in the group's memory and read once for all its members.\n  // `seen.room` holds the lines that left the log while the review waited, so who\n  // has joined or left since changes nothing. A deleted group's memory is archived\n  // with it, so nothing more is kept of it.\n  async function reviewGroup(seen) {\n    const live = rt.roomOf(seen.roomId)\n    const keeper = live === undefined ? undefined : keeperOf(live)\n    if (keeper === undefined) return\n    const room = joinLogs(seen.room, live)\n    const since = cursorsNow()[seen.key]\n    const members = live.members.map(id => rt.botOf(id)).filter(Boolean).map(bot => `${bot.name}${live.admin === bot.id ? ' (admin)' : ''}`)\n    await reviewBatch({\n      key: seen.key, since, batch: groupBatch(room, since),\n      keeper, name: `group \"${live.name}\"`, home: groupScope(live.id), teamWrites: () => false, group: true,\n      who: `The group chat: \"${live.name}\", with the user and ${members.join(', ')}.`,\n      tag: { sessionId: live.id, kind: 'memory' },\n      alive: () => rt.botOf(keeper.id) !== undefined && rt.roomOf(live.id)?.members.includes(keeper.id) === true,\n      next: () => queueReview({ ...seen, room }),"
+    },
+    {
+      "path": "ds-bot/src/host/memory.js",
+      "firstLine": 1925,
+      "lastLine": 1934,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/memory.js",
+      "content": "    // Only the user's words are kept, so lines without any need no model call.\n    if (read.some(line => line.who === 'user')) {\n      const { homeFiles, teamFiles } = await settled(() => ({ homeFiles: loadScope(home), teamFiles: loadScope(TEAM) }))\n      const said = read.filter(line => line.who === 'user').map(line => line.text).join('\\n')\n      const tagged = group ? 'group' : 'own'\n      const { numbered, left } = reviewEntries(homeFiles, teamFiles, REVIEW_MEMORY_MAX, said, tagged)\n      const sizes = { home: homeFiles[0].content.length, team: teamFiles[0].content.length }\n      const earlier = batch.earlier.map(line => reviewLine(line.who, line.text, keeper))\n      const language = writtenIn(read.filter(line => line.who === 'user').map(line => line.text.replace(/^User: /, '')), languageNow())\n      const reply = await botShot(keeper, reviewSystem({ teamWrites: teamWrites(), group }), reviewRequest({ who, tag: tagged, numbered, left, sizes, where: batch.where, earlier, fresh: fresh.texts, more, language }), tag)"
+    },
+    {
+      "path": "ds-bot/src/host/roster.js",
+      "firstLine": 445,
+      "lastLine": 449,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/roster.js",
+      "content": "  // Group chat settings. The user and every Main Bot may change any group; a group's\n  // admin may change its own group but not delete it. Only a member can be admin.\n\n  const roomBusy = id => [...rt.roomProgress.values()].some(round => round.roomId === id)\n  const autoRoomName = members => ['You', ...members.map(id => rt.botOf(id)?.name).filter(Boolean)].join(', ')"
+    },
+    {
+      "path": "ds-bot/src/host/local-agents/adapter.js",
+      "firstLine": 12,
+      "lastLine": 16,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/local-agents/adapter.js",
+      "content": "export const DEFAULT_CONTEXT_WINDOW = 200_000\n// The replay window when a CLI session is new or its resume failed.\nconst REPLAY_MESSAGES = 12\nconst REPLAY_BYTES = 24 * 1024\nconst IDLE_CLOSE_MS = 10 * 60_000"
+    },
+    {
+      "path": "ds-bot/src/host/local-agents/adapter.js",
+      "firstLine": 230,
+      "lastLine": 235,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/local-agents/adapter.js",
+      "content": "    // The loop's runtime-context user messages are context, not input: they\n    // fold into the next prompt or steer, never start a prompt on their own.\n    const contextText = delta\n      .filter(message => message.role === 'user' && message.source?.kind === 'runtime-context')\n      .map(message => textOf(message.content)).filter(text => text !== '').join('\\n')\n    const users = delta.filter(message => message.role === 'user' && message.source?.kind !== 'runtime-context')"
+    },
+    {
+      "path": "ds-bot/src/host/local-agents/index.js",
+      "firstLine": 72,
+      "lastLine": 99,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/local-agents/index.js",
+      "content": "  const adapter = new LocalAgentAdapter({\n    rt,\n    customAgents,\n    findExecutable,\n    spawnEngine,\n    record: sessionId => store().sessions[sessionId],\n    saveRecord: (sessionId, record) => {\n      store().sessions[sessionId] = record\n      void rt.save().catch(() => {})\n    },\n    presetFor: (sessionId) => {\n      const bot = rt.botOf(rt.selfOf(sessionId))\n      const room = rt.roomOf(rt.groupOwners.get(sessionId)?.roomId)\n      return room?.permission ?? bot?.permission ?? 'workspace-write'\n    },\n    cwdFor: async (sessionId) => {\n      try {\n        const agent = await rt.resolveAgent(sessionId)\n        return agent.session.header?.cwd ?? rt.workDirOf?.({ botId: rt.selfOf(sessionId), roomId: rt.groupOwners.get(sessionId)?.roomId }) ?? rt.teamFolder?.() ?? tmpdir()\n      } catch {\n        return rt.teamFolder?.() ?? tmpdir()\n      }\n    },\n    probeCwd: () => mkdtempSync(join(tmpdir(), 'dsb-probe-')),\n    toolsFor: (options) => {\n      // Only DS Bot's own team tools cross the bridge; the CLI keeps its own.\n      const names = new Set([...rt.teamTools.map(def => def.name), 'approve_agent_action'])\n      return (options.tools ?? []).filter(tool => names.has(tool.name))"
+    },
+    {
+      "path": "ds-bot/src/host/computer/leases.js",
+      "firstLine": 1,
+      "lastLine": 5,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/computer/leases.js",
+      "content": "// App and foreground leases: in-memory, process-local. A lease says \"this Bot is\n// operating that app\" (or the foreground) so another Bot's call is refused instead\n// of two Bots typing into the same window. Leases end with the holder's turn, after\n// a short idle, on stop and on takeover; observe calls never need one.\nconst IDLE_MS = 60_000"
+    },
+    {
+      "path": "ds-bot/src/host/parts.js",
+      "firstLine": 1359,
+      "lastLine": 1372,
+      "sourceUrl": "https://github.com/Fei2411/DS-Bot/blob/3f60d44fc04db1c4b7509c3fcb9db282554ebae2/ds-bot/src/host/parts.js",
+      "content": "  // An archive from DSH's own Session list while the team runs: DSH asks for the\n  // Session's activity (plain archive) or stops it (stopActivity) inside the archive,\n  // so an unarchive started here queues behind that archive and undoes it. The team's\n  // own archives drop the Session from its owner first.\n  const keepCurrent = ({ sessionId }) => {\n    if (readOnly() || !(rt.isBotSession(sessionId) || rt.roomOwners.has(sessionId))) return\n    void ctx.workspaceRegistry.unarchiveSession(sessionId)\n      .catch(error => rt.warn('ds-bot: current Session %s is archived in DSH and could not be taken out: %s', sessionId, error))\n  }\n  ctx.on('workspace/session-stop', keepCurrent)\n  ctx.on('workspace/session-activity', (request, next) => {\n    keepCurrent(request)\n    return next()\n  })"
+    }
+  ],
+  "compare030": {
+    "commits": 205,
+    "base": "71d344bf193f3f18185f25de3d8e5c483046910a",
+    "head": "3f60d44fc04db1c4b7509c3fcb9db282554ebae2"
+  },
+  "compare031": {
+    "repository_full_name": "Fei2411/DS-Bot",
+    "base": "3f60d44fc04db1c4b7509c3fcb9db282554ebae2",
+    "head": "6559c9e7c4ef71c292e6ac50f690031133536fe0",
+    "status": "ahead",
+    "ahead_by": 9,
+    "behind_by": 0,
+    "total_commits": 9,
+    "too_large": null,
+    "base_commit": {
+      "sha": "3f60d44fc04db1c4b7509c3fcb9db282554ebae2",
+      "url": "https://api.github.com/repos/Fei2411/DS-Bot/commits/3f60d44fc04db1c4b7509c3fcb9db282554ebae2",
+      "html_url": "https://github.com/Fei2411/DS-Bot/commit/3f60d44fc04db1c4b7509c3fcb9db282554ebae2"
+    },
+    "merge_base_commit": {
+      "sha": "3f60d44fc04db1c4b7509c3fcb9db282554ebae2",
+      "url": "https://api.github.com/repos/Fei2411/DS-Bot/commits/3f60d44fc04db1c4b7509c3fcb9db282554ebae2",
+      "html_url": "https://github.com/Fei2411/DS-Bot/commit/3f60d44fc04db1c4b7509c3fcb9db282554ebae2"
+    },
+    "files": [
+      {
+        "filename": "CHANGELOG.md",
+        "status": "modified",
+        "additions": 10,
+        "deletions": 0,
+        "changes": 10,
+        "previous_filename": null
+      },
+      {
+        "filename": "app/package-lock.json",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 2,
+        "changes": 4,
+        "previous_filename": null
+      },
+      {
+        "filename": "app/package.json",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "changes": 2,
+        "previous_filename": null
+      },
+      {
+        "filename": "docker/.env.example",
+        "status": "modified",
+        "additions": 3,
+        "deletions": 2,
+        "changes": 5,
+        "previous_filename": null
+      },
+      {
+        "filename": "docker/Dockerfile",
+        "status": "modified",
+        "additions": 4,
+        "deletions": 3,
+        "changes": 7,
+        "previous_filename": null
+      },
+      {
+        "filename": "docker/README.md",
+        "status": "modified",
+        "additions": 19,
+        "deletions": 15,
+        "changes": 34,
+        "previous_filename": null
+      },
+      {
+        "filename": "docker/compose.yml",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "changes": 2,
+        "previous_filename": null
+      },
+      {
+        "filename": "docker/entrypoint.sh",
+        "status": "modified",
+        "additions": 12,
+        "deletions": 22,
+        "changes": 34,
+        "previous_filename": null
+      },
+      {
+        "filename": "docker/test.mjs",
+        "status": "modified",
+        "additions": 3,
+        "deletions": 1,
+        "changes": 4,
+        "previous_filename": null
+      },
+      {
+        "filename": "ds-bot/client.js",
+        "status": "modified",
+        "additions": 44,
+        "deletions": 23,
+        "changes": 67,
+        "previous_filename": null
+      },
+      {
+        "filename": "ds-bot/package-lock.json",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 2,
+        "changes": 4,
+        "previous_filename": null
+      },
+      {
+        "filename": "ds-bot/package.json",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "changes": 2,
+        "previous_filename": null
+      },
+      {
+        "filename": "ds-bot/src/client/i18n.js",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 0,
+        "changes": 1,
+        "previous_filename": null
+      },
+      {
+        "filename": "ds-bot/src/client/local-agents-page.js",
+        "status": "modified",
+        "additions": 8,
+        "deletions": 5,
+        "changes": 13,
+        "previous_filename": null
+      },
+      {
+        "filename": "ds-bot/src/client/settings.js",
+        "status": "modified",
+        "additions": 16,
+        "deletions": 3,
+        "changes": 19,
+        "previous_filename": null
+      },
+      {
+        "filename": "ds-bot/test/client-bundle.test.js",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "changes": 2,
+        "previous_filename": null
+      },
+      {
+        "filename": "ds-bot/test/models-step.test.js",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "changes": 2,
+        "previous_filename": null
+      }
+    ]
+  },
+  "localOverlapNote": "DSCord has modifications to memory, channel, delivery, tools, parts, context-failure, steward and built client. Upstream 0.3.0 source inspected here does not contain the local memoryBackend hook.",
+  "integrationHypothesis": "Local-agent adapter treats runtime-context specially but otherwise classifies user-role messages as user input. DSCord uses knowledge-context for memory snapshots, so this needs an explicit adapter regression before integration."
+}
