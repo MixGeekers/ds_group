@@ -83,13 +83,21 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
   const originSenderId = requestedByBot && typeof meta.originSenderId === 'string' ? meta.originSenderId : event.sender;
   const originRoomId = requestedByBot && typeof meta.originRoomId === 'string' ? meta.originRoomId : event.room_id;
   const originEventId = requestedByBot && typeof meta.originEventId === 'string' ? meta.originEventId : event.event_id;
+  const sourceThreadRootId = threadOf(event) || undefined;
+  // The origin thread survives peer rooms independently of the actual thread
+  // used for this hop. Human sender metadata cannot choose another origin.
+  const originThreadRootId = requestedByBot
+    ? typeof meta.originThreadRootId === 'string' && meta.originThreadRootId ? meta.originThreadRootId : undefined
+    : sourceThreadRootId;
   const returnTo = requestedByBot && meta.kind === 'task.request'
     && meta.returnTo === event.sender ? meta.returnTo : undefined;
   const prefix = `ds-group-${digest(`${botId}\0${event.event_id}`).slice(0, 40)}`;
   const isFinalResult = requestedByBot && ['task.result', 'task.failure'].includes(meta.kind) && !output.delegate;
   const replyRoomId = isFinalResult ? originRoomId : event.room_id;
   const replyEventId = isFinalResult ? originEventId : event.event_id;
+  const replyThreadRootId = isFinalResult ? originThreadRootId : sourceThreadRootId;
   const common = { taskId, originSenderId, originRoomId, originEventId, hop: hop + 1,
+    ...(originThreadRootId ? { originThreadRootId } : {}),
     ...(output.delivery || meta.delivery ? { delivery: output.delivery || meta.delivery } : {}) };
   const replyRecipient = isFinalResult ? originSenderId : event.sender;
   const sourceAttachments = uniqueAttachments([...eventAttachments(event), ...(output.sourceAttachments || [])]);
@@ -98,6 +106,7 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
   const replyAttachments = attachments.length ? attachments : isFinalResult && !output.failure ? uniqueAttachments(output.resultAttachments || eventAttachments(event)) : [];
   const result = [{ roomId: replyRoomId, body: output.text, options: {
     ...common, replyTo: replyEventId, transactionId: `${prefix}-reply`, to: returnTo && !output.delegate ? [returnTo] : [],
+    ...(replyThreadRootId ? { threadRootId: replyThreadRootId } : {}),
     deliveryRole: output.controlOnly ? 'control' : output.delegate ? 'ack' : returnTo ? 'peer' : 'final',
     kind: returnTo && !output.delegate ? output.failure ? 'task.failure' : 'task.result' : 'reply',
     ...(replyAttachments.length ? { attachments: replyAttachments } : {}),
@@ -110,7 +119,8 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
     result.push({ roomId: collaborationRoomId, body: output.delegate.body, options: {
       ...common, transactionId: `${prefix}-delegate`, to: [output.delegate.to], returnTo: botId, kind: 'task.request',
       deliveryRole: 'delegate',
-      ...(event.room_id === collaborationRoomId ? { replyTo: event.event_id } : {}),
+      ...(event.room_id === collaborationRoomId ? { replyTo: event.event_id,
+        ...(sourceThreadRootId ? { threadRootId: sourceThreadRootId } : {}) } : {}),
       ...(delegatedFiles.length ? { attachments: delegatedFiles } : {}),
       mentions: { users: [output.delegate.to], roles: [], everyone: false, here: false },
       mMentions: { user_ids: [output.delegate.to] },
@@ -562,6 +572,10 @@ export class BotNode {
     const replyTo = meta.replyTo || event.content['m.relates_to']?.['m.in_reply_to']?.event_id;
     const replied = replyTo ? this.store.message(replyTo) : undefined;
     const workTransfer = ['task.request', 'task.result', 'task.failure'].includes(meta.kind);
+    const sourceThreadRootId = threadOf(event) || undefined;
+    const originThreadRootId = workTransfer && this.participants.some(person => person.id === event.sender && person.kind === 'bot')
+      ? typeof meta.originThreadRootId === 'string' && meta.originThreadRootId ? meta.originThreadRootId : undefined
+      : sourceThreadRootId;
     const referencedFiles = !workTransfer && replied?.room_id === event.room_id ? this.store.messageBatch(replied).flatMap(eventAttachments) : [];
     const ownFiles = workTransfer && meta.fileBatch ? this.store.messageBatch(event).flatMap(eventAttachments) : eventAttachments(event);
     const followupFiles = ownFiles.length || replyTo ? [] : this.delivery.inputFiles(item);
@@ -584,10 +598,12 @@ export class BotNode {
         ...(meta.conversationKind ? { conversationKind: meta.conversationKind } : {}),
         ...(meta.taskId ? { taskId: meta.taskId } : {}),
         ...(replyTo ? { replyTo } : {}),
+        ...(sourceThreadRootId ? { threadRootId: sourceThreadRootId } : {}),
         ...(meta.kind ? { kind: meta.kind } : {}), ...(meta.returnTo ? { returnTo: meta.returnTo } : {}),
         ...(meta.fileBatch ? { fileBatch: meta.fileBatch } : {}),
         ...(meta.originSenderId ? { originSenderId: meta.originSenderId } : {}), ...(Number.isInteger(meta.hop) ? { hop: meta.hop } : {}),
         ...(meta.originRoomId ? { originRoomId: meta.originRoomId } : {}), ...(meta.originEventId ? { originEventId: meta.originEventId } : {}),
+        ...(originThreadRootId ? { originThreadRootId } : {}),
       },
       history: item.attention?.kind === 'natural' ? item.attention.history : history.map(previous => ({ eventId: previous.event_id, roomId: previous.room_id,
         source: messageSource(previous, this.participants),
