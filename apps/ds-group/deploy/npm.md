@@ -65,7 +65,7 @@ dscord server
 
 ## 在 DSH 中连接
 
-这一入口随 `0.4.0-alpha.1` 候选提供。当前公开的 `0.2.0-alpha.1` 使用下方 CLI 接入。
+这一入口随 `0.4.0-alpha.1` 候选提供。旧公开 `0.2.0-alpha.1` 的 CLI 使用其随包说明；本文下方的独立节点命令适用于 `0.4.0` 候选。
 
 1. 在 DSH 打开 `Plugins → Add plugin`，安装候选 `.tgz` 并启用 `dscord`。
 2. 在 DSCord 的本机 Bot 界面创建或选择 Bot，并配置模型与职责。已有团队由自有内核在原目录接管；先停用旧 `ds-bot` 插件，再重载 DSCord。[内核生命周期与检查](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/kernel-runtime.md)
@@ -81,7 +81,7 @@ dscord server
 
 ## 兼容 CLI 独立节点（历史路径）
 
-本节保留此前独立运行时的部署方式，其模型复制、工具规则和生命周期不适用于上方原生连接。新增 Bot 优先采用原生连接。
+本节是 `0.4.0` 候选的独立节点兼容入口，使用独立 home 与服务管理。已有原生绑定的 Bot 从所属 DSH 图形页面连接；新 Bot 优先采用原生连接。旧 `0.2` 包应按原说明运行，或将 Core 与节点一同升级后再使用下列命令。
 
 先按服务器指南设置 Bot 机器可达的 Core 与 Matrix 公开地址，并按所选部署方式重新运行初始化更新配置。当前候选可以导出自己的 Bot；旧版公开包使用其已存在的成员。下方 `your-bot-account` 必须替换为完整 Bot ID 中 `@` 与 `:` 之间的账号部分，显示名称不能作为参数。
 

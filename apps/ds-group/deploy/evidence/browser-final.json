@@ -1,0 +1,293 @@
+{
+  "status": "passed",
+  "scope": "production build and real Chromium with synthetic API fixtures",
+  "files": 12,
+  "namedChecks": 108,
+  "remoteModelCalls": 0,
+  "reports": [
+    {
+      "checks": 22,
+      "status": "passed"
+    },
+    {
+      "status": "passed",
+      "level": "real-chromium-web-fixture-and-actual-dsh-controller-with-synthetic-native-runtime",
+      "modelCalls": 0,
+      "checks": [
+        "stableBotAndOwnerIdentityWithWaitingAsNormalActivity",
+        "ownerModeSaveUsesRealContractAndKeepsPendingDistinctFromApplied",
+        "uncertainSaveLocksFurtherWritesUntilRefreshed",
+        "memoryKeepsOriginalSourcesReportedClaimsConflictsAndHistoricalChanges",
+        "mobileLightThemeAndChineseKeepDialogInsideViewport",
+        "offlineActivityStaysUnknownAndDesiredModeCanBeSaved",
+        "memberProfileShowsOwnerAndOpensOwnedBotSettings",
+        "lateMemoryReadCannotPublishIntoAnotherOwnersAccount",
+        "dshCreatesLocalBotWithChosenModelAndConfirmsSameRequestAfterLostReceipt",
+        "actualDshControllerKeepsDesiredModePendingWithoutRevertingAndReadsMemoryForExactBot",
+        "decisionCredentialIsSubmitOnlyAndNeverReadBackOrStoredInConnectionSnapshot",
+        "changingLocalAccountClearsSelectedBotAndKeepsOtherOwnersCreationDraftPrivate",
+        "dshNativeSettingsRenderInChineseOnMobileWithoutOverflowOrBrowserErrors"
+      ],
+      "errors": [],
+      "screenshots": [
+        "<synthetic-path>/bot-overview-dark-en.png",
+        "<synthetic-path>/bot-participation-dark-en.png",
+        "<synthetic-path>/bot-memory-dark-en.png",
+        "<synthetic-path>/bot-memory-light-zh-mobile.png",
+        "<synthetic-path>/local-decision-private-dark-en.png",
+        "<synthetic-path>/local-kernel-dark-en.png",
+        "<synthetic-path>/local-kernel-light-zh-mobile.png"
+      ]
+    },
+    {
+      "status": "passed",
+      "level": "real-chromium-production-ui-controller-synthetic-dsh-and-processes",
+      "modelCalls": 0,
+      "checks": [
+        "singleNativeModelPickerWithoutProviderOrCredentialForms",
+        "selectionSavedThroughRealControllerBeforeFirstConnection",
+        "savingDuringExecutionRetainsRunningModelAndShowsPendingSelection",
+        "selectingModelsKeepsDshProviderAndCredentialConfigurationIntact",
+        "explicitReconnectAppliesSavedSelection",
+        "lightDarkEnglishChineseAndMobileLayout"
+      ],
+      "pageErrors": []
+    },
+    {
+      "status": "passed",
+      "level": "real-chromium-react-components-fixture",
+      "checks": [
+        "imageThumbnailFailureRestoresCompleteFileCardAndArchiveHasNoFalsePreview",
+        "independentCardsFitMobileAndLongNameRemainsFullyReadable",
+        "taskActivityAndCompletionStayOutsideNormalConversation",
+        "explicitHistoryOpensWithoutDuplicatingMessageAttachments",
+        "applicationProgressSummariesLocalizeWithoutChangingBusinessText",
+        "attachmentBusyStateCoversFilenameAndDownload",
+        "previewAndDownloadShareVerifiedBytes",
+        "localeRefreshPreservesCachedAttachment",
+        "failedCancellationCanBeRetried",
+        "cancellationUpdatesCard",
+        "mobileHistoryOverlayFits",
+        "historyClosesOnEscapeAndNewTaskUpdatesDoNotReopenIt",
+        "downloadPreservesDisabledThumbnailWhenPreviewIsUnavailable",
+        "identityChangeClosesOldPreview",
+        "unmountClosesPreviewWithoutErrors"
+      ],
+      "modelCalls": 0,
+      "pageErrors": []
+    },
+    {
+      "status": "passed",
+      "level": "real-chromium-auth-component-fixture",
+      "checks": [
+        "requiredFieldsIdentifyErrorsAndSignedOutDialogStaysOpen",
+        "unknownUsernameCanSignInAndBootstrapRefreshPreservesCredentials",
+        "passwordVisibilityUsesAccessibleExplicitToggle",
+        "openRegistrationCollectsDisplayNameAndReturnsToLoginWithoutStaleError",
+        "busySubmissionLocksControlsAndPreventsDuplicateRequests",
+        "failedRequestPreservesCredentialsAndAllowsRetry",
+        "closedRegistrationCannotBeSelectedAndPolicyChangeReturnsToLogin",
+        "explicitDemoModeKeepsPasswordlessKnownAccountPath",
+        "mobileLanguageAndThemeChangesPreserveTypedCredentials",
+        "signedInAccountSwitcherClosesExplicitly"
+      ],
+      "pageErrors": [],
+      "modelCalls": 0
+    },
+    {
+      "status": "passed",
+      "level": "real-chromium-existing-native-bot-selector-fixture",
+      "checks": [
+        "selectsExistingLocalBotsWithoutNameCreationForm",
+        "retryUsesStableNativeIdentityAndPreventsDuplicateSubmit",
+        "lateAttachDoesNotPublishIntoAnotherAccount",
+        "mobileLayoutFitsAndHasNoBrowserErrors"
+      ],
+      "pageErrors": [],
+      "modelCalls": 0
+    },
+    {
+      "status": "passed",
+      "checks": [
+        "reactTimelineRendersAndResolvesMentions",
+        "atomicMentionSelectionAndSingleSubmission",
+        "roomSwitchPreservesIndependentDrafts",
+        "replyAndPingPreferenceRestoreWithRoom",
+        "localeSwitchPreservesDraftReplyAndUpload",
+        "reloadRestoresFileAndReplyDraft",
+        "failedSendRetryRetainsTransactionAndAttachments",
+        "mobileTouchMentionAndLayout",
+        "dynamicUploadLimitsPreserveDraftAndMentionChips",
+        "uploadCardsShowIndeterminateProgressRetryCancelReadyRemoveAndMobileLongName"
+      ]
+    },
+    {
+      "status": "passed",
+      "level": "real-chromium-react-settings-fixture",
+      "checks": [
+        "settingsFrameKeepsExactDesktopBoundsAcrossTabs",
+        "languagePreferenceChangesEvenWhenResolvedLocaleMatches",
+        "themeSystemOverrideAndPreferencePersistence",
+        "collaborationRolesRemainSeparateFromPersonalSettings",
+        "roleCreateEditDeleteUsesTypedComponentState",
+        "roomNotificationPreferencesSaveAndReopen",
+        "openInboxPollsNewMentionsAndJumpsToMessage",
+        "inboxFiltersMarkReadAndCloseStopsPolling",
+        "nativeModalFramesStayFixedThroughListFormLoadingAndFilterChanges",
+        "notificationRefreshFailureIsLocalizedAndClearsAfterOnlineRecovery",
+        "pushControlsAcceptKeyboardActivationAndKeepImperativeStateAcrossDialogReopen",
+        "installPromptRemainsBoundAfterDialogReopen",
+        "settingsFrameKeepsExactMobileBoundsAndShortViewportKeepsControlsReachable",
+        "pwaControlsRemainMountedAndLocalizedOnMobile"
+      ],
+      "modelCalls": 0,
+      "pageErrors": [],
+      "settingsDesktopFrame": {
+        "x": 180,
+        "y": 105,
+        "width": 640,
+        "height": 640
+      },
+      "pwaFixture": {
+        "permissionAndRegistrationMocked": true,
+        "status": "Push notifications are disabled on this server.",
+        "secure": true,
+        "permission": "granted",
+        "pushManager": true
+      },
+      "settingsMobileFrame": {
+        "x": 8,
+        "y": 102,
+        "width": 374,
+        "height": 640
+      },
+      "settingsShortFrame": {
+        "x": 8,
+        "y": 8,
+        "width": 374,
+        "height": 524
+      }
+    },
+    {
+      "status": "passed",
+      "level": "real-chromium-base-ui-controls-fixture",
+      "checks": [
+        "baseControlsSubmitNativeFormData",
+        "checkboxAndRadioLabelsChangeHiddenFormInputs",
+        "checkboxAndRadioSupportKeyboardSelection",
+        "nativeFormResetRestoresBaseControls",
+        "canceledNativeResetKeepsVisibleAndSubmittedState",
+        "explicitDisabledStateBlocksPointerAndFormSubmission"
+      ],
+      "pageErrors": [],
+      "modelCalls": 0
+    },
+    {
+      "status": "passed",
+      "evidence": "Production build and real Chromium, separate static/home/discovery HTTP origins with synthetic API fixtures; no real Matrix or model calls",
+      "checks": [
+        "productionEntryLoadsSplitConfigAndLogsIntoOneStableHomeIdentity",
+        "railAccountMenuSupportsKeyboardFocusEscapeAndOutsideDismissalWithBrandedHome",
+        "accountAppearancePersistsAcrossReloadAndSyncsWithSettingsAndOtherTabsWithoutLosingDraftOrIdentity",
+        "spacesAndJoinedChannelsComeFromMembershipWithNoPhantomInvitationRoom",
+        "messageAndComposerShareMeasuredGutterAndControlCenters",
+        "acceptedInvitationUsesHomeJoinAndFullRoomIdWithSeparateAttachmentBytes",
+        "cachedAttachmentActionsRecheckOriginalEventProofAndNeverDowngradeOnPermissionDenial",
+        "rejectedJoinRemainsRejectedAndUnknownDiscoveryOmitsCookiesTokensAndRedirects",
+        "ownedBotGrantsUseExactRoomFullRequesterIdsFourFileToolsAndExplicitVersionedSave",
+        "ownerGrantConflictDenialUnknownSaveAndExplicitRevocationKeepAuthoritativeState",
+        "personalSettingsAndOwnedBotManagementExcludeDeploymentAndForeignBotControls",
+        "mediumViewportBotEntryLeavesSidebarClickableWithoutBackdrop",
+        "pendingOwnedBotDmShowsProgressAcrossBackgroundPollThenOpens",
+        "ownedBotRailUsesExactIdentityHomeDmSeparateDraftsUnreadAndReloadWithoutServerHighlight",
+        "verifiedOwnedBotCacheKeepsGlobalContextWhileProfileRefreshIsPending",
+        "legacyRoomCacheWithoutOwnershipShowsNeutralLoadingThenFreshGlobalContext",
+        "botRailRestoresRecentOwnedDmWithoutOverwritingSecondHomeChannelOrActiveDraft",
+        "lateOwnedBotDmResponseCannotStealNewServerAndGroupMembershipRemainsExact",
+        "inFlightSendReplyAndUploadedTaskAttachmentRemainBoundToOriginalSpace",
+        "latePollResponsesCannotMergeMessagesTasksOrMentionsIntoNewSpace",
+        "notificationNavigationRequiresCurrentUserHomeAuthorityAndActualJoinedRoom",
+        "productionPwaCachesOnlyStaticShellAndReconnectsSameHomeSessionAndDraft",
+        "revocationRemovesAccessibleChannelWithoutClaimingRemoteServerOffline",
+        "mobileAccountMenuFitsViewportAndEscapeKeepsNavigationOpen",
+        "desktopAndNarrowLayoutsSupportBothLanguagesThemesAndServerDialogs",
+        "logoutReloginClearsIdentityStateAndPasswordRequestsNeverFollowRedirects",
+        "sameOriginLegacySessionAndDraftUpgradeToVerifiedCentralSubject",
+        "normalEntryPreservesPrivateHttpSameOriginSessionAndPrivateMatrixDiscoveryWithRouteBackedOrigin",
+        "splitDeploymentNeverMigratesUnboundLegacyCredential",
+        "allCredentialReceiversArePinnedHomeServicesWithNoAmbientCookiesOrPageErrors"
+      ],
+      "pageErrors": [],
+      "routeFailures": [],
+      "credentialOrigins": [
+        "http://127.0.0.1:24361",
+        "http://127.0.0.1:24360"
+      ],
+      "publicDiscoveryRequests": 1,
+      "trapRequests": 0,
+      "modelCalls": 0,
+      "physicalHosts": 1,
+      "realBackend": false,
+      "layoutGeometry": {
+        "header": {
+          "x": 312,
+          "y": 0,
+          "width": 888,
+          "height": 49,
+          "centerY": 24.5
+        },
+        "message": {
+          "x": 312,
+          "y": 97,
+          "width": 888,
+          "height": 134.6875,
+          "centerY": 164.34375
+        },
+        "avatar": {
+          "x": 338,
+          "y": 104,
+          "width": 40,
+          "height": 40,
+          "centerY": 124
+        },
+        "body": {
+          "x": 392,
+          "y": 102,
+          "width": 784,
+          "height": 124.6875,
+          "centerY": 164.34375
+        },
+        "composer": {
+          "x": 336,
+          "y": 917,
+          "width": 840,
+          "height": 56,
+          "centerY": 945
+        },
+        "attach": {
+          "x": 347,
+          "y": 927,
+          "width": 36,
+          "height": 36,
+          "centerY": 945
+        },
+        "input": {
+          "x": 393,
+          "y": 924,
+          "width": 706,
+          "height": 42,
+          "centerY": 945
+        },
+        "send": {
+          "x": 1131,
+          "y": 927,
+          "width": 36,
+          "height": 36,
+          "centerY": 945
+        }
+      }
+    }
+  ],
+  "source": "b3add9b + runtime and deployment fixes",
+  "originalLogSha256": "89fd059d69fc3f624a6d3b615b4f5992d1010ee95996b03a3c1e949a5790b7af"
+}

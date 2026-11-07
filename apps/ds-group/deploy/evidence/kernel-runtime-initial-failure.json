@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T03:07:48.655Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "expectedDshVersion": "0.2.2-rc.1",
+  "level": "real-native-dsh-owned-kernel-zero-model",
+  "status": "failed",
+  "checks": [
+    "pinnedHostAndLockedPrivateDependencies"
+  ],
+  "modelCalls": 0,
+  "sourceHashes": {
+    "package.json": "93707901148cc9e587e7baa0e471694dde73ff0e005b9cfb57f86a3702fa0aff",
+    "vendor/ds-bot/UPSTREAM.json": "dd5ffa8984430f9be6f50ab85a8c543d4efb1168672ecfbca7e5d720f5efb7f8",
+    "dsh-connect/index.mjs": "215325eed12dd492169f40ba8a77fe7b0ec553a468f0b6afabbaa206aaa60fbe",
+    "dsh-connect/native-team.mjs": "929543c669bcaeb098204de2529103f74829cf427fd3d2a2f881e89150742ef1",
+    "dsh-connect/kernel-runtime.mjs": "271108002935c72dc5ee23458454f7611bec56bfc562bf3147d1bd89051844dc",
+    "dsh-plugin/index.mjs": "881afa4f656b46e8cfa75eb2e221a3cf9e05bc20f30591a8511140eb5c30c7ed",
+    "dsh-plugin/runtime-dependencies.json": "5f6669ef1660c11856b39cf91b08484355ae1806a5b318a387bc685c50631a79",
+    "scripts/kernel-runtime-smoke.mjs": "63a1169ca01f401062cd4a0f755a07ab9220b0175e59307b47109b373c971065"
+  },
+  "dshVersion": "0.2.2-rc.1",
+  "error": "The owned kernel did not become ready in the isolated DSH host",
+  "privateDiagnosticRetained": true
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-07T03:26:10.164Z",
+  "project": "ds-group-smoke-3427babde1",
+  "platform": "linux/arm64",
+  "runner": {
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "scriptSha256": "1129e25f4fba811bc98bfecbb0093506b55b7397334ce113d0c2bea6a3e77ddf",
+  "level": "real-container-matrix-http",
+  "image": "dscord-kernel-core-check:arm64",
+  "modelCalls": 0,
+  "checks": [
+    "freshVolumesReady",
+    "serverRequiresLogin",
+    "matrixLoginGroupAndMessage",
+    "pwaManifest",
+    "remoteNodeExport"
+  ],
+  "containerRuntime": {
+    "platform": "linux",
+    "arch": "arm64",
+    "node": "v24.19.0"
+  },
+  "status": "failed",
+  "error": "Deployment smoke permits registration and runtime status only\n+ actual - expected\n\n+ [\n+   'POST /api/ds-group-node/kernel/state',\n+   'POST /api/ds-group-node/observe'\n+ ]\n- []\n",
+  "cleanedUp": true,
+  "completedAt": "2026-11-07T03:26:37.516Z"
+}

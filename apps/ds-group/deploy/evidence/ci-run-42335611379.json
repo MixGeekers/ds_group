@@ -1,0 +1,78 @@
+{
+  "conclusion": "success",
+  "createdAt": "2026-11-07T03:47:54Z",
+  "displayTitle": "Gate releases on real memory tool schemas and observation",
+  "event": "push",
+  "headSha": "0294a3f8d380abfaa9283a7a96a7d2f6c5436451",
+  "status": "completed",
+  "updatedAt": "2026-11-07T03:51:30Z",
+  "url": "https://github.com/MixGeekers/dscord/actions/runs/42335611379",
+  "workflowName": "DS-Group CI",
+  "jobs": [
+    {
+      "id": 128291732012,
+      "name": "Browser / Chromium",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128291732236,
+      "name": "DSH / ubuntu-24.04-arm",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128291732270,
+      "name": "DSH / ubuntu-24.04",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128291732288,
+      "name": "Native / ubuntu-24.04 / Node 24.x",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128291732295,
+      "name": "Native / ubuntu-24.04 / Node 24.19.0",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128291732300,
+      "name": "Native / ubuntu-24.04-arm / Node 24.19.0",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128291732328,
+      "name": "Deploy / Linux amd64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128291732386,
+      "name": "Deploy / Linux arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128291732447,
+      "name": "Native / ubuntu-24.04-arm / Node 24.x",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128292520337,
+      "name": "DS-Group matrix passed",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "checkedAt": "2026-11-07T03:59:56.688Z",
+  "verifiedVia": [
+    "GitHub connector fetch_workflow_run_jobs",
+    "gh run view"
+  ]
+}
