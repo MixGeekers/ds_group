@@ -117,7 +117,7 @@ try {
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('DS_GROUP_') && key !== 'NODE_PATH' && key !== 'OPENCODE_API_KEY'));
   Object.assign(env, { DS_GROUP_DATA_DIR: './data', DS_GROUP_SYNAPSE_DIR: './synapse', DS_GROUP_SERVER_NAME: 'npm-smoke.local',
     DS_GROUP_MATRIX_URL: matrixUrl, DS_GROUP_MATRIX_PUBLIC_URL: matrixUrl, DS_GROUP_PUBLIC_URL: coreUrl,
-    DS_GROUP_HOST: '127.0.0.1', DS_GROUP_PORT: String(corePort), DS_GROUP_DEMO_LOGIN: 'false' });
+    DS_GROUP_HOST: '127.0.0.1', DS_GROUP_PORT: String(corePort), DS_GROUP_DEMO_LOGIN: 'false', DS_GROUP_BOOTSTRAP_DEMO: 'true' });
   await check('installed-cli-and-relative-data-paths', async () => {
     assert.match(await command(cli, ['--help'], { env }), /Usage: dscord/);
     assert.equal((await command(cli, ['--version'], { env })).trim(), manifest.version);

@@ -132,7 +132,7 @@ try {
   const providerDetails = 'import hashlib,importlib.metadata,json,s3_storage_provider as p; print(json.dumps({"version":importlib.metadata.version("synapse-s3-storage-provider"),"sourceSha256":hashlib.sha256(open(p.__file__,"rb").read()).hexdigest(),"boto3":importlib.metadata.version("boto3"),"configFields":sorted(p.S3StorageProviderBackend.parse_config({"bucket":"synthetic","threadpool_size":7,"request_checksum_calculation":"when_supported","response_checksum_validation":"when_supported"}))}))';
   report.provider = JSON.parse(await docker(['exec', names.synapse, 'python', '-c', providerDetails]));
   assert.equal(report.provider.version, '1.7.0');
-  await bootstrapServer(options);
+  await bootstrapServer({ ...options, demo: true });
   const setup = JSON.parse(await readFile(path.join(options.dataRoot, 'matrix-setup.json'), 'utf8'));
   for (const participant of setup.participants) secrets.push(participant.accessToken, participant.password);
   core = await createCore({ dataRoot: options.dataRoot, enablePush: false });

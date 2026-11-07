@@ -17,7 +17,7 @@ const composeFiles = ['-f', path.join(packageRoot, 'deploy', 'compose.yaml')];
 const portBase = process.env.DS_GROUP_SMOKE_PORT_BASE === undefined ? 0 : Number(process.env.DS_GROUP_SMOKE_PORT_BASE);
 if (!Number.isInteger(portBase) || portBase < 0 || portBase > 65525 || (portBase > 0 && portBase < 1024)) throw new Error('Invalid DS_GROUP_SMOKE_PORT_BASE');
 const env = { ...process.env, DS_GROUP_IMAGE: process.env.DS_GROUP_IMAGE || 'ds-group:ci',
-  DS_GROUP_MEDIA_BACKEND: 'local', DS_GROUP_WEB_MODE: 'bundled',
+  DS_GROUP_MEDIA_BACKEND: 'local', DS_GROUP_WEB_MODE: 'bundled', DS_GROUP_BOOTSTRAP_DEMO: 'true',
   DS_GROUP_HTTP_PORT: String(portBase), DS_GROUP_MATRIX_PORT: String(portBase ? portBase + 8 : 0),
   DS_GROUP_ADMIN_PORT: String(portBase ? portBase + 10 : 0), DS_GROUP_BIND: '127.0.0.1', DS_GROUP_SERVER_NAME: `${name}.local`,
   DS_GROUP_PUBLIC_URL: 'http://localhost:18100', DS_GROUP_MATRIX_PUBLIC_URL: 'http://localhost:18008' };

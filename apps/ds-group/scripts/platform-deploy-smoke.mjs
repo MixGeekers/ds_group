@@ -18,7 +18,7 @@ const coreUrl = `http://127.0.0.1:${base}`, matrixUrl = `http://127.0.0.1:${base
 const env = { ...process.env, DS_GROUP_IMAGE: process.env.DS_GROUP_IMAGE || 'ds-group:ci',
   DS_GROUP_BIND: '127.0.0.1', DS_GROUP_HTTP_PORT: String(base), DS_GROUP_MATRIX_PORT: String(base + 8), DS_GROUP_ADMIN_PORT: String(base + 10),
   DS_GROUP_SERVER_NAME: `${project}.test`, DS_GROUP_PUBLIC_URL: coreUrl, DS_GROUP_MATRIX_PUBLIC_URL: matrixUrl,
-  DS_GROUP_WEB_MODE: 'api-only', DS_GROUP_MEDIA_BACKEND: 'local' };
+  DS_GROUP_WEB_MODE: 'api-only', DS_GROUP_MEDIA_BACKEND: 'local', DS_GROUP_BOOTSTRAP_DEMO: 'true' };
 if (process.env.DS_GROUP_PLATFORM) {
   assert.ok(['linux/amd64', 'linux/arm64'].includes(process.env.DS_GROUP_PLATFORM), 'Use a supported Linux deployment platform');
   env.DOCKER_DEFAULT_PLATFORM = process.env.DS_GROUP_PLATFORM;
