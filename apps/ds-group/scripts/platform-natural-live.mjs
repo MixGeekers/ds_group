@@ -6,9 +6,7 @@ import { MatrixClient } from '../src/matrix-client.mjs';
 import { importNodeBundle } from './server-admin.mjs';
 import { prepareNaturalHost, observedNaturalTopology } from './platform-natural-host.mjs';
 import { naturalAssets } from './platform-natural-corpus.mjs';
-import { readGoQuota } from './go-quota.mjs';
-import { readCommandCodeCatalog } from './commandcode-preflight.mjs';
-import { MODEL, ORIGINAL_TEST_MODEL } from './memory-test-model.mjs';
+import { memoryTestModel } from './memory-test-model.mjs';
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 import { readNaturalDecisions } from './platform-natural-accounting.mjs';
 import { KERNEL_API } from '../dsh-connect/kernel-runtime.mjs';
@@ -23,8 +21,8 @@ export const nativeRequestId = (botId, eventId) => `matrix-${sha(`${botId}\0${ev
 
 export class NaturalLiveAdapter {
   maintenancePolicy = naturalMaintenancePolicy;
-  constructor({ environment, directory, corpus, corpusHash, resume = false, timeoutMs = 720000, paceMs = 700, configureHost }) {
-    Object.assign(this, { environment, directory, corpus, corpusHash, resume, timeoutMs, paceMs, configureHost });
+  constructor({ environment, directory, corpus, corpusHash, resume = false, timeoutMs = 720000, paceMs = 700, configureHost, providerPreflight }) {
+    Object.assign(this, { environment, directory, corpus, corpusHash, resume, timeoutMs, paceMs, configureHost, providerPreflight });
     this.rooms = {}; this.bots = []; this.ledger = []; this.seen = new Set(); this.kernel = []; this.requests = new Map(); this.hostDirectory = path.join(directory, 'host');
   }
   async api(route, { person = this.owner, body, method = body === undefined ? 'GET' : 'POST' } = {}) {
@@ -36,6 +34,7 @@ export class NaturalLiveAdapter {
   }
   matrix(person) { return new MatrixClient({ baseUrl: this.environment.matrixUrl, accessToken: person.accessToken }); }
   async initialize() {
+    const model=this.model=memoryTestModel(this.environment.model||undefined);
     if (this.resume) {
       try {
         this.ledger = (await readFile(path.join(this.directory, 'matrix-events.jsonl'), 'utf8')).split('\n').filter(Boolean).map(JSON.parse);
@@ -54,12 +53,11 @@ export class NaturalLiveAdapter {
       const current = await this.matrix(this.people[profile.key]).request('GET', `/_matrix/client/v3/profile/${encodeURIComponent(this.people[profile.key].id)}/displayname`);
       assert.equal(current.displayname, profile.name, 'Core and Matrix initial names must agree before scenario messages');
     }
-    this.host = await prepareNaturalHost(this.hostDirectory, { corpusHash: this.corpusHash, profile: this.corpus.profile, resume: this.resume, configure: this.configureHost });
-    const quota = MODEL === ORIGINAL_TEST_MODEL ? await readGoQuota(this.host.home) : await readCommandCodeCatalog(this.host.home);
+    this.host = await prepareNaturalHost(this.hostDirectory, { model, corpusHash: this.corpusHash, profile: this.corpus.profile, resume: this.resume, configure: this.configureHost });
+    const quota = this.providerPreflight ? await this.providerPreflight({home:this.host.home,model})
+      : {kind:'not-requested',model,available:null,allowanceKnown:false};
     await writeFile(path.join(this.directory, 'provider-preflight.json'), JSON.stringify(quota, null, 2), { mode: 0o600 });
-    if (!quota.available) throw Object.assign(new Error(quota.kind === 'model-catalog'
-      ? 'The authorized ordinary model is absent from the provider catalog; no model host was started'
-      : 'The selected Go allowance is exhausted; no model host was started'), { code: quota.kind === 'model-catalog' ? 'MODEL_UNAVAILABLE' : 'MODEL_QUOTA_EXCEEDED' });
+    if (quota.available===false) throw Object.assign(new Error('The explicitly configured provider preflight rejected this model; no model host was started'),{code:'MODEL_UNAVAILABLE'});
     await this.host.start();
     await this.saveHostState();
     this.nativeBots = await this.host.api('init');
@@ -104,7 +102,7 @@ export class NaturalLiveAdapter {
     await this.host.api('connect');
     await this.capture();
     await this.memoryEvidence('attempt-start');
-    return { model: MODEL, bots: this.bots.map(({ id, nativeBotId, sessionId, name }) => ({ id, nativeBotId, sessionId, name })),
+    return { model, bots: this.bots.map(({ id, nativeBotId, sessionId, name }) => ({ id, nativeBotId, sessionId, name })),
       people: Object.fromEntries(Object.entries(this.people).map(([key, person]) => [key, { id: person.id, name: person.name }])),
       rooms: Object.fromEntries(Object.entries(this.rooms).map(([key, room]) => [key, { roomId: room.roomId, kind: room.definition.kind || 'group', historyVisibility: room.definition.historyVisibility }])),
       membershipEvidence,

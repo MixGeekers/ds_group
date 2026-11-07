@@ -5,10 +5,11 @@ import { randomUUID } from 'node:crypto';
 import { startNativeTeam } from '../dsh-connect/native-team.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
 import { NativeBridge } from '../dsh-connect/native-bridge.mjs';
-import {MODEL,testModelSelection} from './memory-test-model.mjs';
+import {memoryTestModel,testModelSelection} from './memory-test-model.mjs';
 
 export const inject = ['llm','tools','systemPrompt','sessionController','sessions','sessionTitle','workspaceRegistry','connection'];
 export async function apply(ctx, config) {
+  const MODEL=memoryTestModel(config.model);
   const directory = config.directory;
   let scenario;
   try { scenario=JSON.parse(await readFile(join(directory,'scenario-profile.json'),'utf8')); }
@@ -38,7 +39,7 @@ export async function apply(ctx, config) {
   });
   async function bind(id, index) {
     const bot = await native.bot(id);
-    await native.selectModel(id, await testModelSelection(ctx.llm));
+    await native.selectModel(id, await testModelSelection(ctx.llm,MODEL));
     await rt.setPermission(rt.botOf(id), 'danger-full-access');
     const bridge = await new NativeBridge({ ctx, native, node: { id: `@bot${index}:memory.test`, name: bot.name, nativeBotId: id,
       directory: join(directory, `bridge-${index}`) }, timeoutMs: 300000 }).initialize();

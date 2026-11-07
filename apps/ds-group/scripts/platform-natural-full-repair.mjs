@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { memoryTestModel } from './memory-test-model.mjs';
 import { createHash } from 'node:crypto';
 import { constants as fsConstants } from 'node:fs';
 import { copyFile, lstat, mkdir, readFile, readdir, realpath, symlink, writeFile } from 'node:fs/promises';
@@ -56,7 +57,7 @@ export async function loadRepairContext({ environmentFile, originalDirectory, di
     assert.ok(nodes.some(node => node.id === bot.id && node.nativeBotId === bot.nativeBotId));
     assert.ok(nativeState.bots[bot.nativeBotId], 'The original native Bot is absent from the original home');
   }
-  assert.ok(['opencode-go/deepseek-v4.1-flash', 'commandcode-goat/deepseek/deepseek-v4.1-flash'].includes(environment.model));
+  environment.model=memoryTestModel(environment.model);
   return { ...paths, environmentFile: path.resolve(environmentFile), environment, definition, originalReport,
     target, setup, nodes, nativeState, workspace, scenario, previousHost, home: path.join(paths.originalHost, 'home') };
 }
@@ -105,7 +106,7 @@ export async function openRepairSession(context, { timeoutMs = 720000 } = {}) {
     import('./memory-host.mjs'), import('./platform-natural-live.mjs'), import('./platform-natural-host.mjs'), import('./runtime-config.mjs'),
   ]);
   await mkdir(context.host, { recursive: false, mode: 0o700 });
-  const host = new MemoryTestHost(context.host, { requestTimeoutMs: timeoutMs });
+  const host = new MemoryTestHost(context.host, { model:context.environment.model, requestTimeoutMs: timeoutMs });
   host.home = context.home; host.workspace = context.workspace; host.installation = await resolveDsh();
   await writeJson(path.join(context.host, 'scenario-profile.json'), { ...context.scenario, evidenceDirectory: context.host });
   await writeJson(path.join(context.host, 'nodes.json'), context.nodes);

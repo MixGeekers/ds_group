@@ -60,7 +60,7 @@ const toolResults = new Map(runtimeEvents.filter(event => event.type === 'tool/r
 const current = row => row.derivation === 'current';
 const audit = [];
 const test = (name, passed, details) => audit.push({ name, passed: Boolean(passed), details });
-test('exactGenerationModelOnly', calls.summary.models.length === 1 && calls.summary.models[0] === 'opencode-go/deepseek-v4.1-flash', calls.summary.models);
+test('exactGenerationModelOnly', calls.summary.models.length === 1 && calls.summary.models[0] === report.model, {expected:report.model,observed:calls.summary.models});
 test('240CompletedInteractions', report.rounds.length === 240, report.rounds.length);
 test('72IndependentQueryCheckpoints', report.checkpoints.length === 72, report.checkpoints.length);
 test('sixRealNativeCompactions', report.maintenance.filter(row => row.type === 'native-compaction' && row.result.compacted).length === 6);

@@ -6,10 +6,11 @@ import { randomUUID } from 'node:crypto';
 import { startNativeTeam } from '../dsh-connect/native-team.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
 import { NativeConnections } from '../dsh-connect/native-connections.mjs';
-import {MODEL,testModelSelection} from './memory-test-model.mjs';
+import {memoryTestModel,testModelSelection} from './memory-test-model.mjs';
 import { compactMemoryHost, persistedNaturalMemoryEvidence } from './platform-natural-memory.mjs';
 export const inject = ['llm','tools','systemPrompt','sessionController','sessions','sessionTitle','workspaceRegistry','connection'];
 export async function apply(ctx, config) {
+  const MODEL=memoryTestModel(config.model);
   let scenario;
   try { scenario = JSON.parse(await readFile(join(config.directory, 'scenario-profile.json'), 'utf8')); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
@@ -44,7 +45,7 @@ export async function apply(ctx, config) {
       await (await native.agent(state.bots.find(bot => bot.name === name).sessionId)).whenIdle();
     }
     for (const bot of state.bots) {
-      await native.selectModel(bot.id, await testModelSelection(ctx.llm));
+      await native.selectModel(bot.id, await testModelSelection(ctx.llm,MODEL));
       await rt.setPermission(rt.botOf(bot.id), 'danger-full-access');
       if (scenario) await native.call('update-bot', { id: bot.id, instructions: scenario.instructions });
     }

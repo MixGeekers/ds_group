@@ -12,7 +12,6 @@ import { exportNaturalEvidence } from '../scripts/platform-natural-evidence.mjs'
 import { readNaturalDecisions } from '../scripts/platform-natural-accounting.mjs';
 import { naturalEnvironmentProfiles, naturalEnvironmentModelSettings } from '../scripts/platform-natural-environment.mjs';
 import { naturalHarness, observedNaturalTopology } from '../scripts/platform-natural-host.mjs';
-import { MODEL } from '../scripts/memory-test-model.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const referenceModule = `export function summarize(rows) {
@@ -49,9 +48,11 @@ test('each new environment creates its own names and account namespace with the 
   assert.equal([...full, ...diagnostic].some(([localpart]) => ['watch', 'lin_a', 'lin_b', 'song'].includes(localpart)), false);
   assert.equal(full.filter(([, name]) => name === '周宁').length, 2);
 });
-test('environment admission and metadata use the selected authorized model and actual scenario size', () => {
-  assert.deepEqual(naturalEnvironmentModelSettings('diagnostic'), { allowedModels: [MODEL], model: MODEL, plannedRounds: 16 });
-  assert.deepEqual(naturalEnvironmentModelSettings('full'), { allowedModels: [MODEL], model: MODEL, plannedRounds: 96 });
+test('environment admission uses the caller model and service preparation has no paid default', () => {
+  const MODEL='custom/team/model';
+  assert.deepEqual(naturalEnvironmentModelSettings('diagnostic',MODEL), { allowedModels: [MODEL], model: MODEL, plannedRounds: 16 });
+  assert.deepEqual(naturalEnvironmentModelSettings('full',MODEL), { allowedModels: [MODEL], model: MODEL, plannedRounds: 96 });
+  assert.deepEqual(naturalEnvironmentModelSettings('diagnostic',null),{allowedModels:null,model:null,plannedRounds:16});
 });
 test('topology reports only the observed backend and never guesses an embedding model', () => {
   const unknown = observedNaturalTopology(); assert.match(unknown, /unverified/); assert.doesNotMatch(unknown, /Ombre|Harrier|SQLite/);

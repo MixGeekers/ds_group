@@ -27,9 +27,9 @@ export async function apply(ctx){const plugin=await import(pathToFileURL(root+'/
 `;
 }
 
-export async function prepareNaturalHost(directory, { corpusHash, profile, resume = false, configure } = {}) {
+export async function prepareNaturalHost(directory, { model, corpusHash, profile, resume = false, configure } = {}) {
   const { MemoryTestHost } = await import('./memory-host.mjs');
-  const host = new MemoryTestHost(directory), marker = path.join(directory, 'natural-home.json');
+  const host = new MemoryTestHost(directory,{model}), marker = path.join(directory, 'natural-home.json');
   await mkdir(directory, { recursive: true });
   let previous;
   try { previous = JSON.parse(await readFile(marker, 'utf8')); } catch (error) { if (error.code !== 'ENOENT') throw error; }
