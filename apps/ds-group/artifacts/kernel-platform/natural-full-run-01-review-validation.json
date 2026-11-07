@@ -1,0 +1,314 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-07T06:55:04.349Z",
+  "originalReportSha256": "416430f8d2a2b4a9fae914fb444a962e5bb0443599e85d160821198b931d6c08",
+  "independentReviewSidecarSha256": "9811211f8dccfd0b96187d09a6ddba78d346b2c898506683daeb4f72a36e6fc6",
+  "originalStatus": "completed-with-failures",
+  "originalFailureCount": 4,
+  "sourceStages": [
+    {
+      "attempt": 1,
+      "sourceCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "endCommit": "9898c624431f76123f6dc03346503af8e65ab744",
+      "startedAt": "2026-11-07T04:41:40.600Z",
+      "finishedAt": "2026-11-07T05:07:23.925Z",
+      "resumedAfter": 0,
+      "newHumanRows": "1–64",
+      "maintenancePolicy": {
+        "id": "legacy-full-review-before-maintenance",
+        "version": 1
+      },
+      "sourceHashesUnchanged": true
+    },
+    {
+      "attempt": 2,
+      "sourceCommit": "9b5c5436d73cdf4837b5e701a7cac21cd37fae13",
+      "endCommit": "9b5c5436d73cdf4837b5e701a7cac21cd37fae13",
+      "startedAt": "2026-11-07T05:27:35.743Z",
+      "finishedAt": "2026-11-07T05:37:56.114Z",
+      "resumedAfter": 64,
+      "newHumanRows": "none",
+      "maintenancePolicy": {
+        "id": "legacy-full-review-before-maintenance",
+        "version": 1
+      },
+      "sourceHashesUnchanged": true
+    },
+    {
+      "attempt": 3,
+      "sourceCommit": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "endCommit": "e284b218c0550a7ccd406ae3c6e1c1de35ebd2c8",
+      "startedAt": "2026-11-07T06:00:23.607Z",
+      "finishedAt": "2026-11-07T06:11:48.726Z",
+      "resumedAfter": 64,
+      "newHumanRows": "65–96",
+      "maintenancePolicy": {
+        "version": 2,
+        "id": "native-checkpoint-durable-observations",
+        "forcedMemoryReview": false,
+        "checkpoint": {
+          "settleMemory": false
+        },
+        "restart": {
+          "verifyObservedSources": true,
+          "verifyPendingReview": true
+        },
+        "final": {
+          "recordPendingReview": true,
+          "forcedMemoryReview": false
+        },
+        "meaning": "Persisted observation and pending review are distinct from completed model review"
+      },
+      "sourceHashesUnchanged": true
+    }
+  ],
+  "review": {
+    "humanMessages": 96,
+    "actualBotMessages": 98,
+    "openCriteria": 27,
+    "independentAccepted": 25,
+    "independentPartiallyAccepted": 2,
+    "originalReviewStatusesUntouched": true,
+    "artifactsIndependentlyDownloaded": 34,
+    "inputFilesIndependentlyDownloaded": 3,
+    "allArtifactBytesAndAudienceMatched": true
+  },
+  "checks": {
+    "entry": "scripts/platform-natural-review-check.mjs",
+    "frozenStepReplayCount": 96,
+    "originalPassFlagsMatch": true,
+    "stepFailures": [
+      {
+        "id": "full-041",
+        "names": [
+          "nativeDelegationReceipt"
+        ]
+      },
+      {
+        "id": "full-084",
+        "names": [
+          "deliveredSuiteRunsWithDeliveredModule"
+        ]
+      }
+    ],
+    "globalChecks": [
+      {
+        "name": "allParticipantMessagesPosted",
+        "passed": true
+      },
+      {
+        "name": "plannedNativeCompactions",
+        "passed": true
+      },
+      {
+        "name": "plannedNativeRestarts",
+        "passed": true
+      },
+      {
+        "name": "privateSurpriseStaysPrivate",
+        "passed": true
+      },
+      {
+        "name": "inflightCancel:full-052",
+        "passed": true
+      },
+      {
+        "name": "noCancelledPrintDelivery:full-052",
+        "passed": true
+      },
+      {
+        "name": "inflightAmendment:full-059",
+        "passed": true
+      }
+    ],
+    "original17IndependentlyExecuted": true,
+    "actual34FileReadAndExecutionEvidence": true,
+    "independentCsvRoundtrip": {
+      "parser": "Python standard-library csv.DictReader",
+      "rows": 4,
+      "exactFieldsMatch": true,
+      "p2DoubleQuotes": 2,
+      "p3Newlines": 1,
+      "p4LeadingSpaces": 2,
+      "p4TrailingSpaces": 2
+    },
+    "full084DependencyDiagnosis": {
+      "threeDeliveredFilesFailed": true,
+      "addingOnlyActualOriginalCsvPasses": true,
+      "tests": 15,
+      "missingFixtureWasOnlyFailure": true,
+      "notARepairOrOriginalAcceptance": true
+    },
+    "htmlRender": [
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "title": "搬家门口说明 · 司机版",
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "scrollHeight": 844,
+        "clientHeight": 844,
+        "clock": "02:29",
+        "resources": 0,
+        "pageErrors": []
+      },
+      {
+        "viewport": {
+          "width": 320,
+          "height": 640
+        },
+        "title": "搬家门口说明 · 司机版",
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollHeight": 698,
+        "clientHeight": 640,
+        "clock": "02:29",
+        "resources": 0,
+        "pageErrors": []
+      }
+    ],
+    "unitCommand": "node --test --test-name-pattern 'public evidence|post-run artifact|missing, duplicate' tests/platform-natural-validation.test.mjs tests/platform-natural-review-check.test.mjs",
+    "unitTests": 3,
+    "unitPassed": 3,
+    "newModelCallsByReviewer": 0
+  },
+  "originalEvidence": {
+    "reviewStartAndSidecarSigningInputCount": 13,
+    "unchangedAtSidecarSigning": true,
+    "frozenInputsStillMatch": [
+      {
+        "path": "report.json",
+        "sha256": "416430f8d2a2b4a9fae914fb444a962e5bb0443599e85d160821198b931d6c08",
+        "size": 3101281
+      },
+      {
+        "path": "frozen-definition.json",
+        "sha256": "6ec465909d522f3d21a6c4d7a24748a103a5239a69c9334648a7b5d9a927a32f",
+        "size": 45534
+      },
+      {
+        "path": "matrix-events.jsonl",
+        "sha256": "ee41b4aea1fc6d0c4ef8c07ba0fd056aace6a4be028c5a5396312219252d5c9e",
+        "size": 320572
+      },
+      {
+        "path": "native-final.json",
+        "sha256": "b3f343ed7d7fccd4516e7bd23ca55fda67f521c81e85b7e973192a6789b1bfcc",
+        "size": 1541075
+      },
+      {
+        "path": "decision-evidence.json",
+        "sha256": "ddeffb02c4189e5c603f2d9fb0ea8dfa25e0439f17a91732353c7fb99fb87c59",
+        "size": 37371323
+      },
+      {
+        "path": "host/events.jsonl",
+        "sha256": "01bb283e2c1c4783a638062777787a7b8e4fc5ff471843362ee4992c64b8ad4e",
+        "size": 47978820
+      },
+      {
+        "path": "host/calls.jsonl",
+        "sha256": "10084bdc95164167931acec1e3f329b954c07446de0788cf568a985be6feb100",
+        "size": 243017
+      },
+      {
+        "path": "memory-maintenance-evidence.jsonl",
+        "sha256": "dd40f7b9aa41e799edcc50197014cf473552fa293108a90aab1b6f8f2a75d4de",
+        "size": 1435385
+      },
+      {
+        "path": "prior-attempts/control-timeout-01/manifest.json",
+        "sha256": "12eb1a4fb851dea0c5c151caa7ce988eb84edf5772f477743bc325edbace65bd",
+        "size": 2611
+      },
+      {
+        "path": "prior-attempts/control-timeout-02/manifest.json",
+        "sha256": "6ae57385a3ef2f8a2edfafd6234b2c58844faa09836f274b3f7a55359f803797",
+        "size": 2505
+      }
+    ],
+    "frozenInputCount": 10,
+    "reusedLiveRuntimeStates": [
+      {
+        "path": "host/node-0/native-bridge.json",
+        "atReviewStartSha256": "460c35582f8df101b59c29e42a776648461ec649a1e77816cb9ca2e9069ea99a",
+        "changedAfterReview": true,
+        "scope": "Reused live node request state, not an immutable original-run evidence file"
+      },
+      {
+        "path": "host/node-1/native-bridge.json",
+        "atReviewStartSha256": "c2305031aefea0cf8a8260aa2fbc34c6dd1f336cd83037404fd0e4c6df6ebff0",
+        "changedAfterReview": true,
+        "scope": "Reused live node request state, not an immutable original-run evidence file"
+      },
+      {
+        "path": "host/node-2/native-bridge.json",
+        "atReviewStartSha256": "43678e0b82988c5d78c66b7f01e1a7f0b455bd5867fb60a2e55bbf70ba5f1ea8",
+        "changedAfterReview": true,
+        "scope": "Reused live node request state, not an immutable original-run evidence file"
+      }
+    ],
+    "archiveFilesVerified": 33,
+    "archivePrefixesUnchanged": true,
+    "reportAndOriginalScoresNotRewritten": true
+  },
+  "nativeSourceTrace": {
+    "humanSenderAndRoomMismatches": 0,
+    "matrixReceiptSourceLinks": 146,
+    "mismatches": 0,
+    "nicknameAfterRename": [
+      "阿宁"
+    ],
+    "otherSameNameAccount": [
+      "周宁"
+    ],
+    "decisions": 447,
+    "workChanged": 44,
+    "decisionSourceEventsAllFound": true
+  },
+  "accounting": {
+    "originalSnapshotKept": true,
+    "originalStartEndUnfinished": [
+      387,
+      384,
+      3
+    ],
+    "stableRawStartEndUnfinished": [
+      387,
+      385,
+      2
+    ],
+    "normalTypedEndsExcludingAbort": 379,
+    "truncated": 3,
+    "aborted": 2,
+    "endedWithoutStatus": 1,
+    "providerBilledTotalKnown": false,
+    "zeroVisibleUsageNotTreatedAsFree": true
+  },
+  "publication": {
+    "publicHashes": {
+      "artifacts/kernel-platform/natural-full-run-01-review.md": "aefbd124e2163a0772d502c8f06e7328c7d962e2e6d8689a4eee9e48789a4cfe",
+      "artifacts/kernel-platform/natural-full-run-01-reviewed.json": "f1774a0676e918a10932975de7e46e5301ae4c8e9ecbe58ce74b2d66820d78f2",
+      "artifacts/kernel-platform/natural-full-run-01-followup-plan.json": "69f7a15776569d89ec21cb5538f2441d718a00ff2542be7be996a2ea4101f973"
+    },
+    "privateBodiesOmitted": 4,
+    "membershipRowsExcluded": 11,
+    "localPathsRedacted": true,
+    "syntheticConfigFilesScanned": 11,
+    "hostLogFilesScanned": 5,
+    "privateTokenCandidates": 19,
+    "dshAuthUrlCandidates": 5,
+    "privateTokenMatches": 0,
+    "dshAuthUrlMatches": 0,
+    "credentialPatternMatches": 0,
+    "secretValuesCopied": false
+  },
+  "repairPlans": {
+    "cases": 2,
+    "answersOrOriginalIdsInUserBodies": false,
+    "notExecutedByReviewer": true,
+    "originalGradesUnchanged": true
+  }
+}

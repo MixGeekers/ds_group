@@ -4,6 +4,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
+import { homedir } from 'node:os';
 import { packageRoot } from '../src/paths.mjs';
 const sha = value => createHash('sha256').update(value).digest('hex');
 const readJson = async file => JSON.parse(await readFile(file, 'utf8'));
@@ -65,8 +66,13 @@ export async function exportNaturalEvidence(directory, destination, { reviewFile
     limits: ['Synthetic roles and accelerated story dates; not a real three-day observation', 'One physical host; no physical cross-machine result',
       'completed-awaiting-review is not acceptance; social/source-priority reviews must be finished separately', 'Provider billed total and complete embedding cost remain unknown unless separately reconciled'] };
   await mkdir(path.dirname(destination), { recursive: true });
-  await writeFile(destination, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
-  return result;
+  const roots = [[path.resolve(directory), '<private-run>'], [homedir(), '<home>']];
+  const redactPaths = value => typeof value === 'string' ? roots.reduce((text, [root, label]) => text.replaceAll(root, label), value)
+    : Array.isArray(value) ? value.map(redactPaths) : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, redactPaths(item)])) : value;
+  const published = redactPaths(result);
+  published.localPathRedaction = 'Original run root and home directory removed from public evidence; source hashes bind the private originals';
+  await writeFile(destination, JSON.stringify(published, null, 2) + '\n', { flag: 'wx' });
+  return published;
 }
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
   if (![4, 5].includes(process.argv.length)) throw new Error('Use: node scripts/platform-natural-evidence.mjs <private-run-directory> <new-output-json> [independent-review-sidecar]');

@@ -263,7 +263,7 @@ test('pure human conversations and optional social turns allow silence without a
 });
 test('public evidence filters membership comments, redacts private bodies and binds the review to the original report', async t => {
   const directory = await temporary(t), definition = definitionFor('diagnostic');
-  const report = { status: 'completed-awaiting-review', definitionHash: definition.definitionHash, rows: [], attempts: [{ maintenancePolicy: { version: 2, forcedMemoryReview: false } }], failures: [], bots: [{ id: 'b0' }],
+  const report = { status: 'completed-awaiting-review', definitionHash: definition.definitionHash, rows: [], attempts: [{ maintenancePolicy: { version: 2, forcedMemoryReview: false } }], failures: [{ detail: `test location: ${directory}/contracts/check.mjs` }], bots: [{ id: 'b0' }],
     allBotMessageReview: [{ eventId: 'membership', room: 'project', body: '' }, { eventId: 'public', room: 'project', body: 'public text' },
       { eventId: 'private', room: 'private-a', body: 'synthetic confidential card' }] };
   await writeFile(path.join(directory, 'report.json'), JSON.stringify(report));
@@ -280,6 +280,7 @@ test('public evidence filters membership comments, redacts private bodies and bi
   assert.equal(result.allBotMessageReview.length, 2); assert.equal(result.messageReviewFilter.excludedNonMessages, 1);
   assert.equal(result.independentReview.reviewId, 'review-1'); assert.equal(JSON.stringify(result).includes('DO_NOT_EXPORT'), false);
   assert.deepEqual(result.attempts[0].maintenancePolicy, { version: 2, forcedMemoryReview: false });
+  assert.equal(result.failures[0].detail, 'test location: <private-run>/contracts/check.mjs');
   assert.equal(result.independentReview.regressionReviews[0].id, 'F1'); assert.equal(result.independentReview.workChangedReview.chains, 1);
   assert.equal(JSON.stringify(result).includes('synthetic confidential card'), false);
   review.source.reportSha256 = 'wrong-run'; await writeFile(reviewFile, JSON.stringify(review));
