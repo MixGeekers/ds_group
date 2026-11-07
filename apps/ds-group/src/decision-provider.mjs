@@ -1,11 +1,22 @@
 /** A decision is a participation choice, never an execution authorization. */
 export const ATTENTION_ACTIONS = Object.freeze(['LISTEN', 'WAIT', 'SPEAK']);
 export const ATTENTION_POLICY_VERSION = 'dscord-attention-v1';
-const OPENAI_ENDPOINT = 'https://api.openai.com/v1/decisions';
-const OPENAI_MODEL = 'gpt-6-luna';
+export const DECISION_DEFAULTS = Object.freeze({ endpoint: 'https://api.openai.com/v1/decisions', model: 'gpt-6-luna' });
 
 export class DecisionError extends Error {
   constructor(code, message = code) { super(message); this.name = 'DecisionError'; this.code = code; }
+}
+
+export function decisionProviderConfiguration({ endpoint = DECISION_DEFAULTS.endpoint, model = DECISION_DEFAULTS.model } = {}) {
+  let url;
+  try { url = new URL(endpoint); } catch { /* report a configuration error without echoing a private URL */ }
+  if (typeof endpoint !== 'string' || !url || !['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.hash) {
+    throw new DecisionError('INVALID_DECISION_ENDPOINT', 'Use an HTTP(S) Decisions endpoint without URL credentials or a fragment');
+  }
+  if (typeof model !== 'string' || !model.length || model.length > 512 || /[\s\x00-\x1f\x7f]/.test(model)) {
+    throw new DecisionError('INVALID_DECISION_MODEL', 'Use a model identifier supported by the Decisions service');
+  }
+  return { endpoint: url.href, model };
 }
 
 export function validateDecision(value) {
@@ -45,19 +56,20 @@ export const attentionQuestion = Object.freeze({ type: 'choice', name: 'particip
   ] });
 
 /** Official Decisions protocol; intentionally separate from DSH chat providers. */
-export function createOpenAIDecisionProvider({ apiKey, fetchImpl = fetch, timeoutMs = 5000 } = {}) {
+export function createOpenAIDecisionProvider({ apiKey, endpoint, model, fetchImpl = fetch, timeoutMs = 5000 } = {}) {
+  ({ endpoint, model } = decisionProviderConfiguration({ endpoint, model }));
   const key = typeof apiKey === 'string' ? apiKey.trim() : '';
   let health = { health: key ? 'unknown' : 'unconfigured', lastErrorCode: null, lastSuccessAt: null };
   return {
-    id: 'openai-decisions', model: OPENAI_MODEL, configured: Boolean(key),
+    id: 'openai-decisions', model, configured: Boolean(key),
     health: () => ({ ...health }),
     async decide(input, { signal } = {}) {
       if (!key) throw new DecisionError('ATTENTION_PROVIDER_UNCONFIGURED', 'Decision provider has no credential');
       const deadline = AbortSignal.timeout(timeoutMs);
       try {
-        const response = await fetchImpl(OPENAI_ENDPOINT, {
+        const response = await fetchImpl(endpoint, {
           method: 'POST', redirect: 'error', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-          body: JSON.stringify({ model: OPENAI_MODEL, input: JSON.stringify(input), questions: [attentionQuestion],
+          body: JSON.stringify({ model, input: JSON.stringify(input), questions: [attentionQuestion],
             prompt_cache_options: { mode: 'explicit' } }),
           signal: signal ? AbortSignal.any([signal, deadline]) : deadline,
         });
@@ -68,7 +80,7 @@ export function createOpenAIDecisionProvider({ apiKey, fetchImpl = fetch, timeou
         catch { throw new DecisionError('ATTENTION_INVALID_RESPONSE', 'Decision service returned unreadable JSON'); }
         const answer = body.answers?.find(answer => answer.name === 'participation');
         if (answer?.type === 'refusal') throw new DecisionError('ATTENTION_REFUSAL', 'Decision service declined this question');
-        if (body.model !== OPENAI_MODEL || answer?.type !== 'choice'
+        if (body.model !== model || answer?.type !== 'choice'
           || !Array.isArray(answer.probabilities) || answer.probabilities.length !== ATTENTION_ACTIONS.length
           || new Set(answer.probabilities.map(row => row.value)).size !== ATTENTION_ACTIONS.length) {
           throw new DecisionError('ATTENTION_INVALID_RESPONSE', 'Decision service returned an unexpected answer');

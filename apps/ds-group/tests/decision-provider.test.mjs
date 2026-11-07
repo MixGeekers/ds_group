@@ -38,6 +38,29 @@ test('OpenAI adapter sends the tested dedicated Decisions contract without a mai
   assert.equal(JSON.stringify(provider.health()).includes('synthetic-private-key'), false);
 });
 
+test('Decisions protocol routes use the configured endpoint and model instead of a fixed service', async () => {
+  const calls = [];
+  const model = 'company/participation-v2';
+  const provider = createOpenAIDecisionProvider({ apiKey: 'synthetic-private-key', model,
+    endpoint: 'http://127.0.0.1:9417/team/decisions?api-version=2', fetchImpl: async (url, options) => {
+      calls.push({ url, options }); return Response.json({ ...body('LISTEN'), model });
+    } });
+  assert.equal(provider.model, model);
+  assert.equal((await provider.decide({ roomId: '!custom:test' })).action, 'LISTEN');
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, 'http://127.0.0.1:9417/team/decisions?api-version=2');
+  assert.equal(JSON.parse(calls[0].options.body).model, model);
+});
+
+test('invalid Decisions endpoints and model identifiers fail before any request', () => {
+  for (const endpoint of ['file:///tmp/decision', 'https://user:private@example.test/v1/decisions', 'https://example.test/decisions#fragment', null]) {
+    assert.throws(() => createOpenAIDecisionProvider({ endpoint }), { code: 'INVALID_DECISION_ENDPOINT' });
+  }
+  for (const model of ['', 'invalid model', null, 1]) {
+    assert.throws(() => createOpenAIDecisionProvider({ model }), { code: 'INVALID_DECISION_MODEL' });
+  }
+});
+
 test('HTTP errors, refusal, model mismatch and malformed distributions remain system errors without leaking service text', async t => {
   const invalid = [
     { status: 429, data: { error: { message: 'synthetic-private-key' } }, code: 'ATTENTION_HTTP_429' },

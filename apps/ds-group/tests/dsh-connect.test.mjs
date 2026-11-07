@@ -76,6 +76,20 @@ test('DSH connection login stores a private client token and never persists or r
   await controller.dispose();
 });
 
+test('DSH decision settings action forwards the selected protocol route without dropping it', async t => {
+  const received = [];
+  const { controller } = await fixture(t, { processes: {
+    async saveDecisionProvider(settings) { received.push(settings); return { configured: true, model: settings.model }; },
+  } });
+  t.after(() => controller.dispose());
+  const input = { apiKey: 'synthetic-private-decision-key', enabled: true,
+    model: 'company/decision-v2', endpoint: 'https://decision.example/v2/decisions' };
+  const result = await controller.handle({ action: 'save-decision-provider', ...input });
+  assert.deepEqual(received, [input]);
+  assert.equal(result.model, input.model);
+  assert.equal(JSON.stringify(result).includes(input.apiKey), false);
+});
+
 test('DSH connect is idempotent, preserves identity across reload, and explicit disconnect stays offline', async t => {
   const { controller, login, settings, directory, effects } = await fixture(t);
   await login();

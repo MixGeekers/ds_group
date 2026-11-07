@@ -28,3 +28,24 @@ test('private decision configuration survives restart without returning the cred
   assert.equal(received.at(-1), 'synthetic-private-decision-key');
   assert.equal(JSON.parse(await readFile(settings.filename, 'utf8')).enabled, true);
 });
+
+test('private Decisions routing overrides its environment and persists without changing credential compatibility', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'dscord-decision-route-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const received = [];
+  const providerFactory = options => { received.push(options); return { model: options.model }; };
+  const environment = { OPENAI_API_KEY: 'synthetic-generic-key', DSCORD_DECISION_MODEL: 'proxy/decision-v1',
+    DSCORD_DECISION_ENDPOINT: 'http://127.0.0.1:9417/v1/decisions' };
+  const settings = await new DecisionSettings({ directory, environment, providerFactory }).initialize();
+  assert.deepEqual(received[0], { apiKey: 'synthetic-generic-key', model: environment.DSCORD_DECISION_MODEL, endpoint: environment.DSCORD_DECISION_ENDPOINT });
+  const status = await settings.save({ model: 'private/decision-v2', endpoint: 'https://decision.example/v2/decisions' });
+  assert.equal(status.model, 'private/decision-v2');
+  assert.equal(JSON.stringify(status).includes('synthetic-generic-key'), false);
+  assert.equal(JSON.stringify(status).includes('decision.example'), false);
+  const restored = await new DecisionSettings({ directory, environment, providerFactory }).initialize();
+  assert.equal(restored.publicStatus().model, 'private/decision-v2');
+  assert.equal(received.at(-1).endpoint, 'https://decision.example/v2/decisions');
+  const before = await readFile(settings.filename, 'utf8');
+  await assert.rejects(settings.save({ endpoint: 'file:///tmp/decisions' }), { code: 'INVALID_DECISION_ENDPOINT' });
+  assert.equal(await readFile(settings.filename, 'utf8'), before);
+});

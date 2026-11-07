@@ -387,7 +387,8 @@ export class ConnectController {
       if (this.closed) throw new Error('连接插件正在关闭');
       switch (body.action) {
         case 'create-native': return this.createNative(body);
-        case 'save-decision-provider': return this.processes.saveDecisionProvider({ apiKey: body.apiKey, enabled: body.enabled });
+        case 'save-decision-provider': return this.processes.saveDecisionProvider({ apiKey: body.apiKey, enabled: body.enabled,
+          model: body.model, endpoint: body.endpoint });
         case 'attention-update': {
           await this.ownedNativeBot(body.nativeBotId);
           if (!['mention', 'shadow', 'natural'].includes(body.mode)) throw new Error('请选择有效的参与方式');

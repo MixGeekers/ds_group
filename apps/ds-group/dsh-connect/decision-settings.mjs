@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { readOptionalJson, savePrivateJson } from '../scripts/server-init.mjs';
-import { createOpenAIDecisionProvider } from '../src/decision-provider.mjs';
+import { createOpenAIDecisionProvider, decisionProviderConfiguration } from '../src/decision-provider.mjs';
 
 /** A private node setting. Only publicStatus is returned to a browser or Core. */
 export class DecisionSettings {
@@ -25,13 +25,19 @@ export class DecisionSettings {
     return this;
   }
 
-  key() {
-    return this.config.apiKey || this.environment.DSCORD_DECISION_API_KEY || this.environment.OPENAI_API_KEY || '';
+  key(config = this.config) {
+    return config.apiKey || this.environment.DSCORD_DECISION_API_KEY || this.environment.OPENAI_API_KEY || '';
+  }
+
+  options(config = this.config) {
+    return { ...decisionProviderConfiguration({ model: config.model ?? (this.environment.DSCORD_DECISION_MODEL || undefined),
+      endpoint: config.endpoint ?? (this.environment.DSCORD_DECISION_ENDPOINT || undefined) }), apiKey: this.key(config) };
   }
 
   refresh() {
+    const options = this.options();
     this.provider = this.config.enabled && this.key()
-      ? this.providerFactory({ apiKey: this.key() }) : null;
+      ? this.providerFactory(options) : null;
   }
 
   publicStatus() {
@@ -39,16 +45,19 @@ export class DecisionSettings {
     return { configured: Boolean(this.key()), enabled: this.config.enabled,
       available: !this.config.enabled || !this.provider ? false
         : health?.health === 'ok' ? true : health?.health === 'error' ? false : null,
-      model: this.provider?.model || 'gpt-6-luna', health: health?.status || health?.health || 'unknown' };
+      model: this.provider?.model || this.options().model, health: health?.status || health?.health || 'unknown' };
   }
 
-  async save({ apiKey, enabled } = {}) {
+  async save({ apiKey, enabled, model, endpoint } = {}) {
     if (enabled !== undefined && typeof enabled !== 'boolean') throw new Error('INVALID_DECISION_SETTING');
     if (apiKey !== undefined && (typeof apiKey !== 'string' || apiKey.length > 4096)) throw new Error('INVALID_DECISION_KEY');
     const next = { ...this.config,
       ...(enabled === undefined ? {} : { enabled }),
       ...(apiKey?.trim() ? { apiKey: apiKey.trim() } : {}),
+      ...(model === undefined ? {} : { model }),
+      ...(endpoint === undefined ? {} : { endpoint }),
     };
+    this.options(next);
     await savePrivateJson(this.filename, next);
     this.config = next;
     this.refresh();

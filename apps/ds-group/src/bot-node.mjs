@@ -1248,7 +1248,8 @@ export async function runNode(argv = process.argv.slice(2)) {
     || nodeConfig.attention?.mode || config.attention?.mode || 'mention';
   const decisionKey = process.env.DSCORD_DECISION_API_KEY || process.env.OPENAI_API_KEY;
   const decisionProvider = process.env.DSCORD_DECISION_ENABLED === 'false' ? undefined
-    : createOpenAIDecisionProvider({ apiKey: decisionKey });
+    : createOpenAIDecisionProvider({ apiKey: decisionKey,
+      model: process.env.DSCORD_DECISION_MODEL || undefined, endpoint: process.env.DSCORD_DECISION_ENDPOINT || undefined });
   const node = new BotNode({ participant, participants: setup.participants, roomId: setup.roomId,
     matrix: new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: participant.accessToken }), store,
     bridge, executionMode, nativeBinding, attention: { mode: attentionMode }, decisionProvider,
