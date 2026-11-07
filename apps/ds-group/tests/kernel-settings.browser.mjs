@@ -162,11 +162,20 @@ try {
   const nativeRequests = [];
   let nativeMode = 'mention';
   let keySubmitted = false;
+  let creationReceiptLost = false;
+  const creations = new Map();
   await page.route('**/api/dscord', async route => {
     const body = route.request().postDataJSON(); nativeRequests.push({ ...body, ...(body.apiKey ? { apiKey: '[redacted synthetic test key]' } : {}) });
     let value;
     if (body.action === 'status') value = nativeState;
-    else if (body.action === 'create-native') { nativeState.nativeBots.push({ id: 'local-shiyu', name: body.name, role: body.role, model: body.model }); value = nativeState; }
+    else if (body.action === 'create-native') {
+      if (!creations.has(body.requestId)) {
+        const created = { id: 'local-shiyu', name: body.name, role: body.role, model: body.model };
+        nativeState.nativeBots.push(created); creations.set(body.requestId, created);
+      }
+      if (!creationReceiptLost) { creationReceiptLost = true; await route.fulfill({ json: { ok: false, error: { message: 'Synthetic creation receipt lost' } } }); return; }
+      value = nativeState;
+    }
     else if (body.action === 'kernel-state') value = { runtime: { id: 'dscord-kernel', available: true }, decisionProvider: { configured: keySubmitted, available: keySubmitted, model: 'participation-model' }, ...(body.nativeBotId ? { attention: { mode: nativeMode, activity: 'listening', provider: { configured: keySubmitted, available: keySubmitted } }, work: { activeTasks: 0, waiting: 0 }, memorySummary: { people: 1, projects: 0, pendingReview: 0 } } : {}) };
     else if (body.action === 'attention-update') { nativeMode = body.mode; value = { mode: nativeMode, status: 'applied' }; }
     else if (body.action === 'save-decision-provider') { assert.equal(body.apiKey, 'synthetic-decision-key'); keySubmitted = true; value = { configured: true, available: true, model: 'participation-model' }; }
@@ -182,9 +191,15 @@ try {
   await page.getByLabel('Name', { exact: true }).fill('Shiyu');
   await page.getByLabel('Role or introduction').fill('A friend and project partner');
   await page.getByRole('button', { name: 'Create on this node' }).click();
+  await page.getByRole('alert').filter({ hasText: 'Synthetic creation receipt lost' }).waitFor();
+  await page.getByRole('button', { name: 'Confirm same creation' }).click();
   await page.getByText('Bot created. You can now add it to the server.', { exact: true }).waitFor();
-  assert.deepEqual(nativeRequests.find(item => item.action === 'create-native'), { action: 'create-native', name: 'Shiyu', role: 'A friend and project partner', model: 'local/chat' });
-  checks.push('dshCreatesLocalBotWithChosenModelUsingOwnedKernelController');
+  const creationRequests = nativeRequests.filter(item => item.action === 'create-native');
+  assert.equal(creationRequests.length, 2); assert.deepEqual(creationRequests[0], creationRequests[1]);
+  assert.ok(typeof creationRequests[0].requestId === 'string' && creationRequests[0].requestId.length > 10);
+  assert.deepEqual({ ...creationRequests[0], requestId: '[stable request]' }, { action: 'create-native', name: 'Shiyu', role: 'A friend and project partner', model: 'local/chat', requestId: '[stable request]' });
+  assert.equal(nativeState.nativeBots.length, 1);
+  checks.push('dshCreatesLocalBotWithChosenModelAndConfirmsSameRequestAfterLostReceipt');
   await page.getByRole('button', { name: 'Bot settings', exact: true }).click();
   await page.getByRole('radio', { name: /Join naturally/ }).check();
   await page.getByRole('button', { name: 'Save participation', exact: true }).click();

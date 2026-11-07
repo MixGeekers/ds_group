@@ -14,6 +14,7 @@ window.__ModuleLoader__.load({
       chooseNative: '选择本机 Bot', nativeBound: '已加入', nativeLifecycle: '断开只关闭服务器连接，Bot 的本地对话、记忆和工作继续保留。',
       newBot: '创建 Bot', createLocal: '创建到此节点', creatingLocal: '正在创建…', botName: '名称', botRole: '职责或介绍',
       localCreated: 'Bot 已创建，可将它加入服务器。', settings: 'Bot 设置', stableIdentity: '本机稳定身份', back: '返回 Bot 列表',
+      creationPending: '创建结果待确认。请先刷新 Bot 列表；重试会核对同一次创建。', confirmCreation: '核对同次创建',
       participation: '参与方式', mention: '点名回应', shadow: '安静观察', natural: '自然参与',
       mentionHelp: '被 @ 或收到私聊时回应。', shadowHelp: '观察对话并形成判断，暂不主动发言。', naturalHelp: '判断什么时候补充、等待或继续倾听。',
       saveParticipation: '保存参与方式', participationSaved: '参与方式已保存', participationPending: '已保存，节点将在下次同步时应用。',
@@ -57,6 +58,7 @@ window.__ModuleLoader__.load({
       chooseNative: 'Choose a local Bot', nativeBound: 'Added', nativeLifecycle: 'Disconnecting closes the server connection. The Bot keeps its local chats, memory and work.',
       newBot: 'Create Bot', createLocal: 'Create on this node', creatingLocal: 'Creating…', botName: 'Name', botRole: 'Role or introduction',
       localCreated: 'Bot created. You can now add it to the server.', settings: 'Bot settings', stableIdentity: 'Stable local identity', back: 'Back to Bots',
+      creationPending: 'Creation is awaiting confirmation. Refresh the Bot list first; retrying confirms the same request.', confirmCreation: 'Confirm same creation',
       participation: 'Participation', mention: 'When mentioned', shadow: 'Observe quietly', natural: 'Join naturally',
       mentionHelp: 'Respond to mentions and direct messages.', shadowHelp: 'Observe and form judgments, while holding back proactive replies.', naturalHelp: 'Decide when to contribute, wait, or keep listening.',
       saveParticipation: 'Save participation', participationSaved: 'Participation saved', participationPending: 'Saved. The node will apply this at its next update.',
@@ -436,23 +438,40 @@ body[data-ds-dark-theme] .dscord-connect {
     function CreateLocalBot({ connection, state, t }) {
       const catalog = state.value?.models;
       const models = (catalog?.providers || []).flatMap(provider => provider.models);
-      const [model, setModel] = React.useState(catalog?.defaultSelection?.model || '');
+      const storageKey = `dscord.pending-native.${state.value?.hostId || 'local'}`;
+      const [draft] = React.useState(() => {
+        try {
+          const value = JSON.parse(sessionStorage.getItem(storageKey));
+          return value && typeof value.requestId === 'string' && ['name', 'role', 'model'].every(key => typeof value.input?.[key] === 'string') ? value : null;
+        } catch { return null; }
+      });
+      const pending = React.useRef(draft);
+      const [name, setName] = React.useState(draft?.input.name || '');
+      const [role, setRole] = React.useState(draft?.input.role || '');
+      const [model, setModel] = React.useState(draft?.input.model || catalog?.defaultSelection?.model || '');
+      const [uncertain, setUncertain] = React.useState(Boolean(draft));
       const disabled = Boolean(state.busy);
       return h('details', { className: 'dc-create' }, h('summary', null, t('newBot')),
         h('form', { onSubmit: async event => {
           event.preventDefault();
-          const form = event.currentTarget;
-          const name = form.elements.namedItem('botName').value.trim();
-          if (!name || !models.some(item => item.model === model)) return;
-          const role = form.elements.namedItem('botRole').value.trim();
-          const value = await connection.createNative({ name, role, model });
-          if (value) form.reset();
+          const input = { name: name.trim(), role: role.trim(), model };
+          if (!input.name || !models.some(item => item.model === model && !item.needsKey)) return;
+          const fingerprint = JSON.stringify(input);
+          if (pending.current?.fingerprint !== fingerprint) pending.current = { input, fingerprint,
+            requestId: globalThis.crypto?.randomUUID?.() || `create-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}` };
+          try { sessionStorage.setItem(storageKey, JSON.stringify(pending.current)); } catch { /* The live form still retains its request identity. */ }
+          const value = await connection.createNative({ ...input, requestId: pending.current.requestId });
+          if (value) {
+            pending.current = null; setUncertain(false); setName(''); setRole('');
+            try { sessionStorage.removeItem(storageKey); } catch { /* Storage may be disabled by the host. */ }
+          } else setUncertain(true);
         } },
-          h('label', { className: 'dc-field' }, t('botName'), h(Input, { name: 'botName', required: true, maxLength: 80, disabled, autoComplete: 'off' })),
-          h('label', { className: 'dc-field' }, t('botRole'), h(Input, { name: 'botRole', maxLength: 1000, disabled, autoComplete: 'off' })),
-          h('label', { className: 'dc-field' }, t('model'), h('select', { name: 'localModel', required: true, value: model, onChange: event => setModel(event.target.value), disabled },
+          h('label', { className: 'dc-field' }, t('botName'), h(Input, { name: 'botName', required: true, maxLength: 80, value: name, onChange: event => { setName(event.target.value); setUncertain(false); }, disabled, autoComplete: 'off' })),
+          h('label', { className: 'dc-field' }, t('botRole'), h(Input, { name: 'botRole', maxLength: 1000, value: role, onChange: event => { setRole(event.target.value); setUncertain(false); }, disabled, autoComplete: 'off' })),
+          h('label', { className: 'dc-field' }, t('model'), h('select', { name: 'localModel', required: true, value: model, onChange: event => { setModel(event.target.value); setUncertain(false); }, disabled },
             h('option', { value: '' }, t('noModel')), ...models.map(item => h('option', { key: item.model, value: item.model, disabled: item.needsKey === true }, item.name || item.model)))),
-          h(Button, { type: 'submit', variant: 'primary', disabled: disabled || !models.some(item => item.model === model && !item.needsKey) }, t(state.busy?.action === 'create-native' ? 'creatingLocal' : 'createLocal'))));
+          uncertain && h('p', { role: 'status', className: 'dc-muted dc-model-info' }, t('creationPending')),
+          h(Button, { type: 'submit', variant: 'primary', disabled: disabled || !models.some(item => item.model === model && !item.needsKey) }, t(state.busy?.action === 'create-native' ? 'creatingLocal' : uncertain ? 'confirmCreation' : 'createLocal'))));
     }
 
     function DecisionProviderForm({ connection, provider, onSaved, t }) {
