@@ -5,21 +5,15 @@ import { pathToFileURL } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { packageRoot } from '../src/paths.mjs';
 import { verifyRuntimeDependencyManifests } from './runtime-dependencies.mjs';
+import { sourceRootFiles, sourceDirectories, excludedReleasePath, includedSourceFile, projectLicense, PUBLIC_SOURCE_POLICY } from './release-content.mjs';
+import { releaseVersion } from './release-version.mjs';
 
-const rootFiles = ['package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts', 'cordis.patch.yml', 'README.md', '发行验证.md', '前端架构与设计规范.md', 'UI基础组件实施记录.md', '中央身份实施记录.md', '统一客户端实施记录.md', '多人平台实施与验收.md', '.gitignore', '.gitattributes', '.dockerignore', 'Dockerfile'];
-const sourceDirectories = ['bin', 'src', 'memory', 'service', 'scripts', 'tests', 'web', 'admin', 'ui', 'deploy', 'dsh-plugin', 'dsh-connect', 'vendor'];
-const excludedNames = new Set(['node_modules', '.local', '.git', 'artifacts', 'dist', 'test-results', 'playwright-report', '.DS_Store']);
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
-
-function excluded(name) {
-  return excludedNames.has(name) || (name.startsWith('.env') && name !== '.env.example')
-    || /\.(?:sqlite(?:-shm|-wal)?|db|log|pem|key)$/.test(name);
-}
 
 export async function collectReleaseFiles(root) {
   const files = [];
   async function visit(relative) {
-    if (relative.split('/').some(excluded)) return;
+    if (excludedReleasePath(relative) || relative.split('/').includes('dist')) return;
     const filename = path.join(root, ...relative.split('/'));
     let stat;
     try { stat = await lstat(filename); }
@@ -27,13 +21,14 @@ export async function collectReleaseFiles(root) {
     if (stat.isSymbolicLink()) throw new Error(`Release source contains a symlink: ${relative}`);
     if (stat.isDirectory()) {
       for (const child of (await readdir(filename)).sort()) await visit(`${relative}/${child}`);
-    } else if (stat.isFile()) {
+    } else if (stat.isFile() && includedSourceFile(relative)) {
       files.push({ path: relative, bytes: await readFile(filename) });
-    } else {
+    } else if (!stat.isFile()) {
       throw new Error(`Release source contains a special file: ${relative}`);
     }
   }
-  for (const entry of [...rootFiles, ...sourceDirectories]) await visit(entry);
+  const legalFiles = (await readdir(root)).filter(name => /^(?:LICENSE|LICENCE|NOTICE)(?:\.(?:md|txt))?$/i.test(name));
+  for (const entry of new Set([...sourceRootFiles, ...legalFiles, ...sourceDirectories])) await visit(entry);
   return files.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
 }
 
@@ -82,18 +77,20 @@ export async function buildRelease({ root = packageRoot, output = path.join(root
   const packageFile = source.find(file => file.path === 'package.json');
   if (!packageFile) throw new Error('Release source needs package.json');
   const pkg = JSON.parse(packageFile.bytes.toString('utf8'));
-  if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(pkg.version)) throw new Error('Invalid release version');
+  releaseVersion(pkg.version);
+  await projectLicense(root, pkg);
   const required = ['package-lock.json', 'src/core.mjs', 'src/identity.mjs', 'src/web-mode.mjs', 'src/admin.mjs',
     'scripts/central-init.mjs', 'scripts/admin.mjs', 'bin/dscord.mjs', 'web/index.html', 'web/src/client-config.ts', 'web/client-config.json', 'admin/index.html', 'admin/vite.config.ts',
     'Dockerfile', 'deploy/compose.yaml', 'deploy/synapse/dscord_guard.py', 'ui/controls.tsx', 'ui/overlays.tsx', 'ui/tailwind.css', 'web/licenses/ui-foundation.txt',
     'dsh-plugin/index.mjs', 'dsh-plugin/runtime-dependencies.json', 'dsh-plugin/runtime-dependencies-lock.json', 'dsh-plugin/runtime-dependencies-pnpm-lock.yaml',
     'dsh-connect/kernel-runtime.mjs', 'memory/snapshot-context.mjs', 'src/native-request.mjs', 'vendor/ds-bot/src/host/message-source.js',
-    'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE'];
+    'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE', 'vendor/ds-bot/UPSTREAM.json', 'service/ombre/LICENSE', 'service/ombre/SOURCE.json'];
   for (const filename of required) {
     if (!source.some(file => file.path === filename)) throw new Error(`Release is missing ${filename}`);
   }
   const manifest = {
     schemaVersion: 1,
+    contentPolicy: PUBLIC_SOURCE_POLICY,
     name: 'ds-group',
     version: pkg.version,
     node: pkg.engines.node,

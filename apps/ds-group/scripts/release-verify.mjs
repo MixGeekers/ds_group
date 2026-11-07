@@ -4,6 +4,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 import { packageRoot } from '../src/paths.mjs';
+import { includedSourceFile, PUBLIC_SOURCE_POLICY } from './release-content.mjs';
+import { releaseVersion } from './release-version.mjs';
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const stringAt = (header, offset, length) => header.subarray(offset, offset + length).toString('utf8').replace(/\0.*$/s, '');
@@ -33,7 +35,7 @@ export function readReleaseArchive(archive) {
   return entries;
 }
 
-export async function verifyRelease({ archive, extract } = {}) {
+export async function verifyRelease({ archive, extract, requirePublicContent = false } = {}) {
   if (!archive) {
     const pkg = JSON.parse(await readFile(path.join(packageRoot, 'package.json'), 'utf8'));
     archive = path.join(packageRoot, '.local', 'release', `ds-group-${pkg.version}-source.tar.gz`);
@@ -50,15 +52,28 @@ export async function verifyRelease({ archive, extract } = {}) {
   if (sha256(externalManifest) !== manifestChecksum || !externalManifest.equals(manifestEntry[1])) throw new Error('Release manifest does not match the verified archive');
   const manifest = JSON.parse(manifestEntry[1].toString('utf8'));
   if (manifest.schemaVersion !== 1 || manifest.name !== 'ds-group' || !Array.isArray(manifest.files)) throw new Error('Invalid release manifest');
+  releaseVersion(manifest.version);
+  if (manifest.contentPolicy && manifest.contentPolicy !== PUBLIC_SOURCE_POLICY) throw new Error('Unknown release content policy');
+  if (requirePublicContent && manifest.contentPolicy !== PUBLIC_SOURCE_POLICY) throw new Error('Publishing requires the public source content policy');
   const prefix = `ds-group-${manifest.version}/`;
   if (manifestEntry[0] !== `${prefix}release-manifest.json`) throw new Error('Archive root does not match release version');
   const seen = new Set();
   for (const file of manifest.files) {
+    if (manifest.contentPolicy === PUBLIC_SOURCE_POLICY && !includedSourceFile(file.path)) throw new Error(`File is outside the public release policy: ${file.path}`);
     const bytes = entries.get(`${prefix}${file.path}`);
     if (seen.has(file.path) || !bytes || bytes.length !== file.bytes || sha256(bytes) !== file.sha256) throw new Error(`Release file verification failed: ${file.path}`);
     seen.add(file.path);
   }
   if (entries.size !== manifest.files.length + 1) throw new Error('Release archive contains unlisted files');
+  const pkg = JSON.parse(entries.get(`${prefix}package.json`)?.toString('utf8') || '{}');
+  if (pkg.version !== manifest.version) throw new Error('Release package and manifest versions differ');
+  if (manifest.contentPolicy === PUBLIC_SOURCE_POLICY) {
+    if (!pkg.license || pkg.license === 'UNLICENSED') throw new Error('Public release lacks the project license declaration');
+    if (![...seen].some(name => /^(?:LICENSE|LICENCE)(?:\.(?:md|txt))?$/i.test(name))) throw new Error('Public release lacks its project LICENSE');
+    for (const filename of ['vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE', 'service/ombre/LICENSE']) {
+      if (!seen.has(filename)) throw new Error(`Public release lacks third-party license: ${filename}`);
+    }
+  }
   if (extract) {
     await mkdir(extract, { recursive: true });
     if ((await readdir(extract)).length) throw new Error('Extraction destination must be empty');
@@ -68,7 +83,7 @@ export async function verifyRelease({ archive, extract } = {}) {
       await writeFile(destination, bytes, { flag: 'wx', mode: 0o644 });
     }
   }
-  return { version: manifest.version, files: manifest.files.length, sha256: expected, extracted: extract || null };
+  return { version: manifest.version, files: manifest.files.length, sha256: expected, contentPolicy: manifest.contentPolicy || 'legacy', extracted: extract || null };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
@@ -76,6 +91,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const args = process.argv.slice(2);
   while (args.length) {
     const option = args.shift();
+    if (option === '--require-public-content') { options.requirePublicContent = true; continue; }
     if (!['--archive', '--extract'].includes(option) || !args.length) throw new Error('Use release-verify.mjs [--archive FILE] [--extract EMPTY_DIRECTORY]');
     options[option.slice(2)] = path.resolve(args.shift());
   }

@@ -13,7 +13,7 @@ const execute = promisify(execFile);
 const packageRoot = fileURLToPath(new URL('../', import.meta.url));
 const sourceManifest = JSON.parse(await readFile(path.join(packageRoot, 'package.json'), 'utf8'));
 const { values } = parseArgs({ options: {
-  tarball: { type: 'string', default: `.local/npm-release/dscord-${sourceManifest.version}-alpha.1.tgz` },
+  tarball: { type: 'string', default: `.local/npm-release/dscord-${sourceManifest.version}.tgz` },
   report: { type: 'string', default: 'artifacts/npm-release-smoke.json' },
 } });
 const tarball = path.resolve(packageRoot, values.tarball);
