@@ -23,6 +23,7 @@ import { CollaborationService } from './collaboration.mjs';
 import { RoomMedia } from './room-media.mjs';
 import { BotWorkService } from './bot-work.mjs';
 import { readJsonBody } from './http-json.mjs';
+import { KernelControl, publicKernelSummary } from './kernel-control.mjs';
 export { readJsonBody } from './http-json.mjs';
 
 const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
@@ -111,6 +112,8 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   }) : null;
   if (push) await push.start();
   const nodes = new Map();
+  const kernelControl = await new KernelControl({ dataRoot, accounts, node: botId => nodes.get(botId),
+    rpcTimeoutMs: config.kernelRpcTimeoutMs, leaseMs: config.kernelLeaseMs }).initialize();
   const startedAt = new Date().toISOString();
   let directory = await collaboration.directory();
   directorySetup.participants = directory;
@@ -204,7 +207,9 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     return accounts.publicParticipants().filter(p => p.kind === 'bot').map(participant => {
       const active = nodes.get(participant.id);
       if (!active) return { id: participant.localpart, botId: participant.id, name: participant.name, status: 'offline', engine: 'DS-Bot 0.2.7' };
-      return { ...active, status: Date.now() - active.heartbeatAt > 20000 ? 'offline' : active.status };
+      // Owner-only kernel settings and memory counts stay out of public status.
+      const { kernel, kernelControl: control, ...visible } = active;
+      return { ...visible, status: Date.now() - active.heartbeatAt > 20000 ? 'offline' : active.status };
     });
   }
   async function dispatch(request, response) {
@@ -305,7 +310,16 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       if (!bot || bot.kind !== 'bot' || bot.ownerId !== user.id) return send(403, { error: 'Choose one of your own Bots' });
       const secret = await nodeCredentials.issue(bot);
       const bundle = nodeBundle(setup, { ...config, nodeSecret: secret }, bot.localpart);
+      const nativeBinding = nativeBots.bindings(user.id).find(binding => binding.botId === bot.id);
+      if (nativeBots.isNative(bot.id) && nativeBinding) {
+        bundle.coreConfig.executionMode = 'native';
+        bundle.coreConfig.nativeBinding = nativeBinding;
+        bundle.setup.participants.find(person => person.id === bot.id).nativeBinding = nativeBinding;
+      }
       return send(200, { bundle });
+    }
+    if (kernelControl.handles(url.pathname) && url.pathname.startsWith('/api/')) {
+      return kernelControl.handle({ request, response, url, send, userId: request.dsIdentity.user_id, readJsonBody });
     }
     if (botWork.handles(url.pathname)) return botWork.handle({ request, url, send });
     if (tasks.handles(url.pathname)) return tasks.handle({ request, url, send });
@@ -491,6 +505,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     }
     if (url.pathname.startsWith('/internal/')) {
       const scope = authorizeNode(request);
+      if (kernelControl.handles(url.pathname)) return kernelControl.handle({ request, response, url, send, scope, readJsonBody });
       const input = await readJsonBody(request);
       if (request.method === 'POST' && url.pathname === '/internal/model/claim') {
         requireNodeScope(scope, { nodeId: input.nodeId });
@@ -500,15 +515,19 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       if (request.method === 'POST' && url.pathname === '/internal/nodes/heartbeat') {
         requireNodeScope(scope, { botId: input.botId, nodeId: input.id });
         const participant = accounts.publicParticipants().find(p => p.id === input.botId && p.kind === 'bot');
-        if (!participant || typeof input.id !== 'string' || !input.id) return send(400, { error: 'Unknown Bot node' });
+        if (!participant || typeof input.id !== 'string' || !input.id || input.id.length > 200 ||
+          input.id.includes('\0') || typeof input.runtimeId !== 'string' || !input.runtimeId || input.runtimeId.length > 200 || input.runtimeId.includes('\0') ||
+          !['idle', 'thinking', 'error', 'offline'].includes(input.status)) return send(400, { error: 'Invalid Bot node heartbeat' });
         const current = nodes.get(input.botId);
-        if (current && current.status !== 'offline' && current.runtimeId !== input.runtimeId && Date.now() - current.heartbeatAt < 20000) return send(409, { error: 'Node already has an active runtime' });
+        if (current && current.status !== 'offline' && (current.id !== input.id || current.runtimeId !== input.runtimeId) && Date.now() - current.heartbeatAt < 20000) return send(409, { error: 'Node already has an active runtime' });
         const node = { id: input.id, botId: input.botId, name: participant.name, runtimeId: input.runtimeId,
           status: input.status, processed: input.processed ?? 0, pending: input.pending ?? 0,
           sessionId: input.sessionId ?? null, lastError: input.lastError ?? null,
           model: typeof input.model === 'string' ? input.model.slice(0, 512) : null,
-          engine: input.engine || 'DS-Bot 0.2.7', heartbeatAt: Date.now() };
+          engine: input.engine || 'DS-Bot 0.2.7', heartbeatAt: Date.now(), kernel: publicKernelSummary(input.kernel),
+          kernelControl: input.kernelControl?.version === 1 ? { version: 1 } : null };
         nodes.set(input.botId, node);
+        kernelControl.observeNode(input.botId);
         chatFeatures.touchPresence(input.botId, { status: input.status === 'offline' ? 'offline' : 'online' });
         return send(200, { accepted: true });
       }
@@ -538,11 +557,13 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         ...jsonHeaders, ...(retryAfterMs === undefined ? {} : { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) }),
       });
       response.end(JSON.stringify({ error: error.message, code: error.code || error.errcode || 'REQUEST_FAILED',
+        ...(error.nodeCode === undefined ? {} : { nodeCode: error.nodeCode }),
         ...(retryAfterMs === undefined ? {} : { retry_after_ms: retryAfterMs }) }));
     });
   });
-  return { server, budget, push, media, tasks, chatFeatures, accounts, identity, nodeCredentials, governance, collaboration, botWork, close: async () => {
+  return { server, budget, push, media, tasks, chatFeatures, accounts, identity, nodeCredentials, governance, collaboration, botWork, kernelControl, close: async () => {
     media.verified.stop();
+    kernelControl.close();
     await new Promise(resolve => server.close(resolve));
     if (push) await push.close();
     await nodeCredentials.close();
