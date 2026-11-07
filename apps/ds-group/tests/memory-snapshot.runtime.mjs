@@ -33,6 +33,7 @@ const provider = createServer(async (request, response) => {
     let body = ''; for await (const bytes of request) body += bytes;
     const input = JSON.parse(body); assert.equal(input.model, 'chat'); requests.push(input);
     const text = input.messages.map(textOf).join('\n');
+    assert.equal(text.includes('obsolete-derived-view-'), false, 'A historical/attention view reached the provider');
     const snapshots = input.messages.map(textOf).filter(value => value.startsWith('Current memory source context (') || value.startsWith('Seed snapshot '));
     const checkpoint = text.includes('You are now writing a checkpoint of this conversation.');
     const steward = text.includes("You are the context steward of an AI assistant's long-running conversation.");
@@ -102,7 +103,7 @@ async function stop() {
 const oneFrame = value => assert.equal(value.activeSnapshots.length, 1);
 const sourceOf = value => JSON.parse(value.activeSnapshots[0].text.split('\n').slice(1).join('\n'));
 try {
-  for (const file of ['memory/native.mjs', 'memory/snapshot-context.mjs', 'dsh-connect/native-team.mjs', 'vendor/ds-bot/src/host/parts.js',
+  for (const file of ['memory/native.mjs', 'memory/snapshot-context.mjs', 'src/native-request.mjs', 'src/message-context.mjs', 'dsh-connect/native-team.mjs', 'vendor/ds-bot/src/host/parts.js',
     'dsh-plugin/runtime-dependencies.json', 'tests/fixtures/memory-snapshot-host.mjs', 'tests/memory-snapshot.runtime.mjs']) {
     report.sourceHashes[file] = createHash('sha256').update(await readFile(path.join(packageRoot, file))).digest('hex');
   }
@@ -138,10 +139,19 @@ export const inject=plugin.inject; export const apply=plugin.apply;
     return state;
   };
   let state = await turn('human-one', 'human-one-history'); oneFrame(state); const sessionId = state.sessionId;
+  state = await api('legacy-request', { botId: bot.id });
+  const rawLegacy = state.rawRequests.find(row => row.requestId === 'legacy-view-request'); assert.ok(rawLegacy);
+  await stop(); await start();
   state = await api('relay', { botId: bot.id, peerId: peer.id, text: 'peer-relay-history' }); oneFrame(state);
+  const legacy = state.requestEnvelopes.find(row => row.requestId === 'legacy-view-request');
+  assert.ok(legacy); assert.equal(Object.hasOwn(legacy, 'memoryView'), false); assert.equal(Object.hasOwn(legacy.context.attention, 'memoryView'), false);
+  assert.equal(legacy.currentMessage.body, 'legacy-human-history-proof');
+  assert.deepEqual(state.rawRequests.find(row => row.requestId === rawLegacy.requestId), rawLegacy);
+  assert.ok(state.historyReplays.every(text => !text.includes('obsolete-derived-view-')));
+  report.checks.push('restoredLegacyRequestViewsProjectWithoutChangingOriginalEventsOrReplayHistory');
   state = await turn('human-two', 'human-two-tool', '@bob:snapshot.local', '!south:snapshot.local'); oneFrame(state);
   assert.ok(state.toolResults.some(result => result.text.includes('tool-file-history-proof')));
-  assert.equal(state.humanMessages.length, 2); assert.equal(state.botMessages.length, 1);
+  assert.equal(state.humanMessages.length, 3); assert.equal(state.botMessages.length, 1);
   state = await turn('human-three', 'human-three-history'); oneFrame(state);
   const beforeRestart = state.rawSnapshots;
   report.checks.push('oneActiveSnapshotAcrossHumanBotAndToolSteps', 'firstRequestUsesItsActualClaimedAuthorAndRoom', 'realReadToolPairAndOriginalSpeakersRetained');
@@ -151,6 +161,8 @@ export const inject=plugin.inject; export const apply=plugin.apply;
   report.checks.push('sameNativeSessionColdRestoreWithUnchangedRawSnapshotEvents');
   // Simulate an upgraded home containing the previously observed 53-frame bloat.
   state = await api('seed', { botId: bot.id, count: 53, chars: 9000 }); assert.equal(state.activeSnapshots.length, 54);
+  state = await api('legacy-request', { botId: bot.id, requestId: 'legacy-before-checkpoint', body: 'Original history before explicit checkpoint.' });
+  const rawBeforeCheckpoint = state.rawRequests.find(row => row.requestId === 'legacy-before-checkpoint');
   const seeded = state.rawSnapshots, maintenanceStart = calls.length;
   report.contextEstimates = { beforeManualCheckpoint: state.contextTokens };
   state = await api('checkpoint', { botId: bot.id }); assert.equal(state.checkpointed, true);
@@ -163,6 +175,9 @@ export const inject=plugin.inject; export const apply=plugin.apply;
     assert.ok(!call.snapshots.some(text => /^Seed snapshot (?:[0-9]|[1-4][0-9]|5[01]):/.test(text)));
   }
   assert.deepEqual(state.rawSnapshots.slice(0, seeded.length), seeded);
+  assert.deepEqual(state.rawRequests.find(row => row.requestId === rawLegacy.requestId), rawLegacy);
+  assert.deepEqual(state.rawRequests.find(row => row.requestId === rawBeforeCheckpoint.requestId), rawBeforeCheckpoint);
+  assert.ok(state.historyReplays.every(text => !text.includes('obsolete-derived-view-')));
   report.checks.push('manualCheckpointPrunesOldHomeSnapshotsBeforeItsFirstNewTurn');
   state = await turn('human-four', 'human-four-after-checkpoint', '@bob:snapshot.local', '!south:snapshot.local'); oneFrame(state);
   assert.equal(state.sessionId, sessionId); assert.deepEqual(state.rawSnapshots.slice(0, seeded.length), seeded);
@@ -197,6 +212,12 @@ export const inject=plugin.inject; export const apply=plugin.apply;
   assert.equal(state.sessionId, report.transferredSessionId);
   assert.equal(sourceOf(state).recentSources.find(source => source.eventId === '$held-across-parts').body, 'Exact original Matrix body held across native parts.');
   report.checks.push('explicitPartTransferAndColdRestoreKeepHeldOriginalBodyAuthorAndRoom');
+  state = await api('bridge-turn', { botId: bot.id }); oneFrame(state);
+  const bridgeEnvelope = state.requestEnvelopes.find(row => row.requestId === 'normal-bridge-request');
+  assert.equal(Object.hasOwn(bridgeEnvelope, 'memoryView'), false); assert.equal(Object.hasOwn(bridgeEnvelope.context.attention, 'memoryView'), false);
+  assert.equal(bridgeEnvelope.currentMessage.body, 'Keep the human literal "memoryView": {"keep":true}.');
+  assert.equal(state.receipt.status, 'completed');
+  report.checks.push('normalNativeBridgePublishesOnlyTheRuntimeFrameAndPreservesLiteralHumanText');
   report.status = 'passed';
 } catch (error) { report.error = error.stack; report.diagnosticDirectory = directory; process.exitCode = 1; }
 finally {

@@ -1,5 +1,6 @@
 import { BlockAssembler, createUserMessage } from '@deepseek-ai/dsh-llm';
 import { createSnapshotContext, snapshotRequestMessages } from './snapshot-context.mjs';
+import { projectNativeRequestMessage } from '../src/native-request.mjs';
 import { defineTool } from '@deepseek-ai/dsh-tools';
 import { join, basename } from 'node:path';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -58,6 +59,7 @@ export function installNativeMemory(rt) {
   const snapshotContext = createSnapshotContext(ctx);
   // Parts also calls this before measuring/compacting the current surface.
   rt.memoryRetireSnapshots = (session, options) => snapshotContext.retire(session, options);
+  rt.memoryProjectRequestMessage = projectNativeRequestMessage;
   // Rewriting re-enters the stream waterfall. It must precede accounting
   // observers so only the final request reaches admission and usage hooks.
   ctx.on('llm/stream', (options, next) => {
@@ -269,6 +271,8 @@ export function installNativeMemory(rt) {
       return;
     }
     if (event.type !== 'user/message') return;
+    // A surface projection is not another statement or a newly accepted turn.
+    if (event.surfaceOp?.op === 'replace') return;
     const message = event.data?.message || event.data, text = textOf(message), nativeSource = message.source || {};
     // DSH also writes runtime snapshots, instructions, skill catalogues and
     // compaction notes as user/message events. They are not new human statements.

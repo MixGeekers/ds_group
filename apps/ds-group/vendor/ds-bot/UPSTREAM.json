@@ -24,7 +24,7 @@
     },
     {
       "file": "src/host/parts.js",
-      "purpose": "Source-aware handoff, explicit native checkpoint and idle overflow recovery, provider overflow fallback; retire obsolete memory surface nodes before context pressure checks"
+      "purpose": "Source-aware handoff, explicit native checkpoint and idle overflow recovery, provider overflow fallback; retire obsolete memory surface nodes before context pressure checks; project reliable historical request views out of checkpoint and handoff replay without duplicating transcript entries"
     },
     {
       "file": "src/host/context-failure.js",

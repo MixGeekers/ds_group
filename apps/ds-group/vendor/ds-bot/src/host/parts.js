@@ -133,6 +133,8 @@ export function replyText(text) {
 }
 
 export function historyEntry(event, group) {
+  // Surface replacements are model projections, not another spoken message.
+  if (event.surfaceOp?.op === 'replace') return undefined
   if (event.type === 'assistant/message') {
     const text = textOf(event.data?.message?.content)
     return text === '' ? undefined : { answer: true, text }
@@ -380,7 +382,7 @@ export function install(rt) {
     // Read backwards, a Bot's answers come before the message they answer.
     let answers = []
     for await (const event of rt.eventsBackwards(sessionId, signal, pages)) {
-      const entry = historyEntry(event, group)
+      const entry = sourceHistoryEntry(event, group)
       if (entry === undefined) continue
       if (entry.answer) {
         answers.push({ text: `You: ${entry.text}`, time: event.time, seq: event.seq, who: 'you' })
@@ -391,6 +393,11 @@ export function install(rt) {
       yield* kept
       if (entry.text !== '') yield { text: entry.who === 'user' ? `User: ${entry.text}` : entry.text, time: event.time, seq: event.seq, who: entry.who }
     }
+  }
+
+  function sourceHistoryEntry(event, group) {
+    const data = event.type === 'user/message' ? rt.memoryProjectRequestMessage?.(event.data) : undefined
+    return historyEntry(data !== undefined && data !== event.data ? { ...event, data } : event, group)
   }
 
   // What a fresh part carries of the part that ends, read newest first: the latest
@@ -1434,6 +1441,7 @@ export function install(rt) {
       items.push(item)
     }
     for (const event of events) {
+      if (event.surfaceOp?.op === 'replace') continue
       if (event.type === 'turn/start') {
         if (typeof event.data?.turn === 'number' && Number.isInteger(event.data.turn)) turn = event.data.turn
         continue
@@ -1645,7 +1653,7 @@ export function install(rt) {
     return true
   }
 
-  Object.assign(rt, { clock, partsOf, historyEntry, partLines, noteText, earlierPage, chatPage, displayItems, followFolder, heldBack, newPart, switchPart, switchJobs: () => switches.values(),
+  Object.assign(rt, { clock, partsOf, historyEntry: sourceHistoryEntry, partLines, noteText, earlierPage, chatPage, displayItems, followFolder, heldBack, newPart, switchPart, switchJobs: () => switches.values(),
     // Explicit maintenance uses exactly the native checkpoint implementation.
     checkpointBot: async botId => {
       const agent = await rt.resolveAgent(rt.chatOf(botId))

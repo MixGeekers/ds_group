@@ -1,7 +1,11 @@
 // Loaded only by the isolated, localhost scripted-provider regression.
 import { createHash } from 'node:crypto';
 import { createUserMessage } from '@deepseek-ai/dsh-llm';
+import { join } from 'node:path';
 import { startNativeTeam } from '../../dsh-connect/native-team.mjs';
+import { NativeBots } from '../../dsh-connect/native-bots.mjs';
+import { NativeBridge } from '../../dsh-connect/native-bridge.mjs';
+import { legacyNativeRequest, requestEnvelope } from './legacy-native-request.mjs';
 export { inject } from '../../dsh-plugin/index.mjs';
 
 const textOf = message => (message?.content ?? []).filter(block => block.type === 'text').map(block => block.text).join('\n');
@@ -31,7 +35,12 @@ export async function apply(ctx, config) {
       rawKinds: raw.map(event => ({ seq: event.seq, type: event.type, sourceKind: (event.data.message ?? event.data).source?.kind })),
       retired: raw.filter(event => event.type === 'user/message' && event.data.source?.kind === 'knowledge-context-retired')
         .map(event => ({ seq: event.seq, sourceEventSeqs: event.sourceEventSeqs, surfaceOp: event.surfaceOp })),
-      humanMessages: raw.filter(event => event.type === 'user/message' && event.data.source?.kind === 'user').map(event => ({ id: event.data.id, text: textOf(event.data), source: event.data.source })),
+      humanMessages: raw.filter(event => event.type === 'user/message' && event.surfaceOp === 'append' && event.data.source?.kind === 'user').map(event => ({ id: event.data.id, text: textOf(event.data), source: event.data.source })),
+      rawRequests: raw.filter(event => event.type === 'user/message' && event.surfaceOp === 'append' && textOf(event.data).startsWith('DSCORD_REQUEST='))
+        .map(event => ({ seq: event.seq, id: event.data.id, hash: hash(event), requestId: event.data.source.requestId })),
+      requestEnvelopes: derived.filter(message => textOf(message).startsWith('DSCORD_REQUEST=')).map(requestEnvelope),
+      historyReplays: raw.filter(event => event.type === 'user/message' && event.surfaceOp === 'append' && textOf(event.data).startsWith('DSCORD_REQUEST='))
+        .map(event => rt.historyEntry(event, false)?.text ?? ''),
       toolResults: raw.filter(event => event.type === 'tool/result').map(event => ({ seq: event.seq, text: textOf(event.data.message), callId: event.data.message.toolCallId })),
       botMessages: raw.filter(event => event.type === 'user/message' && event.data.source?.kind === 'bot').map(event => ({ id: event.data.id, text: textOf(event.data), source: event.data.source })),
     };
@@ -58,6 +67,26 @@ export async function apply(ctx, config) {
         await rt.deliver({ fromId: input.peerId, toId: input.botId, text: input.text, role: 'message' });
         value = await inspect(input.botId);
         if (value.lastTurnEnd?.reason?.kind !== 'completed') throw new Error(`Native relay did not complete: ${JSON.stringify(value.lastTurnEnd)}`);
+      } else if (action === 'legacy-request') {
+        const agent = await rt.resolveAgent(rt.chatOf(input.botId)); await agent.whenIdle();
+        const requestId = input.requestId ?? 'legacy-view-request';
+        const message = legacyNativeRequest({ botId: input.botId, requestId, eventId: `$${requestId}`,
+          senderId: '@alice:snapshot.local', roomId: '!north:snapshot.local', body: input.body ?? 'legacy-human-history-proof' });
+        const envelope = requestEnvelope(message);
+        rt.memoryIngress(agent.id, message.content[0].text, { event: envelope.currentMessage, context: envelope.context });
+        agent.session.append('user/message', message, { surfaceOp: 'append' });
+        value = await inspect(input.botId);
+      } else if (action === 'bridge-turn') {
+        const bridge = await new NativeBridge({ ctx, native: new NativeBots(ctx),
+          node: { id: '@bridge:snapshot.local', nativeBotId: input.botId, directory: join(config.botHome, 'bridge-test') } }).initialize();
+        try {
+          const requestId = 'normal-bridge-request', roomId = '!south:snapshot.local', senderId = '@bob:snapshot.local', eventId = '$normal-bridge-request';
+          const source = { transport: 'matrix', eventId, roomId, sender: { id: senderId, kind: 'human' } };
+          const receipt = await bridge.turn({ requestId, botId: '@bridge:snapshot.local',
+            event: { eventId, roomId, senderId, senderKind: 'human', body: 'Keep the human literal "memoryView": {"keep":true}.' },
+            context: { version: 1, room: { id: roomId }, source, attention: { participationOnly: false, memoryView: { marker: 'obsolete-derived-view-attention' } } } });
+          value = { receipt, ...await inspect(input.botId) };
+        } finally { await bridge.detach(); }
       } else if (action === 'seed') {
         const agent = await rt.resolveAgent(rt.chatOf(input.botId)); await agent.whenIdle();
         for (let n = 0; n < input.count; n++) agent.session.append('user/message', createUserMessage({

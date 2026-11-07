@@ -4,6 +4,7 @@ import { createUserMessage, createMessage, createDeveloperMessage } from '@deeps
 import { Session, SessionId } from '@deepseek-ai/dsh-session';
 import { createSessionContext } from './fixtures/sdk-session-context.mjs';
 import { createSnapshotContext, RETIRED_SNAPSHOT_KIND, snapshotRequestMessages } from '../memory/snapshot-context.mjs';
+import { legacyNativeRequest, requestEnvelope } from './fixtures/legacy-native-request.mjs';
 
 const user = (text, source = { kind: 'user' }) => createUserMessage({ content: [{ type: 'text', text }], source });
 const snapshot = text => user(text, { kind: 'knowledge-context', form: 'snapshot', sections: [{ name: 'source-memory', text }] });
@@ -98,4 +99,22 @@ test('dispatch omits only empty retired nodes and preserves every other empty or
   const current = snapshot('current');
   const unchanged = [human, ordinary, current]; assert.equal(snapshotRequestMessages(unchanged), unchanged);
   assert.deepEqual(snapshotRequestMessages([human, retired, ordinary, current]), unchanged);
+});
+
+test('legacy request views leave the surface and cold restore while their raw events and real history stay exact', async t => {
+  const { session, events, context } = await fixture(t);
+  const legacy = legacyNativeRequest(), event = session.append('user/message', legacy, { surfaceOp: 'append' });
+  const rawBytes = JSON.stringify(event);
+  const peer = user('Real Bot relay.', { kind: 'bot', senderSessionId: 'peer' });
+  session.append('user/message', peer, { surfaceOp: 'append' });
+  const before = requestEnvelope(legacy), changes = await context.retire(session, { keepLatest: true });
+  assert.equal(changes.length, 1); assert.equal(changes[0].seq, event.seq);
+  const projected = session.deriveMessages().find(message => message.id === legacy.id), after = requestEnvelope(projected);
+  assert.equal(Object.hasOwn(after, 'memoryView'), false); assert.equal(Object.hasOwn(after.context.attention, 'memoryView'), false);
+  assert.deepEqual(after.currentMessage, before.currentMessage); assert.deepEqual(projected.source, legacy.source);
+  assert.ok(session.deriveMessages().some(message => message.id === peer.id));
+  assert.equal(JSON.stringify(events.find(row => row.seq === event.seq)), rawBytes);
+  assert.deepEqual(await context.retire(session), []);
+  const restored = Session.create(SessionId('snapshots'), events, session.header, session.inheritedEventCount);
+  assert.deepEqual(restored.deriveMessages(), session.deriveMessages());
 });
