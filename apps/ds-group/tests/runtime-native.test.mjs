@@ -19,6 +19,9 @@ const hook = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL === runtimeUrl && specifier === '@deepseek-ai/dsh-llm') return {
     url: `data:text/javascript,${encodeURIComponent('export const createUserMessage = input => input;')}`, shortCircuit: true,
   };
+  if (context.parentURL === runtimeUrl && specifier === '@deepseek-ai/dsh-tool-executor-native') return {
+    url: `data:text/javascript,${encodeURIComponent('export class NativeToolExecutor { describe(tools) { return { schemas: tools }; } }')}`, shortCircuit: true,
+  };
   return next(specifier, context);
 } });
 let apply;
@@ -42,6 +45,12 @@ async function fixture(t) {
     await emit('session/event', agent.session, { type: 'turn/start', data: { turn: current } });
     await emit('session/event', agent.session, { type: 'user/message', data: message });
     try {
+      const request = agent.hooks.get('agent/request');
+      if (request) {
+        const config = await request({}, async () => ({ provider: 'test', model: 'fixture' }));
+        assert.equal(Object.hasOwn(config, 'tools'), false, 'DSH call config cannot carry tool declarations');
+        assert.equal(Object.values(config).some(value => value === undefined), false, 'DSH request headers require lossless JSON');
+      }
       const chunks = await stream({ sessionId: agent.session.id, provider: 'test', model: native ? 'native' : 'fixture', maxTokens: 4096 });
       assert.equal(chunks.length, 2);
       await emit('session/event', agent.session, { type: 'assistant/message', data: { turn: current, message: {
@@ -56,9 +65,10 @@ async function fixture(t) {
     if (!agents.has(sessionId)) {
       const hooks = new Map(), guards = [];
       const agent = { id: sessionId, session: { id: sessionId, header: { ...(parentSession ? { parentSession } : {}) } },
+        model: { select(selection) { agent.selection = selection; } },
         whenIdle: async () => {}, cancel() {},
         followup(message) { queueMicrotask(() => { void generate(agent, message); }); },
-        ctx: { on(name, handler) { hooks.set(name, handler); }, tools: { guard: fn => guards.push(fn),
+        ctx: { on(name, handler) { hooks.set(name, handler); }, tools: { setExecutor(executor) { agent.executor = executor; }, guard: fn => guards.push(fn),
           schemas: () => toolNames.map(name => ({ name })) } }, hooks, guards };
       agents.set(sessionId, agent);
     }
@@ -171,8 +181,9 @@ test('legacy tasks retain their existing tool scope and admitted model ledger', 
   assert.deepEqual(f.coreCalls.map(call => call.path), ['/internal/model/claim', '/internal/model/complete']);
   assert.equal((await f.state()).nativeUsage.length, 0);
   const agent = f.agents.get(setup.sessionId);
-  const assembled = await agent.hooks.get('system-prompt/assemble')({}, {}, async () => ({ tools: [{ name: 'read' }, { name: 'create_bot' }] }));
-  assert.deepEqual(assembled.tools.map(tool => tool.name), ['read']);
+  const assembled = agent.executor.describe([{ name: 'read' }, { name: 'create_bot' }]);
+  assert.deepEqual(assembled.schemas.map(tool => tool.name), ['read']);
+  assert.deepEqual(agent.selection, { provider: 'test', model: 'fixture' });
   assert.equal(WORK_TOOLS.has('create_bot'), false);
 });
 
@@ -197,9 +208,9 @@ test('a scoped external task keeps its separate Session and effective file tools
   assert.equal(result.body.status, 'completed'); assert.notEqual(result.body.sessionId, setup.sessionId);
   assert.equal(result.body.contextDomainId, input.authorization.domainId);
   const scoped = f.agents.get(result.body.sessionId);
-  const schemas = await scoped.hooks.get('system-prompt/assemble')({}, {}, async () => ({ tools: [{ name: 'read' }, { name: 'bash' }, { name: 'remember' }] }));
+  const schemas = scoped.executor.describe([{ name: 'read' }, { name: 'bash' }, { name: 'remember' }]);
   // A closed collaboration Session continues to expose no tools after its task ends.
-  assert.deepEqual(schemas.tools, []);
+  assert.deepEqual(schemas.schemas, []);
   assert.match(scoped.guards[0]({ name: 'read' }), /no active authorized task/);
   assert.equal(f.agents.get(setup.sessionId).guards.length, 0);
   assert.equal(f.calls.some(call => call.endpoint === 'send'), false);

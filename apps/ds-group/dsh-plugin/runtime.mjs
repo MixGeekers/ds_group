@@ -4,6 +4,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createUserMessage } from '@deepseek-ai/dsh-llm';
+import { NativeToolExecutor } from '@deepseek-ai/dsh-tool-executor-native';
 import { startNativeTeam } from '../dsh-connect/native-team.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
 import { NativeBridge } from '../dsh-connect/native-bridge.mjs';
@@ -304,6 +305,14 @@ export async function apply(ctx, config) {
       if (!run && scopedSessions.has(agent.session.id)) return new Set();
       return run?.input?.authorization ? new Set(run.authorization?.tools || []) : nativeSession(agent.session.id) ? undefined : WORK_TOOLS;
     };
+    const executor = new NativeToolExecutor(agent.ctx);
+    agent.ctx.tools.setExecutor({
+      describe(definitions) {
+        const tools = toolsFor();
+        return executor.describe(tools ? definitions.filter(tool => tools.has(tool.name)) : definitions);
+      },
+      execute: input => executor.execute(input),
+    });
     agent.ctx.tools.guard(exec => {
       const run = active.get(agent.session.id);
       if (scopedSessions.has(agent.session.id) && !run) return 'This collaboration Session has no active authorized task.';
@@ -324,11 +333,6 @@ export async function apply(ctx, config) {
       }
       return next();
     });
-    agent.ctx.on('system-prompt/assemble', async (_assembly, _context, next) => {
-      const assembled = await next();
-      const tools = toolsFor();
-      return tools ? { ...assembled, tools: (assembled.tools ?? []).filter(tool => tools.has(tool.name)) } : assembled;
-    });
     agent.ctx.on('agent/pre-step', async (_payload, next) => {
       const run = active.get(agent.session.id);
       if (!run && nativeSession(agent.session.id)) return next();
@@ -348,8 +352,9 @@ export async function apply(ctx, config) {
       if (!run || run.record.cancelRequested) throw fail('UNSCHEDULED_MODEL_REQUEST');
       const request = await next();
       run.requests++;
-      return { ...request, ...route, reasoningEffort: selection.reasoningEffort, maxTokens: outputTokens,
-        tools: toolsFor() ? (request.tools ?? []).filter(tool => toolsFor().has(tool.name)) : request.tools };
+      // DSH persists this as LlmCallConfig. Tool declarations belong to the
+      // executor, and omitted model controls must remain omitted in the header.
+      return { ...request, maxTokens: outputTokens };
     });
     agent.ctx.on('agent/request-error', async (_payload, next) => nativeSession(agent.session.id) ? next() : { kind: 'abort' }, { prepend: true });
   }
@@ -572,6 +577,7 @@ export async function apply(ctx, config) {
       } else sessionId = rt.chatOf(bot.dsBotId);
       agent = await rt.resolveAgent(sessionId);
       configureAgent(agent);
+      agent.model.select({ ...route, ...(selection.reasoningEffort === undefined ? {} : { reasoningEffort: selection.reasoningEffort }) });
       const directory = ctx.get?.('workingDirectory');
       if (!directory) throw fail('WORKING_DIRECTORY_UNAVAILABLE');
       await directory.set(agent, workspace.workdir);

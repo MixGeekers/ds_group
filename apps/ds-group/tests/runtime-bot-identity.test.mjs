@@ -25,6 +25,10 @@ const hook = registerHooks({
         url: `data:text/javascript,${encodeURIComponent('export const createUserMessage = () => { throw new Error("Unexpected model task in identity test"); };')}`,
         shortCircuit: true,
       };
+      if (specifier === '@deepseek-ai/dsh-tool-executor-native') return {
+        url: `data:text/javascript,${encodeURIComponent('export class NativeToolExecutor { describe(tools) { return { schemas: tools }; } }')}`,
+        shortCircuit: true,
+      };
     }
     return nextResolve(specifier, context);
   },
@@ -72,7 +76,7 @@ async function fixture(t, { nodeState, bots = [], beforeCreate, updateFailures =
     },
     async resolveAgent(sessionId) {
       if (!agents.has(sessionId)) agents.set(sessionId, { session: { id: sessionId }, ctx: {
-        on() {}, tools: { guard() {}, schemas: () => [{ name: 'read_file' }] },
+        on() {}, tools: { setExecutor() {}, guard() {}, schemas: () => [{ name: 'read_file' }] },
       } });
       return agents.get(sessionId);
     },
