@@ -63,3 +63,5 @@ CI 保留十项正式门禁：四组 Linux/Node、两组 Docker/Compose、两组
 固定源码的结果分别见 [b3add9b 发行验证](kernel-validation.md)与 [9898c62 增量验证](kernel-validation-9898.md)；后者保留快照升级后发现的多步文件任务重复账目失败，不能以较早通过结果替代。
 
 统一修补组合的双架构 SDK、实际账目、快照与新 npm 包结果见[运行时发行增量复验](kernel-validation-increment.md)。
+
+最终固定 `e284b21` 的可部署候选包、后台回顾停机复验和十项正式 CI 全绿记录见[最终候选验证](kernel-validation-e284.md)。
