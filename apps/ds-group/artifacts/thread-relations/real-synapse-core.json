@@ -1,0 +1,335 @@
+{
+  "schemaVersion": 1,
+  "runId": "thread-2026-11-07T03-31-16-214Z-2e597271",
+  "startedAt": "2026-11-07T03:31:16.215Z",
+  "status": "passed",
+  "level": "real-existing-core-synapse-zero-model",
+  "sourceBase": "2f7a93691d50f04ded6a0ecef49147f33815cdc3",
+  "specification": "https://spec.matrix.org/latest/client-server-api/#threading",
+  "coreUrl": "http://127.0.0.1:25340",
+  "credentialSource": "private Matrix setup; credentials are not copied into evidence",
+  "participants": [
+    {
+      "id": "@he_shan:natural-diagnostic.local",
+      "kind": "human"
+    },
+    {
+      "id": "@tan_prod:natural-diagnostic.local",
+      "kind": "human"
+    }
+  ],
+  "rooms": [
+    {
+      "roomId": "!Q0cuaAsbTV4GpA9FLfyEwZtTr7yaBDgNoueyLH1Jw3s",
+      "purpose": "thread-and-file-verification",
+      "humanOnly": true
+    },
+    {
+      "roomId": "!YntfU0oaoiEwQRinNsmJJCZOzql4_tXbELOyWwRWnAw",
+      "purpose": "cross-room-rejection",
+      "humanOnly": true
+    }
+  ],
+  "cases": [
+    {
+      "name": "existing-service-and-source-preflight",
+      "status": "passed",
+      "details": {
+        "loadedCoreMatches": true,
+        "serverName": "natural-diagnostic.local",
+        "synapseVersion": "1.164.2",
+        "versions": [
+          "r0.0.1",
+          "r0.1.0",
+          "r0.2.0",
+          "r0.3.0",
+          "r0.4.0",
+          "r0.5.0",
+          "r0.6.0",
+          "r0.6.1",
+          "v1.1",
+          "v1.2",
+          "v1.3",
+          "v1.4",
+          "v1.5",
+          "v1.6",
+          "v1.7",
+          "v1.8",
+          "v1.9",
+          "v1.10",
+          "v1.11",
+          "v1.12",
+          "v1.13",
+          "v1.14",
+          "v1.15",
+          "v1.16",
+          "v1.17"
+        ],
+        "authenticatedHumans": 2
+      }
+    },
+    {
+      "name": "create-two-independent-human-only-rooms",
+      "status": "passed",
+      "details": [
+        "!Q0cuaAsbTV4GpA9FLfyEwZtTr7yaBDgNoueyLH1Jw3s",
+        "!YntfU0oaoiEwQRinNsmJJCZOzql4_tXbELOyWwRWnAw"
+      ]
+    },
+    {
+      "name": "plain-root-and-ordinary-reply",
+      "status": "passed",
+      "details": {
+        "rootId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "quoteId": "$B6OcllVTOQyWZPmFmRZgUIJA6OhAAMWzr9L9DDkjT48",
+        "ordinaryReplyId": "$zkyZjcWbW8TsT8JRFBsZw1sOvBlxPjvWdNuEkruPlpg"
+      }
+    },
+    {
+      "name": "thread-root-and-explicit-reply-are-distinct",
+      "status": "passed",
+      "details": {
+        "eventId": "$F1wuGwO3oQVwrYPBRdVmT4K2aC_FKlzcTSBa5Sr9pPk"
+      }
+    },
+    {
+      "name": "root-only-thread-uses-a-non-pinging-fallback",
+      "status": "passed",
+      "details": {
+        "eventId": "$r58Drr-fEn1VbKaFtfCI_nMKgmu4k6K1qUCBdqa1D24"
+      }
+    },
+    {
+      "name": "quiet-cross-thread-quote-stays-in-the-selected-thread",
+      "status": "passed",
+      "details": {
+        "eventId": "$CQXfALlHK0jsEKzLAqHDkq6RLrlAjp4aZdxpBKEtZGE",
+        "otherRootId": "$KHDKyfyRJ9SwHGO-6YRI3mYcGU5We_b8iepn4medqfc"
+      }
+    },
+    {
+      "name": "foreign-room-and-nested-thread-references-are-rejected",
+      "status": "passed",
+      "details": {
+        "foreignRootRejected": true,
+        "quietForeignReplyRejected": true,
+        "nestedThreadRejected": true,
+        "destinationMessageCount": 0
+      }
+    },
+    {
+      "name": "threaded-attachment-has-real-bytes-and-an-independent-reply",
+      "status": "passed",
+      "details": {
+        "eventId": "$Lo09HXHx_iTmwJMyiq9qgogi5eu2Z4sOdwYbVFo1HQk",
+        "attachmentId": "attachment-eb29a093-1886-4f45-a5e6-49b3f874b3ae",
+        "sha256": "caff2e7040226bce7358abfab01df87f8e97f6ed1c7a41119782d8b620524c36",
+        "bytes": 60,
+        "downloadedByOtherHuman": true,
+        "input": {
+          "transactionId": "thread-2026-11-07T03-31-16-214Z-2e597271-file",
+          "body": "线程附件 thread-2026-11-07T03-31-16-214Z-2e597271",
+          "attachments": [
+            "attachment-eb29a093-1886-4f45-a5e6-49b3f874b3ae"
+          ],
+          "threadRootId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+          "replyTo": "$B6OcllVTOQyWZPmFmRZgUIJA6OhAAMWzr9L9DDkjT48",
+          "originThreadRootId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q"
+        }
+      }
+    },
+    {
+      "name": "delivery-retries-are-idempotent-and-thread-changes-conflict",
+      "status": "passed",
+      "details": {
+        "eventId": "$Lo09HXHx_iTmwJMyiq9qgogi5eu2Z4sOdwYbVFo1HQk",
+        "duplicateReceipts": 2,
+        "unchangedEventCount": 1,
+        "changedThreadRejected": true
+      }
+    },
+    {
+      "name": "synapse-independently-aggregates-the-correct-thread",
+      "status": "passed",
+      "details": {
+        "rootId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "relatedEventIds": [
+          "$Lo09HXHx_iTmwJMyiq9qgogi5eu2Z4sOdwYbVFo1HQk",
+          "$CQXfALlHK0jsEKzLAqHDkq6RLrlAjp4aZdxpBKEtZGE",
+          "$r58Drr-fEn1VbKaFtfCI_nMKgmu4k6K1qUCBdqa1D24",
+          "$F1wuGwO3oQVwrYPBRdVmT4K2aC_FKlzcTSBa5Sr9pPk"
+        ],
+        "plainReplyExcluded": true
+      }
+    },
+    {
+      "name": "verification-rooms-have-no-bot-members-or-tasks",
+      "status": "passed",
+      "details": {
+        "humanOnlyRooms": 2,
+        "botMembers": 0,
+        "roomTasks": 0,
+        "modelEndpointsCalled": 0
+      }
+    }
+  ],
+  "events": [
+    {
+      "eventId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+      "roomId": "!Q0cuaAsbTV4GpA9FLfyEwZtTr7yaBDgNoueyLH1Jw3s",
+      "sender": "@he_shan:natural-diagnostic.local",
+      "type": "m.room.message",
+      "body": "合成线程根 thread-2026-11-07T03-31-16-214Z-2e597271",
+      "relation": null,
+      "mentions": {
+        "user_ids": []
+      },
+      "metadata": {
+        "replyTo": null,
+        "threadRootId": null,
+        "originThreadRootId": null,
+        "attachments": []
+      }
+    },
+    {
+      "eventId": "$zkyZjcWbW8TsT8JRFBsZw1sOvBlxPjvWdNuEkruPlpg",
+      "roomId": "!Q0cuaAsbTV4GpA9FLfyEwZtTr7yaBDgNoueyLH1Jw3s",
+      "sender": "@he_shan:natural-diagnostic.local",
+      "type": "m.room.message",
+      "body": "普通引用 thread-2026-11-07T03-31-16-214Z-2e597271",
+      "relation": {
+        "m.in_reply_to": {
+          "event_id": "$B6OcllVTOQyWZPmFmRZgUIJA6OhAAMWzr9L9DDkjT48"
+        }
+      },
+      "mentions": {
+        "user_ids": [
+          "@tan_prod:natural-diagnostic.local"
+        ]
+      },
+      "metadata": {
+        "replyTo": "$B6OcllVTOQyWZPmFmRZgUIJA6OhAAMWzr9L9DDkjT48",
+        "threadRootId": null,
+        "originThreadRootId": null,
+        "attachments": []
+      }
+    },
+    {
+      "eventId": "$F1wuGwO3oQVwrYPBRdVmT4K2aC_FKlzcTSBa5Sr9pPk",
+      "roomId": "!Q0cuaAsbTV4GpA9FLfyEwZtTr7yaBDgNoueyLH1Jw3s",
+      "sender": "@he_shan:natural-diagnostic.local",
+      "type": "m.room.message",
+      "body": "线程中的直接引用 thread-2026-11-07T03-31-16-214Z-2e597271",
+      "relation": {
+        "event_id": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "is_falling_back": false,
+        "m.in_reply_to": {
+          "event_id": "$B6OcllVTOQyWZPmFmRZgUIJA6OhAAMWzr9L9DDkjT48"
+        },
+        "rel_type": "m.thread"
+      },
+      "mentions": {
+        "user_ids": [
+          "@tan_prod:natural-diagnostic.local"
+        ]
+      },
+      "metadata": {
+        "replyTo": "$B6OcllVTOQyWZPmFmRZgUIJA6OhAAMWzr9L9DDkjT48",
+        "threadRootId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "originThreadRootId": null,
+        "attachments": []
+      }
+    },
+    {
+      "eventId": "$r58Drr-fEn1VbKaFtfCI_nMKgmu4k6K1qUCBdqa1D24",
+      "roomId": "!Q0cuaAsbTV4GpA9FLfyEwZtTr7yaBDgNoueyLH1Jw3s",
+      "sender": "@he_shan:natural-diagnostic.local",
+      "type": "m.room.message",
+      "body": "线程续话 thread-2026-11-07T03-31-16-214Z-2e597271",
+      "relation": {
+        "event_id": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "is_falling_back": true,
+        "m.in_reply_to": {
+          "event_id": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q"
+        },
+        "rel_type": "m.thread"
+      },
+      "mentions": {
+        "user_ids": []
+      },
+      "metadata": {
+        "replyTo": null,
+        "threadRootId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "originThreadRootId": null,
+        "attachments": []
+      }
+    },
+    {
+      "eventId": "$CQXfALlHK0jsEKzLAqHDkq6RLrlAjp4aZdxpBKEtZGE",
+      "roomId": "!Q0cuaAsbTV4GpA9FLfyEwZtTr7yaBDgNoueyLH1Jw3s",
+      "sender": "@he_shan:natural-diagnostic.local",
+      "type": "m.room.message",
+      "body": "引用第二主题但继续第一主题 thread-2026-11-07T03-31-16-214Z-2e597271",
+      "relation": {
+        "event_id": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "is_falling_back": false,
+        "m.in_reply_to": {
+          "event_id": "$K2wT0nxs9b-t73OUX-pN93qLNsbVhzeAF_Ni1TF2GC8"
+        },
+        "rel_type": "m.thread"
+      },
+      "mentions": {
+        "user_ids": []
+      },
+      "metadata": {
+        "replyTo": "$K2wT0nxs9b-t73OUX-pN93qLNsbVhzeAF_Ni1TF2GC8",
+        "threadRootId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "originThreadRootId": null,
+        "attachments": []
+      }
+    },
+    {
+      "eventId": "$Lo09HXHx_iTmwJMyiq9qgogi5eu2Z4sOdwYbVFo1HQk",
+      "roomId": "!Q0cuaAsbTV4GpA9FLfyEwZtTr7yaBDgNoueyLH1Jw3s",
+      "sender": "@he_shan:natural-diagnostic.local",
+      "type": "m.room.message",
+      "body": "线程附件 thread-2026-11-07T03-31-16-214Z-2e597271",
+      "relation": {
+        "event_id": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "is_falling_back": false,
+        "m.in_reply_to": {
+          "event_id": "$B6OcllVTOQyWZPmFmRZgUIJA6OhAAMWzr9L9DDkjT48"
+        },
+        "rel_type": "m.thread"
+      },
+      "mentions": {
+        "user_ids": [
+          "@tan_prod:natural-diagnostic.local"
+        ]
+      },
+      "metadata": {
+        "replyTo": "$B6OcllVTOQyWZPmFmRZgUIJA6OhAAMWzr9L9DDkjT48",
+        "threadRootId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "originThreadRootId": "$DsinghDMuNZc45WrFVJViJDaIKZyN_FiMe9ENpa6z6Q",
+        "attachments": [
+          {
+            "id": "attachment-eb29a093-1886-4f45-a5e6-49b3f874b3ae",
+            "name": "线程核对.txt",
+            "sha256": "caff2e7040226bce7358abfab01df87f8e97f6ed1c7a41119782d8b620524c36",
+            "size": 60
+          }
+        ]
+      }
+    }
+  ],
+  "modelCallsInitiated": 0,
+  "servicesStarted": 0,
+  "storyRoomsAccessed": 0,
+  "coreLoadedSha256": "5079634da23601301faa9edd505f125053d092edb0489e76ec1fe5fc96f591c0",
+  "synapseVersion": "1.164.2",
+  "sharedBudgetBefore": 0,
+  "sharedBudgetAfter": 0,
+  "sharedBudgetDelta": 0,
+  "sharedBudgetScope": "Shared diagnostic environment; concurrent scenario calls are not attributable to this human-only script.",
+  "finishedAt": "2026-11-07T03:31:16.902Z"
+}
