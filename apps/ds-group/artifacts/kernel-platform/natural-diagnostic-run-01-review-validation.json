@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-07T04:01:04.089Z",
+  "sourceCommit": "b3add9b4c42e384313cc0fb164009cf8b20fb4b7",
+  "originalReportSha256": "813249dc49f0c0711db154291497c0adb822162f34def7d9461cebb4159c1017",
+  "privateReviewSidecarSha256": "829c77fa6b8faf1a4416e8849d8b46ab7172aa7a34d7a58d43f7cd44cb6d1616",
+  "reviewEvidence": {
+    "actualBotMessagesReviewed": 17,
+    "openCriteriaReviewed": 3,
+    "artifactsByteVerified": 9,
+    "findings": 4,
+    "immutableReviewedInputFiles": 19,
+    "reviewedInputHashesStillMatch": true
+  },
+  "exporterValidation": {
+    "command": "node --test tests/platform-natural-validation.test.mjs",
+    "tests": 26,
+    "passed": 26,
+    "failed": 0,
+    "actualProviderCalls": 0,
+    "originalRunMutations": 0
+  },
+  "publication": {
+    "publicHashes": {
+      "artifacts/kernel-platform/natural-diagnostic-run-01-reviewed.json": "3a94d8cc599ba6248ec0105dab74f95f502b161688948b4e4e2403d232c27fcd",
+      "artifacts/kernel-platform/natural-diagnostic-run-01-review.md": "ba901a1b5c21e857a01a3b945e356622ebf89f09f0caac3fe1a7bce3b83d6eb1"
+    },
+    "nonMessageCommentsExcluded": 11,
+    "privateBodiesOmitted": 2,
+    "privateTokenScan": {
+      "syntheticNodeConfigFiles": 6,
+      "hostLogFiles": 1,
+      "secretCandidates": 7,
+      "dshAuthUrlCandidates": 1,
+      "literalSecretMatches": 0,
+      "dshAuthUrlMatches": 0,
+      "credentialPatternMatches": 0,
+      "secretValuesCopied": false,
+      "scope": "Only secret candidate counts are published; provider credentials and raw DSH logs are not copied."
+    }
+  }
+}

@@ -240,3 +240,23 @@ test('pure human conversations and optional social turns allow silence without a
     assert.equal(result.silenceAllowed, true); assert.equal(result.checks.some(row => !row.passed), false);
   }
 });
+test('public evidence filters membership comments, redacts private bodies and binds the review to the original report', async t => {
+  const directory = await temporary(t), definition = definitionFor('diagnostic');
+  const report = { status: 'completed-awaiting-review', definitionHash: definition.definitionHash, rows: [], attempts: [], failures: [], bots: [{ id: 'b0' }],
+    allBotMessageReview: [{ eventId: 'membership', room: 'project', body: '' }, { eventId: 'public', room: 'project', body: 'public text' },
+      { eventId: 'private', room: 'private-a', body: 'synthetic confidential card' }] };
+  await writeFile(path.join(directory, 'report.json'), JSON.stringify(report));
+  await writeFile(path.join(directory, 'frozen-definition.json'), JSON.stringify(definition));
+  await writeFile(path.join(directory, 'matrix-events.jsonl'), [{ event_id: 'membership', sender: 'b0', type: 'm.room.member' },
+    { event_id: 'public', sender: 'b0', type: 'm.room.message' }, { event_id: 'private', sender: 'b0', type: 'm.room.message' }].map(JSON.stringify).join('\n'));
+  const reviewFile = path.join(directory, 'review.json'), review = { reviewId: 'review-1', status: 'reviewed-with-findings',
+    source: { reportSha256: sha(JSON.stringify(report)), definitionHash: definition.definitionHash },
+    coverage: { actualBotMessages: 2 }, findings: [], messageReviews: [{ eventId: 'public', verdict: 'acceptable' }], internalSecrets: 'DO_NOT_EXPORT' };
+  await writeFile(reviewFile, JSON.stringify(review));
+  const result = await exportNaturalEvidence(directory, path.join(directory, 'public.json'), { reviewFile });
+  assert.equal(result.allBotMessageReview.length, 2); assert.equal(result.messageReviewFilter.excludedNonMessages, 1);
+  assert.equal(result.independentReview.reviewId, 'review-1'); assert.equal(JSON.stringify(result).includes('DO_NOT_EXPORT'), false);
+  assert.equal(JSON.stringify(result).includes('synthetic confidential card'), false);
+  review.source.reportSha256 = 'wrong-run'; await writeFile(reviewFile, JSON.stringify(review));
+  await assert.rejects(exportNaturalEvidence(directory, path.join(directory, 'wrong.json'), { reviewFile }), /does not match/);
+});
