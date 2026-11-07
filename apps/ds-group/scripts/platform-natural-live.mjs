@@ -285,7 +285,7 @@ export class NaturalLiveAdapter {
     await this.host.api('init'); const after = await this.nativeState(); await this.host.api('connect'); await this.saveHostState();
     const old = before.bots.map(bot => ({ id: bot.id, sessionId: bot.sessionId }));
     const next = after.bots.map(bot => ({ id: bot.id, sessionId: bot.sessionId }));
-    return { before: old, after: next, identitiesPreserved: old.map(bot => bot.id).join('\0') === next.map(bot => bot.id).join('\0'),
+    return { identitiesBefore: old, identitiesAfter: next, identitiesPreserved: old.map(bot => bot.id).join('\0') === next.map(bot => bot.id).join('\0'),
       sessionsPreserved: old.map(bot => bot.sessionId).join('\0') === next.map(bot => bot.sessionId).join('\0'), memoryUsageBefore: memory.usage };
   }
   async protocolEvents() {

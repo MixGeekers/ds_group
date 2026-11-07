@@ -8,6 +8,7 @@ import { packageRoot } from '../src/paths.mjs';
 import { buildNaturalCorpus, publicCorpusSummary, naturalAssets } from './platform-natural-corpus.mjs';
 import { naturalOracles, globalNaturalCriteria, forbiddenScenarioText } from './platform-natural-oracle.mjs';
 import { checkNaturalStep, checkNaturalRun, packingContract } from './platform-natural-check.mjs';
+import { naturalRestartRecord } from './platform-natural-maintenance.mjs';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -103,7 +104,7 @@ export async function runNaturalScenario({ definition, adapter, directory, resum
       if (result.compacted !== true) throw new Error(`Native compaction was not demonstrated after ${after}`);
     }
     if (corpus.maintenance.restarts.includes(after) && !report.maintenance.some(row => row.type === 'native-restart' && row.after === after && row.identitiesPreserved && row.sessionsPreserved)) {
-      const result = await adapter.restart(); report.maintenance.push({ type: 'native-restart', after, ...result, at: new Date().toISOString() }); await save();
+      const result = await adapter.restart(); report.maintenance.push(naturalRestartRecord(after, result)); await save();
       assert.ok(result.identitiesPreserved && result.sessionsPreserved, 'Restart changed native identities or sessions');
     }
   };

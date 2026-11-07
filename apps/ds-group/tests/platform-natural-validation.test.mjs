@@ -233,6 +233,27 @@ test('resume rejects changed frozen criteria before touching the adapter', async
   await assert.rejects(runNaturalScenario({ definition: changed, adapter: second, directory, resume: true }), /immutable/);
   assert.equal(second.posts.length, 0);
 });
+test('a completed full-story restart boundary is not executed again on resume', async t => {
+  class BoundaryAdapter extends ZeroAdapter {
+    restarts = 0;
+    async restart() {
+      this.restarts++;
+      const identities = this.bots.map(bot => ({ id: bot.nativeBotId, sessionId: bot.sessionId }));
+      return { identitiesBefore: identities, identitiesAfter: identities,
+        identitiesPreserved: true, sessionsPreserved: true };
+    }
+  }
+  const directory = await temporary(t), definition = definitionFor('full'), first = new BoundaryAdapter();
+  const partial = await runNaturalScenario({ definition, adapter: first, directory, shouldStop: () => first.posts.length >= 36 });
+  assert.equal(partial.rows.length, 36); assert.equal(first.restarts, 1);
+  assert.equal(partial.maintenance.find(row => row.type === 'native-restart').after, 36);
+  const second = new BoundaryAdapter();
+  const resumed = await runNaturalScenario({ definition, adapter: second, directory, resume: true, shouldStop: () => second.posts.length >= 1 });
+  assert.equal(resumed.rows.length, 37); assert.equal(second.restarts, 0);
+  assert.equal(resumed.maintenance.filter(row => row.type === 'native-restart').length, 1);
+  assert.deepEqual(resumed.maintenance.find(row => row.type === 'native-restart').identitiesAfter,
+    first.bots.map(bot => ({ id: bot.nativeBotId, sessionId: bot.sessionId })));
+});
 test('pure human conversations and optional social turns allow silence without a false failure', async t => {
   const directory = await temporary(t), corpus = buildNaturalCorpus();
   for (const id of ['full-001', 'full-012']) {
