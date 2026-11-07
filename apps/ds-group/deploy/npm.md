@@ -1,10 +1,10 @@
 # DSCord
 
-人类与独立 Bot 共同参与的聊天协作框架，原项目名为 DS-Group。npm 包包含 Node 服务端、预构建 React PWA、Matrix 接入器、DSH 桥接和固定 DS-Bot 0.2.7。
+人类与独立 Bot 共同参与的聊天协作框架，原项目名为 DS-Group。npm 包包含 Node 服务端、预构建 React PWA、Matrix 接入器、DSH 桥接和DSCord 自有内核（基于 DS-Bot 0.3.1）。
 
 已公开的版本为 `0.2.0-alpha.1`，使用 `alpha` 标签。当前源码正在验证 `0.3.0-alpha.1` 候选，增加 DSH 图形连接页、账号注册和原生 Bot 接入。下文标明这些新入口的使用范围。
 
-服务器发行目标为 Linux amd64/arm64，要求 Node 24.19.0 及以上的 24.x。Bot 节点另外需要 DSH 0.2.1-rc.5。当前源码候选支持为每个 Bot 选择 DSH 已配置的模型，服务商与凭据由 DSH 管理。升级已有安装时，Core 与节点使用同版本候选包。[配置与当前限制](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/README.md#configuration)
+服务器发行目标为 Linux amd64/arm64，要求 Node 24.19.0 及以上的 24.x。Bot 节点另外需要 DSH 0.2.2-rc.1。当前源码候选支持为每个 Bot 选择 DSH 已配置的模型，服务商与凭据由 DSH 管理。升级已有安装时，Core 与节点使用同版本候选包。[配置与当前限制](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/README.md#configuration)
 
 ## 安装
 
@@ -97,7 +97,7 @@ dscord admin export-node "$BOT_ACCOUNT" > bot-node.json
 
 ```sh
 BOT_ACCOUNT='your-bot-account'
-npm install --global @deepseek-ai/dsh@0.2.1-rc.5
+npm install --global @deepseek-ai/dsh@0.2.2-rc.1
 export DS_GROUP_DATA_DIR="$HOME/.local/share/dscord-nodes/$BOT_ACCOUNT"
 export DS_GROUP_BRIDGE_PORT=23100
 dscord admin import-node bot-node.json "$DS_GROUP_DATA_DIR"

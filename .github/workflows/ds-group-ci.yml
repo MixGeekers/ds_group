@@ -156,23 +156,35 @@ jobs:
         with:
           node-version: '24.19.0'
       - name: Install official standalone DSH
-        run: npm install --prefix .local/dsh-install --no-audit --no-fund @deepseek-ai/dsh@0.2.1-rc.5
+        run: |
+          DSH_VERSION="$(node --input-type=module -e 'import {DSH_VERSION} from "./scripts/runtime-config.mjs"; process.stdout.write(DSH_VERSION);')"
+          npm install --prefix .local/dsh-install --no-audit --no-fund "@deepseek-ai/dsh@$DSH_VERSION"
+      - name: Prepare verified standalone source
+        run: |
+          node scripts/release-pack.mjs
+          node scripts/release-verify.mjs --extract .local/release-unpacked
+      - name: Owned kernel has one lifecycle and a pure zero-model health API
+        run: node .local/release-unpacked/scripts/kernel-runtime-smoke.mjs
+        env:
+          DS_GROUP_DSH_CLI: ${{ github.workspace }}/apps/ds-group/.local/dsh-install/node_modules/.bin/dsh
+          DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
+          DS_GROUP_KERNEL_SMOKE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/kernel-runtime-smoke.json
       - name: Native Bot session survives restart with zero generations
-        run: node scripts/runtime-smoke.mjs
+        run: node .local/release-unpacked/scripts/runtime-smoke.mjs
         env:
           DS_GROUP_DSH_CLI: ${{ github.workspace }}/apps/ds-group/.local/dsh-install/node_modules/.bin/dsh
           DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
           DS_GROUP_RUNTIME_SMOKE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/runtime-smoke.json
           OPENCODE_API_KEY: ci-synthetic-key-no-generation
       - name: Native tools, artifacts and cancellation with a local scripted provider
-        run: node scripts/runtime-work-smoke.mjs
+        run: node .local/release-unpacked/scripts/runtime-work-smoke.mjs
         env:
           DS_GROUP_DSH_CLI: ${{ github.workspace }}/apps/ds-group/.local/dsh-install/node_modules/.bin/dsh
           DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
           DS_GROUP_WORK_SMOKE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/runtime-work-smoke.json
           OPENCODE_API_KEY: ci-synthetic-key-no-generation
       - name: Native cross-server work authorization and synchronous tool guard
-        run: node scripts/cross-server-runtime-smoke.mjs
+        run: node .local/release-unpacked/scripts/cross-server-runtime-smoke.mjs
         env:
           DS_GROUP_DSH_CLI: ${{ github.workspace }}/apps/ds-group/.local/dsh-install/node_modules/.bin/dsh
           DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
@@ -184,6 +196,7 @@ jobs:
         with:
           name: runtime-${{ matrix.os }}
           path: |
+            apps/ds-group/.local/kernel-runtime-smoke.json
             apps/ds-group/.local/runtime-smoke.json
             apps/ds-group/.local/runtime-work-smoke.json
             apps/ds-group/.local/cross-server-runtime-smoke.json

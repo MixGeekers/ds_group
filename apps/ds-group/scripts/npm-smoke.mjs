@@ -134,7 +134,7 @@ try {
       for (const name of ${JSON.stringify(Object.keys(manifest.dependencies || {}))}) {
         if (!realpathSync(required.resolve(name)).startsWith(process.argv[2]+'/')) throw new Error('Dependency escaped the clean install: '+name);
       }
-      for (const file of ['src/core.mjs','src/bot-node.mjs','src/file-formats.mjs','scripts/runtime-config.mjs']) await import(pathToFileURL(root+'/'+file));`;
+      for (const file of ['src/core.mjs','src/bot-node.mjs','src/file-formats.mjs','scripts/runtime-config.mjs','dsh-plugin/index.mjs','dsh-connect/index.mjs']) await import(pathToFileURL(root+'/'+file));`;
     await command(process.execPath, ['--input-type=module', '-e', probe, installed, installRoot], { cwd: installRoot, env });
   });
   const uid = process.getuid?.() || 1000;

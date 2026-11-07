@@ -6,6 +6,8 @@
 
 中央默认归属、独立 administration 监听、三卷备份及真实发行部署验收见[中央平台部署与发行验证](platform-validation.md)。
 
+自有内核的宿主版本、唯一实例、原目录接管和零模型健康检查见[内核运行与检查](kernel-runtime.md)。
+
 本文对应 `0.3.0` 源码候选，新增账号注册、个人 Bot 创建与 DSH 连接页。公开 npm 包当前为 `0.2.0-alpha.1`，候选安装步骤见 [npm 说明](npm.md)。
 
 ## 支持范围
@@ -41,6 +43,7 @@ DS_GROUP_MATRIX_PUBLIC_URL=https://chat.example.com
 
 ```sh
 docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
+curl --fail http://127.0.0.1:18100/readyz
 ```
 
 在浏览器打开配置的公开地址；默认本机入口为 `http://localhost:18100`。Core 的网页模式默认为 `bundled`，选择 `api-only` 时使用单独部署的聊天客户端。
@@ -75,7 +78,7 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
 | Matrix 身份域 | 模板使用 `localhost` | 首次启动前决定自己的 `DS_GROUP_SERVER_NAME`，已有实例保留原值。 |
 | 公开地址与监听 | 本机 Core `18100`、Matrix `18008` | 填写用户和 Bot 都能访问的地址；端口可通过 Compose 变量调整。 |
 | 账号与 Bot | 引导脚本包含四个演示身份 | 注册自己的账号、创建自己的 Bot；CLI 使用 Bot 完整 ID 中 `@` 与 `:` 之间的账号部分。 |
-| Node / DSH | Node `>=24.19.0 <25`，DSH `0.2.1-rc.5` | 当前适配器依赖这些版本，安装位置通过 PATH 或 `DS_GROUP_DSH_CLI` / `DS_GROUP_DSH_RUNTIME` 指定。 |
+| Node / DSH | Node `>=24.19.0 <25`，DSH `0.2.2-rc.1` | 当前适配器依赖这些版本，安装位置通过 PATH 或 `DS_GROUP_DSH_CLI` / `DS_GROUP_DSH_RUNTIME` 指定。 |
 | DSH 配置来源 | CLI 回退到 `~/.dsh` 的 `desktop` profile | CLI 用 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 指定自己的来源；图形连接使用所在 DSH 宿主的实际 home/profile。 |
 | 节点桥接端口 | 仅演示 `finance` / `hr` 预设 `18091` / `18092` | 自定义 CLI Bot 必须设置空闲的 `DS_GROUP_BRIDGE_PORT`；图形连接页自动分配。 |
 | Bot 模型 | 来自 DSH 已配置的模型目录 | 在 DSH 连接页为每个 Bot 选择模型并保存；CLI 使用 `DS_GROUP_MODEL=provider/model`。服务商、端点与凭据在 DSH 中管理。 |
@@ -158,7 +161,7 @@ export DS_GROUP_DATA_DIR="$HOME/.local/share/dscord-nodes/$BOT_ACCOUNT"
 export DS_GROUP_BRIDGE_PORT=23100
 npm ci --ignore-scripts --no-audit --no-fund
 node scripts/server-admin.mjs import-node bot-node.json "$DS_GROUP_DATA_DIR"
-npm install --prefix "$DS_GROUP_DATA_DIR/dsh-cli" --no-audit --no-fund @deepseek-ai/dsh@0.2.1-rc.5
+npm install --prefix "$DS_GROUP_DATA_DIR/dsh-cli" --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1
 export DS_GROUP_DSH_RUNTIME="$DS_GROUP_DATA_DIR/dsh-cli"
 export DS_GROUP_DSH_SOURCE_HOME="/absolute/path/to/your/dsh-home"
 export DS_GROUP_DSH_SOURCE_PROFILE="your-profile"

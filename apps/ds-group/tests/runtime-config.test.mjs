@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, chmod, symlink, rm, realpath } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { nodeIdentifier, runtimeSettings, providerConfiguration, resolveDsh, MODEL } from '../scripts/runtime-config.mjs';
+import { nodeIdentifier, runtimeSettings, providerConfiguration, resolveDsh, MODEL, DSH_VERSION } from '../scripts/runtime-config.mjs';
 
 const root = path.resolve('runtime-config-fixture');
 
@@ -128,6 +128,6 @@ test('npm DSH CLI is discovered through PATH and SDK resolves from its real pack
 });
 
 test('uninstalled DSH and unsupported native Windows lifecycle fail with deployment guidance', async () => {
-  await assert.rejects(resolveDsh({ env: { PATH: '' }, platform: 'linux' }), /Install @deepseek-ai\/dsh@0.2.1-rc.5/);
+  await assert.rejects(resolveDsh({ env: { PATH: '' }, platform: 'linux' }), error => error.message.includes(`Install @deepseek-ai/dsh@${DSH_VERSION}`));
   await assert.rejects(resolveDsh({ env: {}, platform: 'win32' }), /Linux containers or WSL2/);
 });

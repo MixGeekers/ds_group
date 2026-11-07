@@ -4,7 +4,7 @@ import path from 'node:path';
 import { homedir } from 'node:os';
 import { LEGACY_MODEL, modelError, modelReference, modelSelection } from '../src/model-config.mjs';
 
-export const DSH_VERSION = '0.2.1-rc.5';
+export const DSH_VERSION = '0.2.2-rc.1';
 // Compatibility alias for the original zero-model smoke fixtures.
 export const MODEL = modelReference(LEGACY_MODEL).model;
 

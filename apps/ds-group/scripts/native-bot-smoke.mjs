@@ -51,27 +51,26 @@ await mkdir(profile, { recursive: true });
 const deps = path.join(directory, 'dependencies');
 await prepareRuntimeDependencies({ directory: deps, plugin: path.join(packageRoot, 'dsh-plugin'), runtime: installation.runtime });
 const harness = path.join(directory, 'native-harness.mjs');
-await writeFile(harness, `import {appendFile} from 'node:fs/promises';
-import { registerHooks } from 'node:module';
+await writeFile(harness, `import {appendFile,readFile} from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+import { registerRuntimeResolution } from ${JSON.stringify(new URL('../dsh-plugin/index.mjs', import.meta.url).href)};
 const root = ${JSON.stringify(packageRoot)};
-const hooks = registerHooks({ resolve(specifier, context, next) {
- if (context.parentURL?.startsWith(pathToFileURL(root).href) && specifier.startsWith('@deepseek-ai/')) return next(specifier, {...context,parentURL:pathToFileURL(${JSON.stringify(path.join(installation.runtime,'package.json'))}).href});
- if (context.parentURL?.startsWith(pathToFileURL(root).href) && (specifier === 'yaml' || specifier === 'deep-view' || specifier.startsWith('deep-view/'))) return next(specifier,{...context,parentURL:pathToFileURL(${JSON.stringify(path.join(deps,'package.json'))}).href});
- return next(specifier,context);
-}});
+const {dependencies} = JSON.parse(await readFile(root+'/dsh-plugin/runtime-dependencies.json','utf8'));
+const hooks = registerRuntimeResolution({ project:pathToFileURL(root).href+'/',
+ anchor:pathToFileURL(${JSON.stringify(path.join(installation.runtime,'package.json'))}).href,
+ dependencyAnchor:pathToFileURL(${JSON.stringify(path.join(deps,'package.json'))}).href, dependencies });
 export const inject = ['llm','tools','systemPrompt','sessionController','sessions','sessionTitle','workspaceRegistry','connection'];
 export async function apply(ctx) {
  ctx.on('session/event',(session,event)=>appendFile(${JSON.stringify(path.join(directory,'events.jsonl'))},JSON.stringify({sessionId:session.id,...event})+'\\n'));
- const {createRuntime} = await import(pathToFileURL(root+'/vendor/ds-bot/index.js').href);
- const rt = createRuntime(ctx, {mainName:'主理 Bot', memoryReview:false});
+ const {startNativeTeam} = await import(pathToFileURL(root+'/dsh-connect/native-team.mjs').href);
+ const rt = await startNativeTeam(ctx, {mainName:'主理 Bot', memoryReview:false});
  const {NativeBots} = await import(pathToFileURL(root+'/dsh-connect/native-bots.mjs').href);
  const {NativeBridge} = await import(pathToFileURL(root+'/dsh-connect/native-bridge.mjs').href);
  const native = new NativeBots(ctx); let bridge;
  ctx.effect(() => ctx.connection.fetch.register({path:'/api/native-probe',methods:['POST'],requestBody:'buffered',async fetch(request) {
   try {
    const input=await request.json();let value;
-   if(input.action==='bind') { const state=await native.state();const id=state.mainBotIds[0];await native.selectModel(id,{model:'native-local/chat'}); await rt.setPermission(rt.botOf(id),'danger-full-access');
+   if(input.action==='bind') { const state=await native.state();const id=state.mainBotIds[0]||(await native.call('create-bot',{name:'主理 Bot',role:'协作主理',model:'native-local/chat',main:true,greet:false})).id;await native.selectModel(id,{model:'native-local/chat'}); await rt.setPermission(rt.botOf(id),'danger-full-access');
     bridge=await new NativeBridge({ctx,native,node:{id:'@main:native.test',name:'主理 Bot',nativeBotId:id,directory:${JSON.stringify(path.join(directory,'bridge'))}},timeoutMs:15000}).initialize();value=await bridge.createBot({botId:'@main:native.test'});
    } else if(input.action==='turn') value=await bridge.turn(input.input);
    else if(input.action==='detach') {await bridge.detach();value=true;}

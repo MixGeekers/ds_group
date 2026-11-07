@@ -11,7 +11,7 @@ async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'ds-group-release-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const files = {
-    'package.json': JSON.stringify({ version: '0.1.0', engines: { node: '>=24.19.0 <25' } }),
+    'package.json': JSON.stringify({ version: '0.1.0', engines: { node: '>=24.19.0 <25' }, dependencies: {} }),
     'package-lock.json': '{}', 'src/core.mjs': 'export const value = "你好";',
     'web/index.html': '<!doctype html>', Dockerfile: 'FROM node:24',
     'web/src/client-config.ts': 'export {};', 'web/client-config.json': '{}', 'dsh-connect/index.mjs': 'export {};',
@@ -22,6 +22,11 @@ async function fixture(t) {
     'deploy/synapse/dscord_guard.py': '# guard', '中央身份实施记录.md': '# Identity', '统一客户端实施记录.md': '# Client',
     'deploy/compose.yaml': 'services: {}', 'deploy/.env.example': 'DOMAIN=localhost',
     'vendor/ds-bot/LICENSE': 'upstream license', 'vendor/ds-bot/NOTICE': 'upstream notice',
+    'vendor/ds-bot/package.json': JSON.stringify({ dependencies: {} }),
+    'dsh-plugin/index.mjs': 'export {};', 'dsh-plugin/runtime-dependencies.json': '{"dependencies":{}}',
+    'dsh-plugin/runtime-dependencies-lock.json': '{"packages":{"":{"dependencies":{}}}}',
+    'dsh-plugin/runtime-dependencies-pnpm-lock.yaml': 'lockfileVersion: 9.0',
+    'dsh-connect/kernel-runtime.mjs': 'export {};', 'vendor/ds-bot/src/host/message-source.js': 'export {};',
     '.local/credential.json': 'PRIVATE', 'artifacts/evidence.json': 'PRIVATE',
     'deploy/.env': 'PRIVATE', 'deploy/backup.sqlite': 'PRIVATE',
   };

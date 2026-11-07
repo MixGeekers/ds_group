@@ -2,8 +2,7 @@
 import { appendFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { createRuntime } from '../vendor/ds-bot/index.js';
-import { installNativeMemory } from '../memory/native.mjs';
+import { startNativeTeam } from '../dsh-connect/native-team.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
 import { NativeBridge } from '../dsh-connect/native-bridge.mjs';
 import {MODEL,testModelSelection} from './memory-test-model.mjs';
@@ -14,7 +13,7 @@ export async function apply(ctx, config) {
   let scenario;
   try { scenario=JSON.parse(await readFile(join(directory,'scenario-profile.json'),'utf8')); }
   catch(error) { if(error.code!=='ENOENT')throw error; }
-  const rt = createRuntime(ctx, { mainName: '识雨', workspace: config.workspace, memoryBackend: installNativeMemory,
+  const rt = await startNativeTeam(ctx, { mainName: '识雨', workspace: config.workspace,
     ...(scenario ? {} : { memoryReviewDelayMs: 50 }) });
   const native = new NativeBots(ctx), bridges = new Map();
   let eventWrites = Promise.resolve();
@@ -53,8 +52,9 @@ export async function apply(ctx, config) {
       else if (action === 'init') {
         let state = await native.state();
         for (const bot of state.bots) await (await native.agent(bot.sessionId)).whenIdle();
-        for (const name of ['知秋', '听澜']) if (!state.bots.some(bot => bot.name === name)) {
-          await native.call('create-bot', { name, role: '协作助手', model: MODEL, instructions: scenario?.instructions || '用简体中文完成协作；记忆保留完整账号与来源；需要历史事实时调用 recall。' });
+        for (const name of ['识雨', '知秋', '听澜']) if (!state.bots.some(bot => bot.name === name)) {
+          await native.call('create-bot', { name, role: '协作助手', model: MODEL, main: name === '识雨', greet: false,
+            instructions: scenario?.instructions || '用简体中文完成协作；记忆保留完整账号与来源；需要历史事实时调用 recall。' });
           state = await native.state();
           await (await native.agent(state.bots.find(bot => bot.name === name).sessionId)).whenIdle();
         }

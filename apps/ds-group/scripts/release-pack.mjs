@@ -4,6 +4,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { packageRoot } from '../src/paths.mjs';
+import { verifyRuntimeDependencyManifests } from './runtime-dependencies.mjs';
 
 const rootFiles = ['package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts', 'cordis.patch.yml', 'README.md', '发行验证.md', '前端架构与设计规范.md', 'UI基础组件实施记录.md', '中央身份实施记录.md', '统一客户端实施记录.md', '.gitignore', '.gitattributes', '.dockerignore', 'Dockerfile'];
 const sourceDirectories = ['bin', 'src', 'memory', 'service', 'scripts', 'tests', 'web', 'admin', 'ui', 'deploy', 'dsh-plugin', 'dsh-connect', 'vendor'];
@@ -76,6 +77,7 @@ export function createTar(files) {
 }
 
 export async function buildRelease({ root = packageRoot, output = path.join(root, '.local', 'release') } = {}) {
+  await verifyRuntimeDependencyManifests(root);
   const source = await collectReleaseFiles(root);
   const packageFile = source.find(file => file.path === 'package.json');
   if (!packageFile) throw new Error('Release source needs package.json');
@@ -83,7 +85,10 @@ export async function buildRelease({ root = packageRoot, output = path.join(root
   if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(pkg.version)) throw new Error('Invalid release version');
   const required = ['package-lock.json', 'src/core.mjs', 'src/identity.mjs', 'src/web-mode.mjs', 'src/admin.mjs',
     'scripts/central-init.mjs', 'scripts/admin.mjs', 'bin/dscord.mjs', 'web/index.html', 'web/src/client-config.ts', 'web/client-config.json', 'admin/index.html', 'admin/vite.config.ts',
-    'Dockerfile', 'deploy/compose.yaml', 'deploy/synapse/dscord_guard.py', 'ui/controls.tsx', 'ui/overlays.tsx', 'ui/tailwind.css', 'web/licenses/ui-foundation.txt', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE'];
+    'Dockerfile', 'deploy/compose.yaml', 'deploy/synapse/dscord_guard.py', 'ui/controls.tsx', 'ui/overlays.tsx', 'ui/tailwind.css', 'web/licenses/ui-foundation.txt',
+    'dsh-plugin/index.mjs', 'dsh-plugin/runtime-dependencies.json', 'dsh-plugin/runtime-dependencies-lock.json', 'dsh-plugin/runtime-dependencies-pnpm-lock.yaml',
+    'dsh-connect/kernel-runtime.mjs', 'vendor/ds-bot/src/host/message-source.js',
+    'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE'];
   for (const filename of required) {
     if (!source.some(file => file.path === filename)) throw new Error(`Release is missing ${filename}`);
   }

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { packageRoot } from '../src/paths.mjs';
+import { verifyRuntimeDependencyManifests } from './runtime-dependencies.mjs';
 
 const execute = promisify(execFile);
 const runtimeFiles = [
@@ -37,7 +38,9 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
   const source = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   version ||= `${source.version}-alpha.1`;
   if (!/^\d+\.\d+\.\d+-alpha\.\d+$/.test(version)) throw new Error('Use an explicit alpha version such as 0.2.0-alpha.1');
-  for (const filename of ['dist/web/index.html', 'dist/web/sw.js', 'dist/web/client-config.json', 'dist/web/licenses/lucide.txt', 'dist/web/licenses/ui-foundation.txt', 'dist/admin/index.html', 'dist/admin/licenses/ui-foundation.txt', 'deploy/synapse/dscord_guard.py', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE']) {
+  await verifyRuntimeDependencyManifests(root);
+  for (const filename of ['dist/web/index.html', 'dist/web/sw.js', 'dist/web/client-config.json', 'dist/web/licenses/lucide.txt', 'dist/web/licenses/ui-foundation.txt', 'dist/admin/index.html', 'dist/admin/licenses/ui-foundation.txt', 'deploy/synapse/dscord_guard.py',
+    'dsh-connect/kernel-runtime.mjs', 'vendor/ds-bot/src/host/message-source.js', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE']) {
     await readFile(path.join(root, filename));
   }
   const manifest = {
@@ -50,9 +53,9 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
     bin: { dscord: 'bin/dscord.mjs' },
     files: ['bin', 'src', 'memory', 'service/ombre', 'scripts', 'web/mention-tokens.js', 'dist/web', 'dist/admin', 'deploy/synapse', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot'],
     dependencies: source.dependencies,
-    repository: { type: 'git', url: 'git+https://github.com/MixGeekers/ds_group.git', directory: 'apps/ds-group' },
-    homepage: 'https://github.com/MixGeekers/ds_group',
-    bugs: { url: 'https://github.com/MixGeekers/ds_group/issues' },
+    repository: { type: 'git', url: 'git+https://github.com/MixGeekers/dscord.git', directory: 'apps/ds-group' },
+    homepage: 'https://github.com/MixGeekers/dscord',
+    bugs: { url: 'https://github.com/MixGeekers/dscord/issues' },
     publishConfig: { access: 'public', registry: 'https://registry.npmjs.org/', tag: 'alpha' },
   };
   await mkdir(output, { recursive: true });

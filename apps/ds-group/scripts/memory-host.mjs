@@ -27,13 +27,12 @@ export class MemoryTestHost {
     const deps = path.join(this.directory, 'dependencies');
     await prepareRuntimeDependencies({ directory: deps, plugin: path.join(packageRoot, 'dsh-plugin'), runtime: installation.runtime });
     const harness = path.join(this.directory, 'harness.mjs');
-    await writeFile(harness, `import {registerHooks} from 'node:module';\nimport {pathToFileURL} from 'node:url';
+    await writeFile(harness, `import {readFile} from 'node:fs/promises';\nimport {pathToFileURL} from 'node:url';
+import {registerRuntimeResolution} from ${JSON.stringify(new URL('../dsh-plugin/index.mjs', import.meta.url).href)};
 const root=${JSON.stringify(packageRoot)};
-registerHooks({resolve(specifier,context,next){
- if(context.parentURL?.startsWith(pathToFileURL(root).href)&&specifier.startsWith('@deepseek-ai/')) return next(specifier,{...context,parentURL:pathToFileURL(${JSON.stringify(path.join(installation.runtime, 'package.json'))}).href});
- if(context.parentURL?.startsWith(pathToFileURL(root).href)&&(specifier==='yaml'||specifier==='deep-view'||specifier.startsWith('deep-view/'))) return next(specifier,{...context,parentURL:pathToFileURL(${JSON.stringify(path.join(deps, 'package.json'))}).href});
- return next(specifier,context);
-}});
+const {dependencies}=JSON.parse(await readFile(root+'/dsh-plugin/runtime-dependencies.json','utf8'));
+registerRuntimeResolution({project:pathToFileURL(root).href+'/',anchor:pathToFileURL(${JSON.stringify(path.join(installation.runtime, 'package.json'))}).href,
+ dependencyAnchor:pathToFileURL(${JSON.stringify(path.join(deps, 'package.json'))}).href,dependencies});
 export const inject=['llm','tools','systemPrompt','sessionController','sessions','sessionTitle','workspaceRegistry','connection'];
 export async function apply(ctx){const plugin=await import(pathToFileURL(root+'/scripts/memory-host-plugin.mjs').href);return plugin.apply(ctx,{directory:${JSON.stringify(this.directory)},workspace:${JSON.stringify(this.workspace)}});}`);
     await writeFile(path.join(profile, 'package.json'), JSON.stringify({ name: 'memory-acceptance', private: true, type: 'module', dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'] } } }));
@@ -70,7 +69,7 @@ export async function apply(ctx){const plugin=await import(pathToFileURL(root+'/
     this.exited = new Promise(resolve => this.child.once('close', resolve)); this.cookie = null;
     for (let attempt = 0; attempt < 120; attempt++) {
       if (this.child.exitCode !== null) throw new Error(`Host exited: inspect ${this.logfile}`);
-      try { const state = await this.api('state'); if (state?.bots?.length) return state; } catch { /* starting */ }
+      try { const state = await this.api('state'); if (Array.isArray(state?.bots)) return state; } catch { /* starting */ }
       await delay(500);
     }
     throw new Error(`Host unavailable: inspect ${this.logfile}`);

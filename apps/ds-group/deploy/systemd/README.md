@@ -6,14 +6,14 @@
 
 ## 安装程序与节点数据
 
-在 Linux 服务器安装 Node.js 24.19.0 与 npm。将发行包解压后的 `ds-group/` 内容放到 `/opt/ds-group`，然后执行以下命令。官方 DSH 安装在独立前缀中，当前适配版本为 `0.2.1-rc.5`。下方 `your-bot-account` 替换为 Bot 完整 ID 中 `@` 与 `:` 之间的账号部分，并在同一终端继续操作。服务用户已经存在时复用该用户。
+在 Linux 服务器安装 Node.js 24.19.0 与 npm。将发行包解压后的 `ds-group/` 内容放到 `/opt/ds-group`，然后执行以下命令。官方 DSH 安装在独立前缀中，当前适配版本为 `0.2.2-rc.1`。下方 `your-bot-account` 替换为 Bot 完整 ID 中 `@` 与 `:` 之间的账号部分，并在同一终端继续操作。服务用户已经存在时复用该用户。
 
 ```sh
 BOT_ACCOUNT='your-bot-account'
 sudo useradd --system --user-group --home-dir /var/lib/ds-group --create-home --shell /usr/sbin/nologin dsgroup
 sudo install -d -m 0755 /opt/ds-group-runtime
 sudo npm ci --prefix /opt/ds-group --omit=dev --ignore-scripts --no-audit --no-fund
-sudo npm install --prefix /opt/ds-group-runtime --no-audit --no-fund @deepseek-ai/dsh@0.2.1-rc.5
+sudo npm install --prefix /opt/ds-group-runtime --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1
 sudo install -d -m 0700 -o dsgroup -g dsgroup "/var/lib/ds-group-$BOT_ACCOUNT"
 sudo install -d -m 0700 /etc/ds-group
 ```
