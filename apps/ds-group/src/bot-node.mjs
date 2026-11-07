@@ -13,6 +13,9 @@ import { normalizeDelivery } from './delivery-policy.mjs';
 import { runtimeSettings } from '../scripts/runtime-config.mjs';
 import { createNodeWorkClient, scopedTaskRequest } from './node-work.mjs';
 import { conversationContext, messageSource, threadOf } from './message-context.mjs';
+import { normalizeAttentionConfig, reliableAttentionRoute, attentionMessage, attentionConflict,
+  participationDelay, trailingBotTurns } from './attention.mjs';
+import { ATTENTION_POLICY_VERSION, DecisionError, validateDecision, createOpenAIDecisionProvider } from './decision-provider.mjs';
 
 const metadataOf = event => event.content?.['org.ds_group'] || {};
 const digest = value => createHash('sha256').update(value).digest('hex');
@@ -30,6 +33,19 @@ const sleep = (ms, signal) => new Promise(resolve => {
   const timer = setTimeout(finish, ms);
   signal?.addEventListener('abort', finish, { once: true });
 });
+async function attentionCall(operation, timeoutMs, parentSignal) {
+  const local = new AbortController();
+  const signal = parentSignal ? AbortSignal.any([parentSignal, local.signal]) : local.signal;
+  const timer = setTimeout(() => local.abort(new DecisionError('ATTENTION_TIMEOUT')), timeoutMs);
+  let interrupted;
+  try {
+    const interruption = new Promise((resolve, reject) => {
+      interrupted = () => reject(local.signal.aborted ? new DecisionError('ATTENTION_TIMEOUT') : new DecisionError('ATTENTION_ABORTED'));
+      if (signal.aborted) interrupted(); else signal.addEventListener('abort', interrupted, { once: true });
+    });
+    return await Promise.race([Promise.resolve().then(() => operation(signal)), interruption]);
+  } finally { clearTimeout(timer); signal.removeEventListener('abort', interrupted); }
+}
 
 export function parseBotOutput(raw, botId, participants, { ignoreDelivery = false } = {}) {
   if (typeof raw !== 'string' || !raw.trim()) throw new Error('Bot returned an empty response');
@@ -120,7 +136,8 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
 
 export class BotNode {
   constructor({ participant, participants, roomId, matrix, store, bridge, heartbeat, files, tasks, delivery, roster, work, pollTimeout = 10000,
-    transferAttempts = 3, transferRetryDelayMs = 500, controlIntervalMs = 500, onError = console.error }) {
+    transferAttempts = 3, transferRetryDelayMs = 500, controlIntervalMs = 500, onError = console.error,
+    attention = {}, decisionProvider, readAttentionView, observe, executionMode, nativeBinding }) {
     this.participant = participant;
     this.participants = participants;
     this.roomId = roomId;
@@ -132,6 +149,11 @@ export class BotNode {
     this.tasks = tasks;
     this.roster = roster;
     this.work = work;
+    if (executionMode !== undefined && !['native', 'scoped'].includes(executionMode)) throw new RangeError('Invalid Bot execution mode');
+    if (nativeBinding && (typeof nativeBinding.nativeBotId !== 'string' || nativeBinding.botId && nativeBinding.botId !== participant.id
+      || executionMode === 'scoped')) throw new Error('Native Bot binding does not match this node');
+    this.executionMode = executionMode || (nativeBinding ? 'native' : undefined);
+    this.nativeBinding = nativeBinding;
     this.nodeTools = [];
     this.roomRosters = new Map();
     this.transferAttempts = transferAttempts;
@@ -145,9 +167,195 @@ export class BotNode {
     this.state = 'idle';
     this.lastError = null;
     this.processing = null;
-    this.delivery = new NodeDelivery({ store, participant, participants, matrix, client: delivery, tasks,
+    const { revision = 0, ...attentionConfig } = attention;
+    this.attention = normalizeAttentionConfig(attentionConfig);
+    this.attentionRevision = revision;
+    this.attentionEpoch = 0;
+    this.decisionProvider = decisionProvider;
+    this.readAttentionView = readAttentionView || (bridge.readAttentionView ? (input, options) => bridge.readAttentionView(input, options) : undefined);
+    this.observe = observe || (bridge.observe ? (input, options) => bridge.observe(input, options) : undefined);
+    this.lastObservationError = null;
+    this.delivery = new NodeDelivery({ store, participant, participants, matrix, client: delivery,
+      tasks: tasks ? { ...tasks, control: (id, options = {}) => this.control(id, options.signal) } : undefined,
       updateTask: (item, value) => this.taskUpdate(item, value), flushTasks: () => this.flushTaskUpdates(),
       ingest: events => this.ingestEvents(events) });
+  }
+
+  configureAttention(patch, { revision = patch?.revision } = {}) {
+    const { revision: ignored, ...changes } = patch || {};
+    const next = normalizeAttentionConfig(changes, this.attention);
+    if (revision !== undefined && (!Number.isSafeInteger(revision) || revision < 0)) throw new RangeError('Invalid attention revision');
+    if (revision !== undefined && revision < this.attentionRevision) return { ...this.attention, revision: this.attentionRevision };
+    if (revision !== undefined && revision === this.attentionRevision) {
+      if (JSON.stringify(next) !== JSON.stringify(this.attention)) throw new Error('Attention revision already has a different configuration');
+      return { ...this.attention, revision: this.attentionRevision };
+    }
+    if (this.attention.mode !== next.mode) this.store.settleAttention('mode_changed');
+    this.attention = next;
+    this.attentionRevision = revision ?? this.attentionRevision + 1;
+    this.attentionEpoch++;
+    if (this.started && !this.attending && (this.observe || next.mode !== 'mention')) this.attending = this.attentionLoop();
+    return { ...this.attention, revision: this.attentionRevision };
+  }
+
+  setDecisionProvider(provider) {
+    if (provider !== undefined && provider !== null && typeof provider.decide !== 'function') throw new TypeError('Invalid decision provider');
+    this.decisionProvider = provider || undefined;
+    this.decisionHealth = null;
+    this.attentionEpoch++;
+    return this.attentionStatus();
+  }
+
+  wakeAttention(reason, scope = {}) { return this.store.wakeAttention(reason, scope); }
+
+  attentionStatus() {
+    const snapshot = this.store.attentionSnapshot();
+    const providerHealth = this.decisionHealth || this.decisionProvider?.health?.() || {};
+    const configured = Boolean(this.decisionProvider && this.decisionProvider.configured !== false);
+    const health = providerHealth.health || (configured ? 'unknown' : 'unconfigured');
+    return { mode: this.attention.mode, revision: this.attentionRevision,
+      activity: this.state === 'thinking' ? 'working' : this.sendingAttention ? 'speaking' : snapshot.queue.waiting ? 'waiting' : 'listening',
+      provider: { id: this.decisionProvider?.id || null, model: this.decisionProvider?.model || null, configured,
+        available: !configured || ['error', 'unconfigured'].includes(health) ? false : health === 'ok' ? true : null, health,
+        lastErrorCode: providerHealth.lastErrorCode || null, lastSuccessAt: providerHealth.lastSuccessAt || null },
+      ...snapshot, ...(this.lastObservationError ? { observationError: this.lastObservationError } : {}) };
+  }
+
+  async flushObservations() {
+    if (!this.observe) return true;
+    if (Date.now() < (this.observationRetryAt || 0)) return false;
+    if (this.observing) return this.observing;
+    this.observing = (async () => {
+      for (let batch = this.store.observationBatch(); batch.events.length; batch = this.store.observationBatch()) {
+        try {
+          await attentionCall(signal => this.observe({ botId: this.participant.id, events: batch.events,
+            cursor: batch.cursor, watermark: batch.watermark }, { signal }), this.attention.providerTimeoutMs, this.controller.signal);
+          this.store.acknowledgeObservation(batch.after, batch.watermark.sequence);
+          this.lastObservationError = null;
+        } catch {
+          this.lastObservationError = { code: 'ATTENTION_OBSERVATION_UNAVAILABLE', at: Date.now() };
+          this.observationRetryAt = Date.now() + 1000;
+          return false;
+        }
+      }
+      return true;
+    })();
+    try { return await this.observing; }
+    finally { this.observing = null; }
+  }
+
+  async processAttentionOnce() {
+    if (this.decidingAttention) return false;
+    this.decidingAttention = true;
+    try {
+      const observed = await this.flushObservations();
+      if (this.attention.mode === 'mention') return Boolean(this.store.settleAttention('mention_mode'));
+      const config = { ...this.attention };
+      const epoch = this.attentionEpoch;
+      const batch = this.store.nextAttentionBatch({ ...config, limit: config.historyLimit });
+      if (!batch) return false;
+      const anchor = batch.events.at(-1);
+      const recent = this.store.messagesThrough(batch.roomId, batch.watermark.sequence, config.historyLimit);
+      const messages = recent.map(event => attentionMessage(event, this.participants));
+      const room = this.store.roomContext(batch.roomId);
+      if (this.roomRosters.has(batch.roomId)) room.members = this.roomRosters.get(batch.roomId).map(person => person.id);
+      const sameRoom = event => event?.room_id === batch.roomId ? event : undefined;
+      const context = conversationContext({ event: anchor, participants: this.participants, room,
+        history: recent.filter(event => event.event_id !== anchor.event_id),
+        reply: sameRoom(this.store.message(metadataOf(anchor).replyTo || anchor.content?.['m.relates_to']?.['m.in_reply_to']?.event_id)),
+        threadRoot: sameRoom(this.store.message(batch.threadRootId)) });
+      const self = { id: this.participant.id, name: this.participant.name, role: this.roleOf(),
+        interests: this.participant.interests || [], instructions: this.participant.instructions || '' };
+      const workView = { runtime: { nodeState: this.state, nativeState: 'unknown' }, tasks: this.store.activeTaskView(batch.roomId) };
+      const input = { version: 1, policyVersion: ATTENTION_POLICY_VERSION, self, context,
+        roomId: batch.roomId, threadRootId: batch.threadRootId, watermark: batch.watermark, eventIds: batch.eventIds,
+        trigger: { reason: batch.reason, expiresAt: batch.expiresAt },
+        currentMessages: batch.events.map(event => attentionMessage(event, this.participants)), recentMessages: messages, workView };
+      const id = `attention-${randomUUID()}`;
+      this.store.beginAttentionDecision(id, batch, input);
+      let providerAttempted = false;
+      try {
+        if (!observed) throw new DecisionError('ATTENTION_OBSERVATION_UNAVAILABLE');
+        if (this.readAttentionView) {
+          let view;
+          try { view = await attentionCall(signal => this.readAttentionView({ botId: this.participant.id, roomId: batch.roomId,
+            threadRootId: batch.threadRootId, watermark: batch.watermark, eventIds: batch.eventIds,
+            recentMessages: messages, self, workView }, { signal }), config.providerTimeoutMs, this.controller.signal); }
+          catch { throw new DecisionError('ATTENTION_CONTEXT_UNAVAILABLE'); }
+          input.memoryView = view ?? { available: false };
+          // The durable input must include exactly the view used by the provider.
+          this.store.db.prepare('UPDATE attention_decisions SET input_json=? WHERE id=?').run(JSON.stringify(input), id);
+        } else {
+          input.memoryView = { available: false };
+          this.store.db.prepare('UPDATE attention_decisions SET input_json=? WHERE id=?').run(JSON.stringify(input), id);
+        }
+        if (!this.decisionProvider || this.decisionProvider.configured === false) throw new DecisionError('ATTENTION_PROVIDER_UNCONFIGURED');
+        providerAttempted = true;
+        const result = validateDecision(await attentionCall(signal => this.decisionProvider.decide(input, { signal }),
+          config.providerTimeoutMs, this.controller.signal));
+        if (epoch === this.attentionEpoch) this.decisionHealth = { health: 'ok', lastSuccessAt: Date.now(), lastErrorCode: null };
+        let outcome;
+        let evidence;
+        if (epoch !== this.attentionEpoch) outcome = 'configuration_changed';
+        else if (Date.now() >= batch.expiresAt) outcome = 'expired';
+        else if (config.mode === 'shadow') outcome = 'shadow';
+        else if (result.action === 'SPEAK') {
+          const blocked = attentionConflict({ botId: this.participant.id, eventIds: batch.eventIds }, anchor,
+            this.store.messagesAfter(batch.roomId, batch.watermark.sequence), this.participants);
+          if (blocked) outcome = blocked;
+          else if (trailingBotTurns(messages) >= config.maxBotTurns) outcome = 'bot_turn_limit';
+          else {
+            const peers = this.participants.filter(person => !room.members?.length || room.members.includes(person.id));
+            const delay = participationDelay({ botId: this.participant.id, eventId: batch.eventIds[0], participants: peers,
+              recentMessages: messages, coordinationMs: config.coordinationMs });
+            evidence = { kind: 'natural', botId: this.participant.id, decisionId: id, eventIds: batch.eventIds,
+              watermark: batch.watermark, expiresAt: batch.expiresAt,
+              notBefore: Math.max(Date.now() + delay, (this.lastAttentionSpokeAt || 0) + config.cooldownMs),
+              context: { ...context, attention: { decisionId: id, watermark: batch.watermark, eventIds: batch.eventIds,
+                participationOnly: true, memoryView: input.memoryView, workView } },
+              history: messages.filter(message => message.eventId !== anchor.event_id) };
+          }
+        }
+        this.store.finishAttentionDecision(id, result, { outcome, evidence,
+          waitMs: Math.min(result.waitMs || config.waitMs, config.waitTtlMs), waitTtlMs: config.waitTtlMs });
+        if (evidence) this.delivery.register(anchor);
+      } catch (error) {
+        const code = error instanceof DecisionError ? error.code : 'ATTENTION_PROVIDER_ERROR';
+        if (providerAttempted && epoch === this.attentionEpoch) this.decisionHealth = {
+          health: 'error', lastSuccessAt: this.decisionHealth?.lastSuccessAt || null, lastErrorCode: code,
+        };
+        this.store.failAttentionDecision(id, code);
+        this.onError(`Attention decision ended: ${code}`);
+      }
+      return true;
+    } finally { this.decidingAttention = false; }
+  }
+
+  async attentionLoop() {
+    while (!this.controller.signal.aborted) {
+      try { if (!await this.processAttentionOnce()) await sleep(100, this.controller.signal); }
+      catch { await sleep(500, this.controller.signal); }
+    }
+  }
+
+  attentionSuppression(item) {
+    const evidence = item?.attention;
+    if (evidence?.kind !== 'natural' || evidence.deliveryAttempted) return undefined;
+    // Once actual work has produced an effect, its result keeps the task route.
+    if (item.response?.delegated || item.response?.toolCalls > 0 || item.response?.artifacts?.length) return undefined;
+    if (this.attention.mode !== 'natural') return 'mode_changed';
+    if (!this.decisionProvider || this.decisionProvider.configured === false) return 'provider_unavailable';
+    if (this.store.roomContext(item.event.room_id).membership === 'leave') return 'room_left';
+    if (this.store.withdrawnAttentionSource(evidence)) return 'source_withdrawn';
+    if (Date.now() >= evidence.expiresAt) return 'expired';
+    return attentionConflict(evidence, item.event,
+      this.store.messagesAfter(item.event.room_id, evidence.watermark.sequence), this.participants);
+  }
+
+  suppressAttention(item, reason) {
+    if (item.status === 'generated') this.store.cancelDelivery(item.event_id);
+    else this.store.failed(item.event_id, `Natural participation superseded: ${reason}`, 'cancelled');
+    this.store.attentionOutcome(item.event_id, reason);
   }
 
   senderName(id) { return this.participants.find(p => p.id === id)?.name || id; }
@@ -231,20 +439,34 @@ export class BotNode {
         }
       }
     } else await this.ensureParticipants(events);
-    return this.store.ingest(events, cursor, event => this.delivery.register(event));
+    return this.store.ingest(events, cursor, event => {
+      this.delivery.register(event);
+      const route = this.store.item(event.event_id)?.attention;
+      if (route?.reason === 'active_task_control' && route.sourceEventId) {
+        this.store.requestLocalCancellation(route.sourceEventId, event.event_id, route.cancel ? 'cancelled' : 'requirements_updated');
+        const original = this.store.item(route.sourceEventId);
+        if (original) this.taskUpdate(original, { status: 'cancelled', stage: 'cancelled',
+          summary: route.cancel ? '任务已取消' : '任务要求已更新，等待处理新要求' });
+      }
+    }, { route: event => reliableAttentionRoute(event, { botId: this.participant.id, store: this.store, participants: this.participants }) });
   }
 
   async start() {
     await this.refreshRoster();
     const setup = await this.bridge.createBot({ botId: this.participant.id, name: this.participant.name,
       role: this.roleOf(),
-      instructions: this.instructions() });
+      ...(this.participant.ownerId ? { ownerId: this.participant.ownerId } : {}),
+      instructions: this.instructions(),
+      ...(this.executionMode ? { mode: this.executionMode } : {}),
+      ...(this.nativeBinding ? { nativeBinding: this.nativeBinding } : {}) });
     this.nodeTools = setup?.tools || [];
     this.model = setup?.model;
     await this.heartbeat();
     this.processing = this.processLoop();
     this.syncing = this.syncLoop();
     this.heartbeats = this.heartbeatLoop();
+    this.started = true;
+    if (this.observe || this.attention.mode !== 'mention') this.attending = this.attentionLoop();
     return this;
   }
 
@@ -255,6 +477,7 @@ export class BotNode {
     return `你是 DS-Group 中独立的${this.participant.name}，身份 ${this.participant.id}。你的职责是${duties}。保留自己的经历并区分每个人的身份。\n`
       + `消息源附有发送者、房间、原消息、任务和回复关系。按这些关系回答当前发送者。可协作的 Bot 为 ${peers}。\n`
       + '当前身份与可协作成员以每轮 event.botIdentity 和 event.availableBots 为准。\n'
+      + '你也是群聊中的正式成员，可以分享与自身身份、兴趣和经历相符的看法，参与生活和工作聊天。context.attention 表示本次是自然参与，沿当前话题自然接话，不必把每句话变成受理任务；旁听决策本身不构成新的工具或外部操作授权。\n'
       + '每轮输出一个 JSON 对象，格式为 {"text":"给请求者的回答"}。确实需要其他 Bot 完成工作时，使用 {"text":"你的受理说明","delegate":{"to":"目标 Bot 的完整 ID","body":"具体工作要求及所需事实"}}。\n'
       + '使用宿主提供的文件与终端工具完成工作。附件已下载到任务工作目录，先实际读取内容，再计算或编辑，检查成果后交付。文件修改工作要生成可下载的新文件。最终回复使用 JSON，生成的文件列入 artifacts 数组，每项包含 path 和 name。\n'
       + 'delegate 会真实投递到另一台节点，附带任务文件，由对方返回结果。收到 kind=task.result 后，结合结果向原请求者总结并交付文件。已经收到的结果不要再次委派同一任务。每轮最多一次委派，跨 Bot 协作使用 delegate 字段。';
@@ -298,7 +521,13 @@ export class BotNode {
     const events = [];
     for (const [roomId, room] of Object.entries(response.rooms?.join || {})) {
       this.store.noteRoomState(roomId, [...(room.state?.events || []), ...(room.timeline?.events || [])]);
+      this.store.noteRoomMembership(roomId, 'join');
       events.push(...await this.collectRoomEvents(roomId, room));
+    }
+    for (const [roomId, room] of Object.entries(response.rooms?.leave || {})) {
+      this.store.noteRoomState(roomId, [...(room.state?.events || []), ...(room.timeline?.events || [])]);
+      this.store.noteRoomMembership(roomId, 'leave');
+      events.push(...(room.timeline?.events || []).map(event => ({ ...event, room_id: roomId })));
     }
     await this.ingestEvents(events, response.next_batch);
     if (this.tasks) {
@@ -340,7 +569,8 @@ export class BotNode {
     const room = this.store.roomContext(event.room_id);
     if (this.roomRosters.has(event.room_id)) room.members = this.roomRosters.get(event.room_id).map(person => person.id);
     return { requestId: `matrix-${digest(`${this.participant.id}\0${event.event_id}`)}`, botId: this.participant.id,
-      context: conversationContext({ event, participants: this.participants, room, history,
+      ...(this.executionMode === 'native' ? { mode: 'native', executionMode: 'native' } : {}),
+      context: item.attention?.kind === 'natural' ? item.attention.context : conversationContext({ event, participants: this.participants, room, history,
         earlierCount: Math.max(0, this.store.historyCountBefore(event.event_id) - history.length),
         reply: inRoom(replied), threadRoot: inRoom(this.store.message(threadOf(event))) }),
       event: { eventId: event.event_id, roomId: event.room_id, senderId: event.sender, senderName: this.senderName(event.sender),
@@ -358,7 +588,7 @@ export class BotNode {
         ...(meta.originSenderId ? { originSenderId: meta.originSenderId } : {}), ...(Number.isInteger(meta.hop) ? { hop: meta.hop } : {}),
         ...(meta.originRoomId ? { originRoomId: meta.originRoomId } : {}), ...(meta.originEventId ? { originEventId: meta.originEventId } : {}),
       },
-      history: history.map(previous => ({ eventId: previous.event_id, roomId: previous.room_id,
+      history: item.attention?.kind === 'natural' ? item.attention.history : history.map(previous => ({ eventId: previous.event_id, roomId: previous.room_id,
         source: messageSource(previous, this.participants),
         senderId: previous.sender, senderName: this.senderName(previous.sender), senderKind: this.participants.find(person => person.id === previous.sender)?.kind,
         body: previous.content['m.new_content']?.body ?? previous.content.body, attachments: eventAttachments(previous), taskId: metadataOf(previous).taskId,
@@ -367,6 +597,11 @@ export class BotNode {
   }
 
   taskUpdate(item, changes) {
+    // Participation and shadow decisions have no task card. Real tools/files or
+    // delegation can establish a normal task and keep its existing result chain.
+    const latest = this.store.item(item.event_id);
+    if (item.attention?.kind === 'natural' && !this.store.task(item.event_id)
+      && !latest?.response?.delegated && !(latest?.response?.toolCalls > 0) && !latest?.response?.artifacts?.length) return;
     const request = item.request || (item.request_json ? JSON.parse(item.request_json) : this.requestFor(item));
     const previous = this.store.task(item.event_id);
     if (previous?.status === 'cancelled' && changes.status !== 'cancelled') return;
@@ -399,7 +634,11 @@ export class BotNode {
   }
 
   async control(requestId, signal) {
+    const local = this.store.localCancellation(requestId);
+    if (local) return local;
     if (!this.tasks) return { cancelRequested: false };
+    const item = this.store.requestItem(requestId);
+    if (item?.attention?.kind === 'natural' && !this.store.task(item.event_id)) return { cancelRequested: false };
     try { return await this.tasks.control(requestId, { signal }); }
     catch (error) {
       if (!signal?.aborted) this.onError(`Task control is temporarily unavailable: ${error.message}`);
@@ -451,6 +690,7 @@ export class BotNode {
   }
 
   parentCancelled(item) {
+    if (this.store.cancelledEvent(item.event_id)) return true;
     const meta = metadataOf(item.event);
     return ['task.result', 'task.failure'].includes(meta.kind) && meta.originEventId && this.store.task(meta.originEventId)?.status === 'cancelled';
   }
@@ -477,6 +717,15 @@ export class BotNode {
   }
 
   async acceptResult(item, response) {
+    if (response.status === 'completed' && this.parentCancelled(item)) {
+      // Preserve the actual model/tool receipt, then stop before any new upload
+      // or delivery. A cancellation never pretends earlier work did not happen.
+      this.store.produced(item.event_id, response);
+      this.store.failed(item.event_id, 'Task superseded by a reliable control message', 'cancelled');
+      this.taskUpdate(item, { status: 'cancelled', stage: 'cancelled', summary: '任务已取消' });
+      await this.flushTaskUpdates();
+      return;
+    }
     if (response.status !== 'completed') {
       const status = ['unknown', 'cancelled'].includes(response.status) ? response.status : 'failed';
       const reason = response.errorCode || response.summary || `Bridge returned ${response.status}`;
@@ -493,6 +742,7 @@ export class BotNode {
     }
     // The result survives process loss or upload failure before any Matrix send.
     this.store.produced(item.event_id, response);
+    this.wakeAttention('task_completed', { roomId: item.event.room_id, threadRootId: threadOf(item.event) });
     await this.publishProduced(this.store.item(item.event_id));
   }
 
@@ -580,6 +830,11 @@ export class BotNode {
     const stage = failure ? 'failed' : delegated ? 'waiting_for_bot' : 'completed';
     this.taskUpdate(item, { status, stage,
       summary: failure ? item.response.errorCode || delivery.body : delegated ? '等待协作 Bot 的成果' : '已交付', artifacts: finalAttachments });
+    this.wakeAttention(delegated ? 'delegation_started' : 'delivery_completed', { roomId: item.event.room_id, threadRootId: threadOf(item.event) });
+    if (item.attention?.kind === 'natural') {
+      this.store.attentionOutcome(item.event_id, 'delivered');
+      this.lastAttentionSpokeAt = Date.now();
+    }
     const meta = metadataOf(item.event);
     if (!delegated && ['task.result', 'task.failure'].includes(meta.kind) && meta.originEventId) {
       const parent = this.store.item(meta.originEventId);
@@ -623,6 +878,8 @@ export class BotNode {
     let delivery = this.store.pendingDelivery();
     if (delivery) {
       const source = this.store.item(delivery.source_event_id);
+      const suppressed = this.attentionSuppression(source);
+      if (suppressed) { this.suppressAttention(source, suppressed); return true; }
       let sendAttempted = false;
       const cancelRequested = this.parentCancelled(source) || (this.tasks && (await this.control(source.request.requestId)).cancelRequested);
       if (cancelRequested) {
@@ -634,13 +891,22 @@ export class BotNode {
       try {
         const receipt = await this.delivery.prepare(delivery, prepared => {
           delivery = prepared;
-          if (!this.work) return this.matrix.send(delivery.room_id, delivery.body, delivery.options);
+          const suppressed = this.attentionSuppression(this.store.item(source.event_id));
+          if (suppressed) throw Object.assign(new Error('Natural participation superseded before sending'), { attentionSuppressed: suppressed });
+          const send = () => {
+            if (source.attention?.kind === 'natural') {
+              this.store.updateAttentionEvidence(source.event_id, { deliveryAttempted: true });
+              this.sendingAttention = true;
+            }
+            return this.matrix.send(delivery.room_id, delivery.body, delivery.options);
+          };
+          if (!this.work) return send();
           return (async () => {
             const scoped = source.request.authorization?.kind === 'scoped';
             await this.work?.check(source.request, 'deliver', { destinationRoomId: delivery.room_id,
               recipientId: source.request.authorization?.requesterId || delivery.options.originSenderId || source.event.sender, replyTo: delivery.options.replyTo });
             sendAttempted = true;
-            const receipt = await this.matrix.send(delivery.room_id, delivery.body, delivery.options);
+            const receipt = await send();
             if (scoped) await this.work.check(source.request, 'observe', { effectStatus: 'completed', callId: delivery.transaction_id })
               .catch(error => this.onError(`Known Matrix receipt retained; authorization observation pending: ${error.message}`));
             return receipt;
@@ -650,6 +916,7 @@ export class BotNode {
         this.lastError = null;
         await this.flushTaskUpdates();
       } catch (error) {
+        if (error.attentionSuppressed) { this.suppressAttention(source, error.attentionSuppressed); return true; }
         if (sendAttempted && source.request.authorization) await this.work.check(source.request, 'observe', {
           effectStatus: temporaryTransferError(error) ? 'unknown' : 'failed', callId: delivery.transaction_id,
         }).catch(() => {});
@@ -670,7 +937,7 @@ export class BotNode {
           return true;
         }
         throw error;
-      }
+      } finally { this.sendingAttention = false; }
       return true;
     }
     const produced = this.store.pendingResult();
@@ -680,6 +947,12 @@ export class BotNode {
     }
     const item = this.store.next();
     if (!item) return false;
+    const suppressed = this.attentionSuppression(item);
+    if (suppressed) { this.suppressAttention(item, suppressed); return true; }
+    if (this.store.cancelledEvent(item.event_id)) {
+      this.store.failed(item.event_id, 'Task superseded by a reliable control message', 'cancelled');
+      return true;
+    }
     if (this.roster && !this.work) await this.ensureParticipants([item.event]);
     let request = this.requestFor(item);
     if (this.work) request = { ...request, workGate: 'pending' };
@@ -691,6 +964,8 @@ export class BotNode {
         const admission = await this.work.admit(item.event, this.nodeTools, this.files?.maxBytes);
         for (const person of admission.participants) if (!this.participants.some(existing => existing.id === person.id)) this.participants.push(person);
         request = scopedTaskRequest(request, admission, item.event);
+        if (this.executionMode === 'native' && admission.mode !== 'native') throw Object.assign(new Error('Core has not admitted this native Bot binding'), { status: 403 });
+        if (admission.mode === 'native') request.mode = 'native';
         request.workGate = admission.mode === 'scoped' ? 'scoped' : 'local';
         this.store.prepared(item.event_id, request);
         item.request = request;
@@ -764,10 +1039,17 @@ export class BotNode {
       this.model = runtime?.model ?? null;
     }
     const snapshot = this.store.snapshot();
+    const attention = this.attentionStatus();
+    const kernel = this.bridge.kernelState && this.state !== 'offline'
+      ? await this.bridge.kernelState({ botId: this.participant.id }, {
+        signal: AbortSignal.any([this.controller.signal, AbortSignal.timeout(2000)]),
+      }).catch(() => null) : null;
     await this.sendHeartbeat({ id: this.participant.localpart, botId: this.participant.id, name: this.participant.name,
       runtimeId: this.runtimeId, status: this.lastError && this.state === 'idle' ? 'error' : this.state,
       processed: snapshot.processed, pending: snapshot.pending, sessionId: snapshot.sessionId,
-      lastError: this.lastError || snapshot.lastError, model: this.model, engine: 'DS-Bot 0.2.7' });
+      lastError: this.lastError || snapshot.lastError, model: this.model, engine: 'DS-Bot 0.2.7',
+      ...(this.executionMode ? { executionMode: this.executionMode } : {}),
+      attention, kernel: { ...(kernel || {}), attention }, kernelControl: { version: 1 } });
   }
 
   async heartbeatLoop() {
@@ -783,7 +1065,8 @@ export class BotNode {
 
   async stop() {
     this.controller.abort();
-    await Promise.allSettled([this.processing, this.syncing, this.heartbeats]);
+    await this.kernelManagement?.stop();
+    await Promise.allSettled([this.processing, this.syncing, this.heartbeats, this.attending, this.observing]);
     this.state = 'offline';
     await this.heartbeat().catch(() => {});
     this.store.close();
@@ -833,6 +1116,11 @@ export function createBridge(endpoint, { token, fetchImpl = fetch, timeoutMs = 1
   return {
     createBot: input => request('/api/ds-group-node/bots', input), status, wait,
     runtimeStatus: options => request('/api/ds-group-node/status', undefined, options),
+    observe: (input, options) => request('/api/ds-group-node/observe', input, options),
+    readAttentionView: (input, options) => request('/api/ds-group-node/attention/view', input, options),
+    kernelState: (input, options) => request('/api/ds-group-node/kernel/state', input, options),
+    memoryProfiles: (input, options) => request('/api/ds-group-node/memory/profiles', input, options),
+    memoryProfile: (input, options) => request('/api/ds-group-node/memory/profile', input, options),
     cancel: requestId => request(`/api/ds-group-node/turns/${encodeURIComponent(requestId)}/cancel`, {}),
     turn: async (input, options = {}) => {
       const snapshot = await request('/api/ds-group-node/turns', { ...input, async: true }, options);
@@ -870,6 +1158,9 @@ export async function runNode(argv = process.argv.slice(2)) {
   if (!name) throw new Error('Usage: node src/bot-node.mjs --bot ACCOUNT [--endpoint URL]');
   const setup = JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || localPath('matrix-setup.json'), 'utf8'));
   const config = JSON.parse(await readFile(process.env.DS_GROUP_CORE_CONFIG_PATH || localPath('core-config.json'), 'utf8'));
+  let nodeConfig = {};
+  try { nodeConfig = JSON.parse(await readFile(process.env.DS_GROUP_NODE_CONFIG_PATH || localPath(`dsh-${name}`, 'node-config.json'), 'utf8')); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
   if (process.env.DS_GROUP_MATRIX_URL) setup.homeserverUrl = process.env.DS_GROUP_MATRIX_URL;
   const participant = setup.participants.find(p => p.localpart === name && p.kind === 'bot');
   if (!participant) throw new Error(`Unknown Bot ${name}`);
@@ -882,9 +1173,17 @@ export async function runNode(argv = process.argv.slice(2)) {
   const coreUrl = process.env.DS_GROUP_CORE_URL || config.publicUrl || `http://127.0.0.1:${process.env.DS_GROUP_PORT || 18100}`;
   const work = createNodeWorkClient(coreUrl, config.nodeSecret, participant.id);
   const store = new NodeStore(path.join(directory, 'node.sqlite'), participant.id);
+  const bridge = createBridge(endpoint, { token: process.env.DS_GROUP_BRIDGE_TOKEN });
+  const executionMode = argument('--execution-mode') || process.env.DS_GROUP_EXECUTION_MODE || config.executionMode || nodeConfig.executionMode;
+  const nativeBinding = config.nativeBinding || participant.nativeBinding || nodeConfig.nativeBinding;
+  const attentionMode = argument('--attention-mode') || process.env.DSCORD_ATTENTION_MODE || process.env.DS_GROUP_ATTENTION_MODE
+    || nodeConfig.attention?.mode || config.attention?.mode || 'mention';
+  const decisionKey = process.env.DSCORD_DECISION_API_KEY || process.env.OPENAI_API_KEY;
+  const decisionProvider = process.env.DSCORD_DECISION_ENABLED === 'false' ? undefined
+    : createOpenAIDecisionProvider({ apiKey: decisionKey });
   const node = new BotNode({ participant, participants: setup.participants, roomId: setup.roomId,
     matrix: new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: participant.accessToken }), store,
-    bridge: createBridge(endpoint, { token: process.env.DS_GROUP_BRIDGE_TOKEN }),
+    bridge, executionMode, nativeBinding, attention: { mode: attentionMode }, decisionProvider,
     files: new NodeFiles({ coreUrl, accessToken: participant.accessToken, directory: path.join(directory, 'tasks'), work,
       matrix: new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: participant.accessToken }) }),
     work,
@@ -898,8 +1197,16 @@ export async function runNode(argv = process.argv.slice(2)) {
       if (!response.ok) throw new Error(`Core heartbeat HTTP ${response.status}`);
     },
   });
+  const { KernelNodeClient } = await import('./kernel-node-client.mjs');
+  node.kernelManagement = new KernelNodeClient({ coreUrl, nodeSecret: config.nodeSecret, botId: participant.id,
+    nodeId: participant.localpart, runtimeId: node.runtimeId,
+    operations: { configureAttention: value => { node.configureAttention(value); return node.attentionStatus(); },
+      memoryProfiles: args => bridge.memoryProfiles({ botId: participant.id, ...args }),
+      memoryProfile: args => bridge.memoryProfile({ botId: participant.id, ...args }) },
+    onError: code => node.onError(`Kernel management: ${code}`) });
   try { await node.start(); }
   catch (error) { store.close(); await releaseLock(); throw error; }
+  node.kernelManagement.start();
   console.log(`DS-Group node ${name} connected as ${participant.id}`);
   let stopping;
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
