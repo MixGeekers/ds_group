@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-07T03:15:32.542212+00:00",
+  "level": "offline-product-and-real-dsh-peers-synthetic-host",
+  "implementationCommit": "c2804aaa751c2178ea9d5b4849e90f003bcbb261",
+  "baseCommit": "93e7d99f001b50110ea7e8b24ca4d9d057bcf187",
+  "runtime": {
+    "id": "dscord-kernel",
+    "version": "0.4.0",
+    "upstreamVersion": "0.3.1",
+    "dshPeers": "0.2.2-rc.1",
+    "node": "v24.19.0",
+    "platform": "Darwin",
+    "arch": "arm64"
+  },
+  "realHostOrAccountOperationsByThisAgent": 0,
+  "checks": {
+    "productModules": {
+      "command": "npm test",
+      "result": {
+        "tests": 483,
+        "suites": 0,
+        "pass": 483,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 10561.306166
+      },
+      "logSha256": "6870eddbc2ec331bc8ad6db9016c66b74fa673fd9ae6cc1a64a5276cd244d343",
+      "status": "passed"
+    },
+    "kernelUnits": {
+      "command": "node --test tests/kernel-runtime.test.mjs",
+      "result": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 57.046042
+      },
+      "logSha256": "63594deb2219d991764bcda279ed6e2287232b873ca518da63ecf72e58c51c2c",
+      "status": "passed"
+    },
+    "kernelNativeAndCli": {
+      "command": "npm run test:kernel-host",
+      "result": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1130.616792
+      },
+      "logSha256": "9048a6017aa69b0205ff4d49a0f9d91ed12c2ba99f4b3591781c3b484644bc9b",
+      "status": "passed"
+    },
+    "build": {
+      "command": "npm run build",
+      "status": "passed",
+      "includes": [
+        "TypeScript front end checks",
+        "Vite web build",
+        "PWA build",
+        "admin typecheck and build"
+      ],
+      "logSha256": "d0c82b968f1e99b6c0e9079f8d8062850cd21c5b0bd784d2f1581a2570213acc"
+    },
+    "upstreamFullSuite": {
+      "checkedImplementation": "52b94eb",
+      "status": "completed-with-two-intentional-divergences",
+      "command": "DSH_HARNESS=<isolated-0.2.2-rc.1> node --import test/harness-resolve.mjs --test --test-timeout=120000 --test-force-exit 'test/*.test.js'",
+      "fixture": "upstream 0.3.1 source overlaid with the vendored runtime and bundled client",
+      "result": {
+        "tests": 1861,
+        "suites": 22,
+        "pass": 1857,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 2,
+        "todo": 0,
+        "duration_ms": 14152.439917
+      },
+      "logSha256": "7ae04ec946c7da51a30beb311e3436be0aca1c23e1c061a66345738455beba0d",
+      "divergences": [
+        {
+          "test": "client.js is the build of src/client",
+          "reason": "The unmodified upstream sources target api/bot and omit stable memory entry ID; DSCord intentionally patches both the route and the entry ID in the bundled client."
+        },
+        {
+          "test": "a same-host lock without a fresh heartbeat is taken over even while its pid lives",
+          "reason": "DSCord intentionally retains a live local process lease to avoid a paused runtime resuming alongside a replacement. Covered by kernel-runtime.test.mjs."
+        }
+      ]
+    }
+  },
+  "sourceHashes": {
+    "dsh-connect/kernel-runtime.mjs": "271108002935c72dc5ee23458454f7611bec56bfc562bf3147d1bd89051844dc",
+    "dsh-connect/native-team.mjs": "f350f2b1b2d3f299356941480c5907de59ea91a4c2691b41fb503e0a226a97c3",
+    "dsh-connect/native-bots.mjs": "97302d3e079d10974415449d1ee6ad04ea25ec5aad0dd72f9b220985edc4c925",
+    "vendor/ds-bot/UPSTREAM.json": "dd5ffa8984430f9be6f50ab85a8c543d4efb1168672ecfbca7e5d720f5efb7f8",
+    "vendor/ds-bot/src/host/channel.js": "f3d9cbb04ac36455ee95dc99f20a89f7dc7a241e3517b712d8a33848a09a45a5",
+    "vendor/ds-bot/src/host/message-source.js": "5503856d5d78ef496e29fcc7cdf186330b89a08ba9ee8a4be5534f3794820826",
+    "vendor/ds-bot/src/host/local-agents/adapter.js": "63d614db07b0e84d9660bafba9c44cfc1cb596e94ffcf0ba52bb63c29b628894",
+    "vendor/ds-bot/src/host/store.js": "3de9e1d876967fc5b4495c8fda9cfb1ab56f7f660b489abd3fadf98dc847675b",
+    "vendor/ds-bot/src/host/resume.js": "c7f9c25582fdf4233345362cef8363392b9a1b52b8e21eba198719a788b19f88",
+    "tests/kernel-native.host.mjs": "398ac1137ab55add24191fa94a6805d7dbf060c903a36b0dc00bfaa89eda799a",
+    "tests/kernel-local-agent.host.mjs": "35ccd980aa0f1c25d0789747d4586516d54729ac908f5e02e25f336913bf2c28",
+    "tests/kernel-runtime.test.mjs": "6c9b26fbbb3e9a89190ba4e7f1eaa02c5fd109833d3265146663649b6354f4eb"
+  },
+  "history": [
+    {
+      "attempt": "initial full upstream suite",
+      "result": {
+        "tests": 1510,
+        "suites": 3,
+        "pass": 1441,
+        "fail": 67,
+        "cancelled": 0,
+        "skipped": 2,
+        "todo": 0,
+        "duration_ms": 13035.7485
+      },
+      "reason": "Incomplete isolated test dev dependencies (esbuild and related build fixtures) and direct-module optional-config compatibility. Failed attempt retained as history.",
+      "logSha256": "b5d50ce0946866c06a4ec5427f1c30bf976cdf42efa4a0792a46f802b9dadfac"
+    },
+    {
+      "attempt": "full upstream suite after dev dependencies",
+      "result": {
+        "tests": 1861,
+        "suites": 22,
+        "pass": 1832,
+        "fail": 27,
+        "cancelled": 0,
+        "skipped": 2,
+        "todo": 0,
+        "duration_ms": 14712.514584
+      },
+      "reason": "Direct-module test stubs omit config; new runtime options were not optional in every module. Fixed with optional config access; final original upstream assertions left two intentional divergences.",
+      "logSha256": "a8670f04b3c365101a1f119f85ed47cf42fa43c80eefe09e16ac701ac706f230"
+    },
+    {
+      "attempt": "deployment first real host startup",
+      "status": "failed-in-parallel-deployment-slice",
+      "reason": "Own kernel reached running, but initial state synchronously awaited provider catalog while DSH loader was settling. Fixed in bc2cd26 with cached owned state and explicit model refresh. Real-host retest belongs to the deployment evidence."
+    }
+  ],
+  "limits": [
+    "Synthetic host uses real DSH message/tool libraries but does not claim a full native host behavior acceptance.",
+    "The ACP echo process is real; it does not call a model or authenticate a real CLI account.",
+    "Memory profile and observation endpoints call the memory module contract; full merged backend behavior is validated in the integration slice.",
+    "Eight imported IM adapters and real connectors were not enabled or accepted in this slice.",
+    "Physical cross-machine and remote-model tests are owned by the main integration thread."
+  ],
+  "realModelExecutions": 0,
+  "externalProviderCallsByThisAgent": 0
+}
