@@ -42,7 +42,8 @@ async function fixture(t) {
     'src/native-request.mjs': 'export {};',
     'vendor/ds-bot/LICENSE': 'Apache-2.0', 'vendor/ds-bot/NOTICE': 'DS-Bot notice',
     'vendor/ds-bot/client.js': 'window.__ModuleLoader__.load({\n  id: "ds-bot",\n  factory: (require) => {\n    return { apply() {} };\n  },\n});',
-    'deploy/npm.md': '# DSCord',
+    'deploy/npm.md': '# DSCord\n[Package](../package.json)\n[Compose](README.md)\n[Models](../模型配置与迁移.md)',
+    '模型配置与迁移.md': '# Model configuration',
     '.local/credentials.json': 'PRIVATE', '.npmrc': 'PRIVATE',
     'artifacts/chat.json': 'PRIVATE', 'deploy/.env': 'PRIVATE',
   };
@@ -75,6 +76,10 @@ test('npm packs the exact source version, runtime and licenses without internal 
   assert.equal(manifest.version, '0.2.0');
   assert.equal(manifest.license, 'MIT');
   assert.equal(manifest.publishConfig.tag, 'latest');
+  const guide = (await promisify(execFile)('tar', ['-xOf', result.archive, 'package/README.md'])).stdout;
+  assert.match(guide, /\[Package\]\(package\.json\)/);
+  assert.match(guide, /blob\/ds-group-v0\.2\.0\/apps\/ds-group\/deploy\/README\.md/);
+  assert.match(guide, /\[Models\]\(模型配置与迁移\.md\)/);
 });
 
 test('npm prereleases retain the source version and alpha channel; unlicensed packages cannot ship', async t => {

@@ -13,7 +13,39 @@ const runtimeFiles = [
   'bin/dscord.mjs', 'src', 'memory', 'service/ombre', 'web/mention-tokens.js', 'dist/web', 'dist/admin', 'deploy/synapse', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot',
   ...['service', 'matrix', 'runtime-config', 'runtime-dependencies', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin', 'central-init', 'admin', 'memory-setup']
     .map(name => `scripts/${name}.mjs`),
+  '模型配置与迁移.md',
 ];
+
+async function rewriteGuideLinks(staging, version) {
+  async function visit(relative) {
+    const filename = path.join(staging, relative), stat = await lstat(filename);
+    if (stat.isDirectory()) {
+      for (const child of await readdir(filename)) await visit(relative ? `${relative}/${child}` : child);
+      return;
+    }
+    if (!relative.endsWith('.md') || relative.startsWith('vendor/') || /^(?:LICENSE|LICENCE|NOTICE)(?:\.|$)/i.test(path.basename(relative))) return;
+    const sourcePath = relative === 'README.md' ? 'deploy/npm.md' : relative;
+    const text = await readFile(filename, 'utf8');
+    let result = '', cursor = 0;
+    for (const match of text.matchAll(/\]\(([^)]+)\)/g)) {
+      const href = match[1];
+      if (/^(?:[a-z][a-z0-9+.-]*:|#|\/)/i.test(href)) continue;
+      const pathname = href.split(/[?#]/)[0], suffix = href.slice(pathname.length);
+      const target = path.posix.normalize(path.posix.join(path.posix.dirname(sourcePath), decodeURIComponent(pathname)));
+      let exists = false;
+      if (!target.startsWith('../')) {
+        try { exists = (await lstat(path.join(staging, target))).isFile(); }
+        catch (error) { if (error.code !== 'ENOENT') throw error; }
+      }
+      const url = exists ? `${path.posix.relative(path.posix.dirname(relative), target)}${suffix}`
+        : `https://github.com/MixGeekers/dscord/blob/ds-group-v${version}/${path.posix.normalize(`apps/ds-group/${target}`)}${suffix}`;
+      result += text.slice(cursor, match.index) + `](${url})`;
+      cursor = match.index + match[0].length;
+    }
+    if (cursor) await writeFile(filename, result + text.slice(cursor));
+  }
+  await visit('');
+}
 
 async function copyRuntime(root, staging, relative) {
   if (excludedReleasePath(relative)) return;
@@ -54,7 +86,7 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
     exports: { '.': './dsh-connect/index.mjs', './client': './dsh-connect/client.js', './package.json': './package.json' },
     dsh: { bundle: { patch: './cordis.patch.yml' }, client: { platform: 'web', immediately: true } },
     bin: { dscord: 'bin/dscord.mjs' },
-    files: ['bin', 'src', 'memory', 'service/ombre', 'scripts', 'web/mention-tokens.js', 'dist/web', 'dist/admin', 'deploy/synapse', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot', ...legalFiles],
+    files: ['bin', 'src', 'memory', 'service/ombre', 'scripts', 'web/mention-tokens.js', 'dist/web', 'dist/admin', 'deploy/synapse', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot', '模型配置与迁移.md', ...legalFiles],
     dependencies: source.dependencies,
     repository: { type: 'git', url: 'git+https://github.com/MixGeekers/dscord.git', directory: 'apps/ds-group' },
     homepage: 'https://github.com/MixGeekers/dscord',
@@ -76,6 +108,7 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
     await chmod(path.join(staging, 'bin/dscord.mjs'), 0o755);
     await writeFile(path.join(staging, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
     await copyFile(path.join(root, 'deploy/npm.md'), path.join(staging, 'README.md'));
+    await rewriteGuideLinks(staging, version);
     const { stdout } = await execute('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', path.resolve(output)], {
       cwd: staging, maxBuffer: 4 * 1024 * 1024,
     });
