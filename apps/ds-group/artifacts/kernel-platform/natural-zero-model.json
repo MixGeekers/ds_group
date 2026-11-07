@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-07T03:15:41.017Z",
+  "generatedAt": "2026-11-07T03:17:31.188Z",
   "evidenceLevel": "this-turn zero-model self-check",
   "baseCommit": "93e7d99f001b50110ea7e8b24ca4d9d057bcf187",
   "workingTreeImplementation": true,
@@ -44,7 +44,7 @@
       "directedMessages": 6
     },
     "full": {
-      "hash": "b3a824e4eac0ca77c34aebe7e9cd50dfd3054968126c3c0a6daaa23701722920",
+      "hash": "c591a0281796a049a87af836bc17de4d609c848c9a11dd39e3b9c959f9a78146",
       "messages": 96,
       "humanConversation": 62,
       "directedMessages": 34
@@ -53,7 +53,7 @@
   "sourceHashes": {
     "scripts/platform-natural-accounting.mjs": "b70bd180d784c26bd7fd996cf79cfe10d8e06a0a49a2aabfa9c06af52572beb8",
     "scripts/platform-natural-check.mjs": "dd8f7dc284698f261319d58e3a380b47da82e9fa687f29767776eddd63908497",
-    "scripts/platform-natural-corpus.mjs": "b3a702fc3c72b2b926cf9da98572a09e5acd58caf3feee98d40c129e6c67a567",
+    "scripts/platform-natural-corpus.mjs": "d99d738bfb9c5dd61380055d53c31ec85f898788a8903fe9c51377e131459504",
     "scripts/platform-natural-environment.mjs": "03abf1b3ad58a8e4ad898ebfaeb71b1593263fe1a4a551b8e4d2ff63083a6ce5",
     "scripts/platform-natural-evidence.mjs": "a9b0b4c3e8cca12d48da07363d5d57e9603e94280a4fc5f6bdba4d28d93b68f5",
     "scripts/platform-natural-host.mjs": "944cf546cc487c8c52def69205a6d124093b01bee6cb322eef05f42f7ee7702e",
@@ -68,5 +68,6 @@
     "Synthetic controller completion-with-failures was an expected test result; it is not product acceptance",
     "Full native compression/restart and open social/source-priority judgments remain untested until the main thread starts a live run"
   ],
-  "authorizedExistingChange": "Main-thread authorization: add optional profiles to memory-visible-environment.mjs while retaining all legacy defaults; new scenarios register their own names and accounts directly"
+  "authorizedExistingChange": "Main-thread authorization: add optional profiles to memory-visible-environment.mjs while retaining all legacy defaults; new scenarios register their own names and accounts directly",
+  "preLiveRefinement": "Before any live messages, add natural Monday/Tuesday/Wednesday cues and day 20 to the human-confirmed move time; private business metadata is not assumed visible to Bots"
 }

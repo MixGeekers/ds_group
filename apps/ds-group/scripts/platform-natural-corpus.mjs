@@ -59,7 +59,7 @@ export function buildNaturalCorpus(profile = 'full') {
   if (profile !== 'full') throw new Error(`Unknown natural profile: ${profile}`);
   const b = builder('full', fullPeople), { say, ask } = b;
   b.scene('周一早上的小插曲', '2026-11-16T08:30:00+08:00');
-  say('a', 'life', '早。雨大得我又退回楼上拿伞，结果错过了那班总晚点的公交。');
+  say('a', 'life', '周一早。雨大得我又退回楼上拿伞，结果错过了那班总晚点的公交。');
   say('c', 'life', '我也是！我们上回在站台分那只芝士面包，还是一样的天气。');
   say('d', 'life', '那次面包是我买的，伞是你俩借走的，到现在还在我车里。');
   say('b', 'life', 'At least the keyboard stayed dry this time. Mine was not so lucky last month.');
@@ -87,10 +87,10 @@ export function buildNaturalCorpus(profile = 'full') {
   say('c', 'life', '我先下班去取胶片，今天不绕去店里买更多收纳盒了。');
 
   b.scene('周二，有人忙，有人改了主意', '2026-11-17T08:40:00+08:00');
-  say('d', 'work', '早上要陪家里人复诊，我到中午才上线，急事先找阿宁。');
+  say('d', 'work', '周二早上要陪家里人复诊，我到中午才上线，急事先找阿宁。');
   say('a', 'life', '今天终于坐上那班公交。人太挤，我把咖啡留在家里了。');
   say('b', 'life', 'Tea is safer near my desk anyway. My keyboard has served its time as a coffee filter.');
-  say('a', 'project', '物业刚确认：改到周五10:20，从西侧坡道进一层。周四九点和北门三层那版作废，别让司机按旧稿走。');
+  say('a', 'project', '物业刚确认：改到周五20号10:20，从西侧坡道进一层。周四九点和北门三层那版作废，别让司机按旧稿走。');
   say('c', 'project', '我跟司机说了，他在西侧等我开卷门。车能到坡道口，先别承诺能开进屋。');
   say('b', 'project', 'I still have move-draft.md open. That is yesterday’s draft, so I will not use its route to book anything.');
   ask('a', 'project', 0, '帮我把给同事看的安排改成 move-current.md，我待会儿转给还没上线的人。');
@@ -129,7 +129,7 @@ export function buildNaturalCorpus(profile = 'full') {
   ask('a', 'project', 0, '路线说明把刚才那条补进去，最后交我 route-final.md，发之前看一眼两种路线有没有混在一起。');
 
   b.scene('周三早上接着过日子', '2026-11-18T08:45:00+08:00');
-  say('c', 'life', '天晴了，洗的相机背带终于干了。今天不想再闻到纸箱味。');
+  say('c', 'life', '周三天晴了，洗的相机背带终于干了。今天不想再闻到纸箱味。');
   say('d', 'work', '我带了新订书机，旧的那个一按就散架，搬过去也只会给新桌子添乱。');
   say('a', 'work', '我九点到十点见客户，搬家这边先照昨天下午确认的走。有新情况在群里说。');
   ask('d', 'life', 2, '今天中午我想出去走十分钟，别给路线，随便讲个你觉得值得抬头看的小东西。', { optional: true });
